@@ -37,5 +37,4 @@ def send_telegram_html(*, cfg: TelegramConfig, message_html: str, timeout_second
 
 
 def h(text: str | None) -> str:
-    return html.escape(text or "", quote=False)
-
+    return html.escape(text or "", quote=True)

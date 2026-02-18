@@ -30,6 +30,10 @@ def extract_price(text: str) -> tuple[str | None, str | None]:
     amount = m.group("amount").replace(",", ".")
     if currency == "$":
         currency = "USD"
+    if currency == "€":
+        currency = "EUR"
+    if currency == "£":
+        currency = "GBP"
     if currency == "¥":
         currency = "CNY"
     if currency == "RMB":
@@ -98,4 +102,3 @@ def normalize_url_for_id(url: str) -> str:
     query_pairs = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True) if k.lower() not in _TRACKING_KEYS]
     query = urlencode(sorted(query_pairs))
     return urlunparse((p.scheme, p.netloc, p.path.rstrip("/"), "", query, ""))
-

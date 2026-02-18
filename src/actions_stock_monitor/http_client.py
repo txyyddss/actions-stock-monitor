@@ -50,6 +50,33 @@ class HttpClient:
             return self._fetch_via_flaresolverr(url)
         return self._fetch_direct(url)
 
+    @staticmethod
+    def _should_retry_status(status_code: int) -> bool:
+        # Transient / rate-limited responses where retry is commonly helpful.
+        return status_code == 408 or status_code == 425 or status_code == 429 or (500 <= status_code <= 599)
+
+    @staticmethod
+    def _retry_after_seconds(resp: Response) -> float | None:
+        try:
+            raw = (resp.headers or {}).get("Retry-After")
+        except Exception:
+            raw = None
+        if not raw:
+            return None
+        try:
+            return float(raw)
+        except Exception:
+            return None
+
+    @staticmethod
+    def _sleep_backoff(attempt: int, *, retry_after_seconds: float | None = None) -> None:
+        if retry_after_seconds is not None:
+            time.sleep(min(5.0, max(0.0, retry_after_seconds)))
+            return
+        # Small exponential-ish backoff + jitter, capped to keep runs fast.
+        base = min(2.5, 0.35 * attempt)
+        time.sleep(base + random.random() * 0.15)
+
     def _headers(self) -> dict[str, str]:
         ua = random.choice(self._user_agents)
         return {
@@ -77,6 +104,10 @@ class HttpClient:
                     timeout=(self._timeout_seconds, self._timeout_seconds),
                     allow_redirects=True,
                 )
+                if self._should_retry_status(resp.status_code) and attempt < self._max_retries:
+                    last_error = f"HTTP {resp.status_code}"
+                    self._sleep_backoff(attempt, retry_after_seconds=self._retry_after_seconds(resp))
+                    continue
                 elapsed_ms = int((time.perf_counter() - started) * 1000)
                 ok = 200 <= resp.status_code < 400
                 return FetchResult(
@@ -90,7 +121,7 @@ class HttpClient:
             except Exception as e:
                 last_error = f"{type(e).__name__}: {e}"
                 if attempt < self._max_retries:
-                    time.sleep(min(1.5, 0.25 * attempt))
+                    self._sleep_backoff(attempt)
                     continue
                 elapsed_ms = int((time.perf_counter() - started) * 1000)
                 return FetchResult(
@@ -114,35 +145,54 @@ class HttpClient:
         if self._proxy_url and self._proxy_url.startswith(("http://", "https://")):
             payload["proxy"] = {"url": self._proxy_url}
 
-        try:
-            resp = self._session.post(
-                f"{self._flaresolverr_url}/v1",
-                headers={"Content-Type": "application/json"},
-                data=json.dumps(payload),
-                timeout=(self._timeout_seconds, self._timeout_seconds),
-            )
-            elapsed_ms = int((time.perf_counter() - started) * 1000)
-            if resp.status_code >= 400:
-                return FetchResult(url=url, status_code=resp.status_code, ok=False, text=None, error=f"HTTP {resp.status_code}", elapsed_ms=elapsed_ms)
+        last_error: str | None = None
+        for attempt in range(1, self._max_retries + 1):
+            try:
+                resp = self._session.post(
+                    f"{self._flaresolverr_url}/v1",
+                    headers={"Content-Type": "application/json"},
+                    data=json.dumps(payload),
+                    timeout=(self._timeout_seconds, self._timeout_seconds),
+                )
+                if self._should_retry_status(resp.status_code) and attempt < self._max_retries:
+                    last_error = f"HTTP {resp.status_code}"
+                    self._sleep_backoff(attempt, retry_after_seconds=self._retry_after_seconds(resp))
+                    continue
+                if resp.status_code >= 400:
+                    elapsed_ms = int((time.perf_counter() - started) * 1000)
+                    return FetchResult(url=url, status_code=resp.status_code, ok=False, text=None, error=f"HTTP {resp.status_code}", elapsed_ms=elapsed_ms)
 
-            data = resp.json()
-            solution = data.get("solution") if isinstance(data, dict) else None
-            if not isinstance(solution, dict):
-                return FetchResult(url=url, status_code=None, ok=False, text=None, error="FlareSolverr: missing solution", elapsed_ms=elapsed_ms)
+                data = resp.json()
+                solution = data.get("solution") if isinstance(data, dict) else None
+                if not isinstance(solution, dict):
+                    elapsed_ms = int((time.perf_counter() - started) * 1000)
+                    return FetchResult(url=url, status_code=None, ok=False, text=None, error="FlareSolverr: missing solution", elapsed_ms=elapsed_ms)
 
-            status_code = solution.get("status")
-            final_url = solution.get("url") or url
-            html = solution.get("response")
-            ok = isinstance(status_code, int) and 200 <= status_code < 400 and isinstance(html, str)
-            return FetchResult(
-                url=str(final_url),
-                status_code=int(status_code) if isinstance(status_code, int) else None,
-                ok=ok,
-                text=html if ok else None,
-                error=None if ok else f"FlareSolverr failed (status={status_code})",
-                elapsed_ms=elapsed_ms,
-            )
-        except Exception as e:
-            elapsed_ms = int((time.perf_counter() - started) * 1000)
-            return FetchResult(url=url, status_code=None, ok=False, text=None, error=f"FlareSolverr {type(e).__name__}: {e}", elapsed_ms=elapsed_ms)
+                status_code = solution.get("status")
+                final_url = solution.get("url") or url
+                html = solution.get("response")
 
+                if isinstance(status_code, int) and self._should_retry_status(status_code) and attempt < self._max_retries:
+                    last_error = f"FlareSolverr failed (status={status_code})"
+                    self._sleep_backoff(attempt)
+                    continue
+
+                ok = isinstance(status_code, int) and 200 <= status_code < 400 and isinstance(html, str)
+                elapsed_ms = int((time.perf_counter() - started) * 1000)
+                return FetchResult(
+                    url=str(final_url),
+                    status_code=int(status_code) if isinstance(status_code, int) else None,
+                    ok=ok,
+                    text=html if ok else None,
+                    error=None if ok else f"FlareSolverr failed (status={status_code})",
+                    elapsed_ms=elapsed_ms,
+                )
+            except Exception as e:
+                last_error = f"FlareSolverr {type(e).__name__}: {e}"
+                if attempt < self._max_retries:
+                    self._sleep_backoff(attempt)
+                    continue
+                elapsed_ms = int((time.perf_counter() - started) * 1000)
+                return FetchResult(url=url, status_code=None, ok=False, text=None, error=last_error, elapsed_ms=elapsed_ms)
+        elapsed_ms = int((time.perf_counter() - started) * 1000)
+        return FetchResult(url=url, status_code=None, ok=False, text=None, error=last_error, elapsed_ms=elapsed_ms)
