@@ -50,16 +50,27 @@ class GenericDomainParser:
             url = self._extract_buy_url(card, base_url=base_url)
             if not url or self._is_non_product_url(url):
                 continue
+            try:
+                pu = urlparse(url)
+                if pu.netloc and pu.netloc.lower() == urlparse(base_url).netloc.lower() and pu.path.rstrip("/") in ("", "/"):
+                    # Links back to the landing page are almost never product purchase links.
+                    continue
+            except Exception:
+                pass
 
             name = self._extract_name(card) or self.domain
             if self._looks_like_action_label(name):
+                name = self._name_from_url(url) or name
+            if self._looks_like_non_name(name):
                 name = self._name_from_url(url) or name
             if compact_ws(name).lower() in {self.domain.lower(), urlparse(url).netloc.lower()}:
                 name = self._name_from_url(url) or name
             price, currency = extract_price(text)
             available = extract_availability(text)
+            if available is None:
+                available = self._infer_availability(card, url=url)
             specs = self._extract_specs(card) or self._extract_specs_from_text(text) or extract_specs(text)
-            description = text[:400] if text else None
+            description = self._extract_description(card, name=name) or (text[:400] if text else None)
 
             norm = normalize_url_for_id(url)
             pid = f"{self.domain}::{norm}"
@@ -139,6 +150,22 @@ class GenericDomainParser:
             return sorted(candidates, key=len, reverse=True)[0]
         return None
 
+    @staticmethod
+    def _looks_like_non_name(name: str) -> bool:
+        n = compact_ws(name)
+        if not n:
+            return True
+        if "|" in n:
+            return True
+        if len(n) > 60:
+            return True
+        # Very long, sentence-like headings are usually introductions/category blurbs.
+        if sum(1 for ch in n if ch in ",，。!?") >= 1 and len(n) > 35:
+            return True
+        if n.count(" ") >= 7:
+            return True
+        return False
+
     def _extract_buy_url(self, tag, *, base_url: str) -> str | None:
         anchors = list(tag.find_all("a"))
         candidates: list[tuple[int, str]] = []
@@ -153,22 +180,23 @@ class GenericDomainParser:
 
             score = 0
             url_l = abs_url.lower()
-            if "/store/" in url_l or "rp=/store/" in url_l:
-                score += 3
             if "cart.php" in url_l and ("a=add" in url_l or "pid=" in url_l):
+                score += 5
+            if ("/store/" in url_l or "rp=/store/" in url_l) and not self._is_non_product_url(abs_url):
+                score += 4
+            if "/products/" in url_l and not self._is_non_product_url(abs_url):
+                score += 3
+            if any(h in url_l for h in self._cfg.link_hints):
+                score += 1
+            if any(h in label for h in ("buy", "order", "checkout", "cart", "立即", "订购", "購買", "购买", "下单")):
                 score += 2
-            if any(h in url_l for h in self._cfg.link_hints) or any(h in label for h in self._cfg.link_hints):
-                score += 1
-            # Prefer links that look like a specific product (not a store index/category).
-            if not self._is_non_product_url(abs_url):
-                score += 1
             candidates.append((score, abs_url))
 
         if not candidates:
             return None
         candidates.sort(key=lambda x: x[0], reverse=True)
         best_score, best_url = candidates[0]
-        if best_score <= 0:
+        if best_score < 2:
             return None
         return best_url
 
@@ -182,11 +210,19 @@ class GenericDomainParser:
         p = urlparse(url)
         qs = parse_qs(p.query)
         rp = (qs.get("rp") or [None])[0]
+        if isinstance(rp, str):
+            rp_l = rp.lower()
+            if rp_l.startswith("/knowledgebase") or rp_l.startswith("/announcements"):
+                return True
         if isinstance(rp, str) and rp.startswith("/store/"):
             # /store/<category> is not a product; /store/<category>/<product> is.
             parts = [x for x in rp.strip("/").split("/") if x]
             return len(parts) <= 2
         path = p.path.lower()
+        if any(x in path for x in ["clientarea.php", "submitticket.php", "announcements", "knowledgebase", "downloads", "serverstatus", "register", "login"]):
+            return True
+        if any(x in path for x in ["contact", "about", "privacy", "terms", "tos", "changelog", "refund", "protocol", "faq", "blog"]):
+            return True
         if "/products/" in path:
             after = path.split("/products/", 1)[1]
             parts = [x for x in after.split("/") if x]
@@ -279,6 +315,53 @@ class GenericDomainParser:
         elif anchor_count >= 20:
             score -= 1
         return score
+
+    @staticmethod
+    def _infer_availability(tag, *, url: str) -> bool | None:
+        # Disabled "order" buttons are a strong OOS signal.
+        try:
+            for el in tag.select("a,button,input"):
+                cls = " ".join(el.get("class", [])) if hasattr(el, "get") else ""
+                cls_l = cls.lower()
+                if "disabled" in cls_l or "sold" in cls_l or "soldout" in cls_l or "out-of-stock" in cls_l:
+                    lab = compact_ws(getattr(el, "get_text", lambda *a, **k: "")(" ", strip=True)).lower()
+                    if any(x in lab for x in ["order", "buy", "checkout", "cart", "订购", "購買", "购买"]):
+                        return False
+        except Exception:
+            pass
+
+        u = (url or "").lower()
+        if "cart.php" in u and ("a=add" in u or "pid=" in u):
+            return True
+        if ("rp=/store/" in u or "/store/" in u) and not GenericDomainParser._is_non_product_url(url):
+            return True
+        return None
+
+    @staticmethod
+    def _extract_description(tag, *, name: str) -> str | None:
+        name_l = compact_ws(name).lower()
+        selectors = [
+            ".description",
+            ".desc",
+            ".product-description",
+            ".plan-description",
+            "[class*='description']",
+            "p",
+        ]
+        for sel in selectors:
+            el = tag.select_one(sel)
+            if not el:
+                continue
+            t = compact_ws(el.get_text(" ", strip=True))
+            if not t or len(t) < 16:
+                continue
+            if name_l and compact_ws(t).lower() == name_l:
+                continue
+            # Avoid pulling in entire cards as descriptions.
+            if len(t) > 500:
+                t = t[:500]
+            return t
+        return None
 
     def _extract_specs(self, tag) -> dict[str, str] | None:
         specs: dict[str, str] = {}

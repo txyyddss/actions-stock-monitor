@@ -44,6 +44,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
                 "price": p.get("price") or "",
                 "available": p.get("available", None),
                 "specs": p.get("specs") or {},
+                "description": p.get("description") or "",
                 "url": p.get("url") or "",
                 "first_seen": p.get("first_seen") or "",
                 "last_seen": p.get("last_seen") or "",
@@ -156,6 +157,18 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       border-color: rgba(0, 240, 255, 0.55);
       box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12);
     }}
+    select {{
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      outline: none;
+    }}
+    select:focus {{
+      border-color: rgba(0, 240, 255, 0.55);
+      box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12);
+    }}
     .table {{
       width: 100%;
       border-collapse: separate;
@@ -225,6 +238,12 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       margin-top: 6px;
       display: flex; flex-wrap: wrap; gap: 6px;
     }}
+    .desc {{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }}
     .chip {{
       padding: 4px 8px;
       border-radius: 999px;
@@ -282,6 +301,9 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
 
     <div class="controls">
       <input id="q" type="search" placeholder="Search domain, name, price, specs…" autocomplete="off" />
+      <select id="site" aria-label="Site category">
+        <option value="">All sites</option>
+      </select>
       <span class="muted">Click headers to sort.</span>
     </div>
 
@@ -304,6 +326,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     const DATA = {data_json};
     const tb = document.getElementById("tb");
     const q = document.getElementById("q");
+    const site = document.getElementById("site");
     const table = document.getElementById("t");
 
     let sortCol = "available";
@@ -327,11 +350,13 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
 
     function render() {{
       const needle = (q.value || "").trim().toLowerCase();
+      const siteNeedle = (site && site.value) ? String(site.value) : "";
       const items = DATA.products
         .filter(p => {{
+          if (siteNeedle && String(p.domain || "") !== siteNeedle) return false;
           if (!needle) return true;
           const specText = Object.entries(p.specs || {{}}).map(([k,v]) => `${{k}}:${{v}}`).join(" ");
-          const blob = `${{p.domain}} ${{p.name}} ${{p.price}} ${{specText}} ${{p.url}}`.toLowerCase();
+          const blob = `${{p.domain}} ${{p.name}} ${{p.price}} ${{p.description || ""}} ${{specText}} ${{p.url}}`.toLowerCase();
           return blob.includes(needle);
         }})
         .slice()
@@ -342,6 +367,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         const meta = statusMeta(p.available);
         const tr = document.createElement("tr");
         const specs = Object.entries(p.specs || {{}}).map(([k,v]) => `<span class="chip">${{k}}: ${{v}}</span>`).join("");
+        const desc = p.description ? `<div class="desc">${{escapeHtml(p.description)}}</div>` : "";
         const staleTag = p.stale ? `<span class="tag-stale">STALE</span>` : "";
 
         tr.innerHTML = `
@@ -351,6 +377,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
           <td data-k="Domain"><span class="muted">${{p.domain}}</span></td>
           <td data-k="Product">
             <div><b>${{escapeHtml(p.name)}}</b></div>
+            ${{desc}}
             <div class="specs">${{specs}}</div>
           </td>
           <td data-k="Price">${{escapeHtml(p.price || "")}}</td>
@@ -366,6 +393,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     }}
 
     q.addEventListener("input", () => render());
+    if (site) site.addEventListener("change", () => render());
 
     table.querySelectorAll("thead th[data-col]").forEach(th => {{
       th.addEventListener("click", () => {{
@@ -377,9 +405,19 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       }});
     }});
 
+    // Populate site/category filter.
+    if (site) {{
+      const domains = Array.from(new Set((DATA.products || []).map(p => String(p.domain || \"\")).filter(Boolean))).sort();
+      for (const d of domains) {{
+        const opt = document.createElement(\"option\");
+        opt.value = d;
+        opt.textContent = d;
+        site.appendChild(opt);
+      }}
+    }}
+
     render();
   </script>
 </body>
 </html>
 """
-

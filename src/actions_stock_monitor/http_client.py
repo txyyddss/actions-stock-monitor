@@ -170,6 +170,8 @@ class HttpClient:
 
                 status_code = solution.get("status")
                 final_url = solution.get("url") or url
+                if not isinstance(final_url, str) or not final_url.startswith(("http://", "https://")):
+                    final_url = url
                 html = solution.get("response")
 
                 if isinstance(status_code, int) and self._should_retry_status(status_code) and attempt < self._max_retries:

@@ -22,6 +22,46 @@ def _domain_from_url(url: str) -> str:
     return netloc
 
 
+_NON_PRODUCT_URL_FRAGMENTS = (
+    "clientarea.php",
+    "register",
+    "login",
+    "submitticket.php",
+    "announcements",
+    "knowledgebase",
+    "downloads",
+    "serverstatus",
+    "contact",
+    "about",
+    "privacy",
+    "terms",
+    "tos",
+    "protocol",
+    "refund",
+    "changelog",
+    "status",
+    "faq",
+    "blog",
+)
+
+
+def _looks_like_non_product_page(url: str) -> bool:
+    try:
+        p = urlparse(url)
+    except Exception:
+        return False
+    u = (p.path or "").lower()
+    q = (p.query or "").lower()
+    if "a=view" in q and "cart.php" in u:
+        return True
+    if any(x in u for x in _NON_PRODUCT_URL_FRAGMENTS):
+        return True
+    # Common WHMCS informational pages.
+    if "rp=/announcements" in q or "rp=/knowledgebase" in q:
+        return True
+    return False
+
+
 def _product_to_state_record(product: Product, now: str, *, first_seen: str | None = None) -> dict:
     return {
         "domain": product.domain,
@@ -208,13 +248,25 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
     parser = get_parser_for_domain(domain)
     try:
         products = parser.parse(fetch.text, base_url=fetch.url)
-        if _needs_discovery(products):
+        if _needs_discovery(products, base_url=fetch.url):
             discovered = _discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain)
+            discovered.extend(_default_entrypoint_pages(fetch.url))
+            discovered.extend(_domain_extra_pages(domain))
+
+            seen_pages: set[str] = set()
             for page_url in discovered:
+                if page_url in seen_pages or page_url == fetch.url:
+                    continue
+                seen_pages.add(page_url)
                 page_fetch = client.fetch_text(page_url)
                 if not page_fetch.ok or not page_fetch.text:
                     continue
-                products.extend(parser.parse(page_fetch.text, base_url=page_fetch.url))
+                page_products = parser.parse(page_fetch.text, base_url=page_fetch.url)
+                products.extend(page_products)
+                if page_products and _is_primary_listing_page(page_fetch.url):
+                    break
+                if len(products) >= int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "250")):
+                    break
 
             # De-dupe by id after discovery.
             deduped: dict[str, Product] = {}
@@ -229,16 +281,70 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
         return DomainRun(domain=domain, ok=False, error=f"{type(e).__name__}: {e}", duration_ms=duration_ms, products=[])
 
 
-def _needs_discovery(products: list[Product]) -> bool:
+def _needs_discovery(products: list[Product], *, base_url: str) -> bool:
     if not products:
         return True
-    if len(products) == 1 and products[0].price is None and products[0].specs is None:
+
+    useful = sum(1 for p in products if p.price or p.specs)
+    if useful == 0:
+        return True
+
+    suspicious = sum(1 for p in products if _looks_like_non_product_page(p.url))
+    if len(products) <= 5 and suspicious >= max(1, len(products) - 1):
+        return True
+
+    # If we only extracted a single "product" that points back to the landing page, it's likely the site intro.
+    if len(products) == 1:
+        try:
+            if urlparse(products[0].url).path.rstrip("/") in ("", "/") and urlparse(base_url).netloc == urlparse(products[0].url).netloc:
+                return True
+        except Exception:
+            pass
+
+    return False
+
+
+def _is_primary_listing_page(url: str) -> bool:
+    try:
+        p = urlparse(url)
+    except Exception:
+        return False
+    path = (p.path or "").lower()
+    q = (p.query or "").lower()
+    if "rp=/store" in q and ("rp=/store/" not in q):
+        return True
+    if path.endswith("/cart.php") and not any(x in q for x in ["pid=", "a=add"]):
+        return True
+    if path.endswith("/store") and path.count("/") <= 1:
+        return True
+    if "/billing/" in path and ("rp=/store" in q or path.endswith("/cart.php") or path.endswith("/store")):
         return True
     return False
 
 
+def _default_entrypoint_pages(base_url: str) -> list[str]:
+    # Common product listing entry points across WHMCS installs and similar billing setups.
+    return [
+        urljoin(base_url, "/cart.php"),
+        urljoin(base_url, "/index.php?rp=/store"),
+        urljoin(base_url, "/store"),
+        urljoin(base_url, "/billing/cart.php"),
+        urljoin(base_url, "/billing/index.php?rp=/store"),
+        urljoin(base_url, "/billing/store"),
+    ]
+
+
+def _domain_extra_pages(domain: str) -> list[str]:
+    # Some targets are SPAs that render products client-side. For those, hit the backing API directly.
+    if domain == "acck.io":
+        return ["https://api.acck.io/api/v1/store/GetVpsStore"]
+    if domain == "akile.io":
+        return ["https://api.akile.io/api/v1/store/GetVpsStoreV3"]
+    return []
+
+
 def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[str]:
-    max_pages = int(os.getenv("DISCOVERY_MAX_PAGES_PER_DOMAIN", "25"))
+    max_pages = int(os.getenv("DISCOVERY_MAX_PAGES_PER_DOMAIN", "10"))
     soup = BeautifulSoup(html, "lxml")
     base_netloc = urlparse(base_url).netloc.lower()
 

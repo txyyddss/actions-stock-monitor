@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from .generic import GenericDomainParser, GenericParserConfig
+from .spa_store_api import SpaStoreApiConfig, SpaStoreApiParser
 
 
 _KNOWN_DOMAINS = [
@@ -24,7 +25,11 @@ _KNOWN_DOMAINS = [
 
 _PARSERS = {d: GenericDomainParser(GenericParserConfig(domain=d)) for d in _KNOWN_DOMAINS}
 
+# SPA storefronts with API-backed inventory.
+_PARSERS["acck.io"] = SpaStoreApiParser(SpaStoreApiConfig(domain="acck.io", currency="CNY", shop_path="/shop/server"))
+_PARSERS["akile.io"] = SpaStoreApiParser(SpaStoreApiConfig(domain="akile.io", currency="CNY", shop_path="/shop/server"))
 
-def get_parser_for_domain(domain: str) -> GenericDomainParser:
+
+def get_parser_for_domain(domain: str):
     domain = domain.lower()
     return _PARSERS.get(domain) or GenericDomainParser(GenericParserConfig(domain=domain))
