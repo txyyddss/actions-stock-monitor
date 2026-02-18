@@ -1,0 +1,17 @@
+{
+  "domains": {
+    "example.com": {
+      "last_duration_ms": 1600,
+      "last_error": "SSLError: HTTPSConnectionPool(host='example.com', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1032)')))",
+      "last_ok": null,
+      "last_status": "error"
+    }
+  },
+  "last_run": {
+    "finished_at": "2026-02-18T14:35:23+00:00",
+    "started_at": "2026-02-18T14:35:21+00:00"
+  },
+  "products": {},
+  "schema_version": 1,
+  "updated_at": "2026-02-18T14:35:23+00:00"
+}
