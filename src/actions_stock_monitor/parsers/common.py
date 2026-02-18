@@ -47,18 +47,36 @@ OOS_WORDS = [
     "unavailable",
     "no stock",
     "stockout",
+    "out-of-stock",
+    "sold-out",
+    "缺货",
+    "缺貨",
+    "无库存",
+    "無庫存",
+    "售罄",
+    "已售罄",
 ]
 IN_STOCK_WORDS = [
     "in stock",
-    "available",
-    "order now",
-    "buy now",
-    "add to cart",
+    "instock",
+    "available now",
+    "有库存",
+    "有庫存",
+    "現貨",
 ]
+
+_AVAIL_COUNT_RE = re.compile(r"(?P<count>\d+)\s*(?:available|left|in\s*stock|可用)\b", re.IGNORECASE)
 
 
 def extract_availability(text: str) -> bool | None:
     t = compact_ws(text).lower()
+    m = _AVAIL_COUNT_RE.search(t)
+    if m:
+        try:
+            count = int(m.group("count"))
+            return count > 0
+        except Exception:
+            pass
     if any(w in t for w in OOS_WORDS) and not any(w in t for w in IN_STOCK_WORDS):
         return False
     if any(w in t for w in IN_STOCK_WORDS):

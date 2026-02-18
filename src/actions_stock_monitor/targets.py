@@ -6,7 +6,7 @@ DEFAULT_TARGETS: list[str] = [
     "https://console.po0.com/",
     "https://akile.io/",
     "https://greencloudvps.com/",
-    "https://kaze.cloud/",
+    "https://app.kaze.network/",
     "https://bgp.gd/",
     "https://nmcloud.cc/",
     "https://my.frantech.ca/",
@@ -16,4 +16,3 @@ DEFAULT_TARGETS: list[str] = [
     "https://wap.ac/",
     "https://www.bagevm.com/",
 ]
-

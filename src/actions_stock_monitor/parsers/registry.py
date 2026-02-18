@@ -11,7 +11,7 @@ _KNOWN_DOMAINS = [
     "console.po0.com",
     "akile.io",
     "greencloudvps.com",
-    "kaze.cloud",
+    "app.kaze.network",
     "bgp.gd",
     "nmcloud.cc",
     "my.frantech.ca",
@@ -28,4 +28,3 @@ _PARSERS = {d: GenericDomainParser(GenericParserConfig(domain=d)) for d in _KNOW
 def get_parser_for_domain(domain: str) -> GenericDomainParser:
     domain = domain.lower()
     return _PARSERS.get(domain) or GenericDomainParser(GenericParserConfig(domain=domain))
-

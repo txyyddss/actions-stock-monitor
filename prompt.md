@@ -102,7 +102,7 @@ Support the following domains with modular parsing logic:
 * `https://console.po0.com/`
 * `https://akile.io/`
 * `https://greencloudvps.com/`
-* `https://kaze.cloud/`
+* `https://app.kaze.network/`
 * `https://bgp.gd/`
 * `https://nmcloud.cc/`
 * `https://my.frantech.ca/`
@@ -120,4 +120,7 @@ Support the following domains with modular parsing logic:
 * Instructions on setting up GitHub Secrets.
 
 ---
+
+
+
 
