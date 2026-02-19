@@ -16,6 +16,9 @@ class Product:
     available: bool | None
     currency: str | None = None
     raw: dict[str, Any] | None = None
+    variant_of: str | None = None
+    option: str | None = None
+    billing_cycles: list[str] | None = None
 
 
 @dataclass(frozen=True)
@@ -35,4 +38,3 @@ class RunSummary:
     new_products: int
     domains_ok: int
     domains_error: int
-

@@ -11,6 +11,7 @@ class TestParsersCommon(unittest.TestCase):
         self.assertEqual(extract_price("€10.00 / mo"), ("10.00 EUR", "EUR"))
         self.assertEqual(extract_price("pay 12 GBP today"), ("12 GBP", "GBP"))
         self.assertEqual(extract_price("¥ 5 / mo"), ("5 CNY", "CNY"))
+        self.assertEqual(extract_price("\u4ece\u5f00\u59cb \u00a51,999.00 CNY \u6708\u7f34"), ("1999.00 CNY", "CNY"))
 
     def test_extract_specs(self) -> None:
         specs = extract_specs("2GB RAM 1 vCPU 20GB NVMe SSD 2TB bandwidth 1Gbps")
@@ -29,4 +30,3 @@ class TestParsersCommon(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 from .http_client import HttpClient
 from .models import DomainRun, Product, RunSummary
-from .parsers.common import extract_availability
+from .parsers.common import extract_availability, extract_billing_cycles
 from .parsers.registry import get_parser_for_domain
 from .targets import DEFAULT_TARGETS
 from .telegram import h, load_telegram_config, send_telegram_html
@@ -72,12 +72,16 @@ def _product_to_state_record(product: Product, now: str, *, first_seen: str | No
         "currency": product.currency,
         "description": product.description,
         "specs": product.specs,
+        "variant_of": product.variant_of,
+        "option": product.option,
+        "billing_cycles": product.billing_cycles,
         "available": product.available,
         "first_seen": first_seen or now,
         "last_seen": now,
         "last_change": now,
         "last_notified_new": None,
         "last_notified_restock": None,
+        "last_notified_new_option": None,
     }
 
 
@@ -95,6 +99,15 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
     new_products = 0
     domains_ok = 0
     domains_error = 0
+
+    existing_variant_keys: set[tuple[str, str]] = set()
+    for rec in (state.get("products") or {}).values():
+        if not isinstance(rec, dict):
+            continue
+        d = rec.get("domain")
+        v = rec.get("variant_of")
+        if isinstance(d, str) and isinstance(v, str) and d and v:
+            existing_variant_keys.add((d, v))
 
     for run in runs:
         domain = run.domain
@@ -122,9 +135,17 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
             if not prev:
                 state["products"][product.id] = _product_to_state_record(product, now)
                 new_products += 1
-                if telegram_cfg and product.available is True:
-                    if _notify_new_product(telegram_cfg, product, now, timeout_seconds=timeout_seconds):
-                        state["products"][product.id]["last_notified_new"] = now
+                had_variant = bool(product.variant_of and (product.domain, product.variant_of) in existing_variant_keys)
+                is_new_option = bool(product.option and had_variant)
+                if product.variant_of:
+                    existing_variant_keys.add((product.domain, product.variant_of))
+                if telegram_cfg:
+                    if is_new_option and product.available is not False:
+                        if _notify_new_option(telegram_cfg, product, now, timeout_seconds=timeout_seconds):
+                            state["products"][product.id]["last_notified_new_option"] = now
+                    elif product.available is True:
+                        if _notify_new_product(telegram_cfg, product, now, timeout_seconds=timeout_seconds):
+                            state["products"][product.id]["last_notified_new"] = now
                 continue
 
             prev_available = prev.get("available")
@@ -135,6 +156,10 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
                 or prev.get("price") != product.price
                 or prev_available != next_available
                 or prev.get("url") != product.url
+                or prev.get("specs") != product.specs
+                or prev.get("variant_of") != product.variant_of
+                or prev.get("option") != product.option
+                or prev.get("billing_cycles") != product.billing_cycles
             )
             if changed:
                 prev["last_change"] = now
@@ -148,6 +173,9 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
                     "currency": product.currency,
                     "description": product.description,
                     "specs": product.specs,
+                    "variant_of": product.variant_of,
+                    "option": product.option,
+                    "billing_cycles": product.billing_cycles,
                     "available": next_available,
                     "last_seen": now,
                 }
@@ -182,11 +210,19 @@ def _notify_new_product(cfg, product: Product, now: str, *, timeout_seconds: flo
     return send_telegram_html(cfg=cfg, message_html=msg, timeout_seconds=min(15.0, timeout_seconds))
 
 
+def _notify_new_option(cfg, product: Product, now: str, *, timeout_seconds: float) -> bool:
+    msg = _format_message("NEW OPTION", "✨", product, now)
+    return send_telegram_html(cfg=cfg, message_html=msg, timeout_seconds=min(15.0, timeout_seconds))
+
+
 def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
     lines: list[str] = []
     lines.append(f"<b>{h(icon)} {h(kind)}</b>")
     lines.append(f"<b>{h(product.name)}</b>")
     lines.append(f"Domain: <b>{h(product.domain)}</b>")
+    if product.variant_of and product.option:
+        lines.append(f"Plan: <b>{h(product.variant_of)}</b>")
+        lines.append(f"Option: <b>{h(product.option)}</b>")
     if product.available is True:
         lines.append("Stock: <b>In Stock</b>")
     elif product.available is False:
@@ -195,9 +231,14 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
         lines.append("Stock: <b>Unknown</b>")
     if product.price:
         lines.append(f"Price: <b>{h(product.price)}</b>")
+    if product.billing_cycles:
+        lines.append(f"Cycles: <b>{h(', '.join(product.billing_cycles))}</b>")
     if product.specs:
         lines.append("Specs:")
-        for k, v in list(product.specs.items())[:10]:
+        prio = ["Location", "CPU", "RAM", "Disk", "Storage", "Traffic", "Bandwidth", "Port", "Cycles", "OS"]
+        items = list(product.specs.items())
+        items.sort(key=lambda kv: (prio.index(kv[0]) if kv[0] in prio else 999, str(kv[0])))
+        for k, v in items[:12]:
             if not k or not v:
                 continue
             lines.append(f"• <b>{h(str(k))}</b>: {h(str(v))}")
@@ -207,7 +248,7 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
             desc = desc[:500] + "…"
         if desc:
             lines.append(f"Details: {h(desc)}")
-    lines.append(f"Link: <a href=\"{h(product.url)}\">{h(product.url)}</a>")
+    lines.append(f"Link: <a href=\"{h(product.url)}\">Open</a>")
     lines.append(f"Detected: {h(now)}")
     message = "\n".join(lines)
     return message[:3900]
@@ -275,15 +316,18 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
 
             max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "250"))
             stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", "3"))
+            stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "4"))
             no_new_streak = 0
+            fetch_error_streak = 0
 
             for page_url in discovered:
                 page_fetch = client.fetch_text(page_url)
                 if not page_fetch.ok or not page_fetch.text:
-                    no_new_streak += 1
-                    if stop_after_no_new > 0 and no_new_streak >= stop_after_no_new:
+                    fetch_error_streak += 1
+                    if stop_after_fetch_errors > 0 and fetch_error_streak >= stop_after_fetch_errors and _is_primary_listing_page(page_url):
                         break
                     continue
+                fetch_error_streak = 0
 
                 page_products = parser.parse(page_fetch.text, base_url=page_fetch.url)
                 new_count = 0
@@ -304,9 +348,14 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
 
             products = list(deduped.values())
 
-        # Some providers only reveal stock state on the product detail page.
+        # Some providers only reveal stock state on the product detail page (or render it client-side on listings).
         if domain == "fachost.cloud":
             products = _enrich_availability_via_product_pages(client, products, max_pages=30)
+        if domain == "backwaves.net":
+            # backwaves.net listings frequently render as "unavailable" without JS. If we saw no in-stock
+            # products at all, do a fast detail-page pass to avoid false negatives.
+            if products and not any(p.available is True for p in products):
+                products = _enrich_availability_via_product_pages(client, products, max_pages=30, include_false=True)
 
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=True, error=None, duration_ms=duration_ms, products=products)
@@ -349,30 +398,69 @@ def _should_force_discovery(html: str, *, base_url: str, domain: str, product_co
     return False
 
 
-def _enrich_availability_via_product_pages(client: HttpClient, products: list[Product], *, max_pages: int) -> list[Product]:
-    enriched: list[Product] = []
-    remaining = max_pages
-    for p in products:
-        if remaining <= 0 or p.available is not None:
-            enriched.append(p)
-            continue
+def _infer_availability_from_detail_html(html: str) -> bool | None:
+    avail = extract_availability(html)
+    if avail is not None:
+        return avail
+    tl = (html or "").lower()
+    if "add to cart" in tl or "checkout" in tl:
+        return True
+    if "加入购物车" in html or "加入購物車" in html:
+        return True
+    return None
+
+
+def _enrich_availability_via_product_pages(
+    client: HttpClient,
+    products: list[Product],
+    *,
+    max_pages: int,
+    include_false: bool = False,
+) -> list[Product]:
+    candidates: list[tuple[int, Product]] = []
+    for idx, p in enumerate(products):
+        if len(candidates) >= max_pages:
+            break
         if not p.url.startswith(("http://", "https://")):
-            enriched.append(p)
             continue
-        remaining -= 1
+        if p.available is None or (include_false and p.available is False):
+            candidates.append((idx, p))
+
+    if not candidates:
+        return products
+
+    enriched = list(products)
+    max_workers = int(os.getenv("ENRICH_WORKERS", "6"))
+    max_workers = max(1, min(max_workers, len(candidates)))
+
+    def fetch_one(p: Product) -> tuple[bool | None, list[str] | None]:
         fetch = client.fetch_text(p.url)
         if not fetch.ok or not fetch.text:
-            enriched.append(p)
-            continue
-        avail = extract_availability(fetch.text)
-        if avail is None:
-            tl = fetch.text.lower()
-            if "out of stock" in tl or "sold out" in tl:
-                avail = False
-            elif "add to cart" in tl or "buy now" in tl or "checkout" in tl:
-                avail = True
-        enriched.append(
-            Product(
+            return None, None
+        html = fetch.text
+        avail = _infer_availability_from_detail_html(html)
+        cycles = extract_billing_cycles(html)
+        return avail, cycles
+
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futs = {ex.submit(fetch_one, p): (idx, p) for idx, p in candidates}
+        for fut in as_completed(futs):
+            idx, p = futs[fut]
+            try:
+                avail, cycles = fut.result()
+            except Exception:
+                avail = None
+                cycles = None
+            if avail is None and not cycles:
+                continue
+
+            next_available = p.available if avail is None else avail
+            next_cycles = p.billing_cycles if not cycles else cycles
+            next_specs = p.specs
+            if cycles:
+                next_specs = dict(p.specs or {})
+                next_specs.setdefault("Cycles", ", ".join(cycles))
+            enriched[idx] = Product(
                 id=p.id,
                 domain=p.domain,
                 url=p.url,
@@ -380,11 +468,14 @@ def _enrich_availability_via_product_pages(client: HttpClient, products: list[Pr
                 price=p.price,
                 currency=p.currency,
                 description=p.description,
-                specs=p.specs,
-                available=avail,
+                specs=next_specs,
+                available=next_available,
                 raw=p.raw,
+                variant_of=p.variant_of,
+                option=p.option,
+                billing_cycles=next_cycles,
             )
-        )
+
     return enriched
 
 
@@ -452,6 +543,9 @@ def _domain_extra_pages(domain: str) -> list[str]:
 
 def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[str]:
     max_pages = int(os.getenv("DISCOVERY_MAX_PAGES_PER_DOMAIN", "10"))
+    if domain == "greencloudvps.com":
+        # GreenCloud uses many non-WHMCS *.php listing pages; allow more crawl depth.
+        max_pages = max(max_pages, 60)
     soup = BeautifulSoup(html, "lxml")
     base_netloc = urlparse(base_url).netloc.lower()
 
@@ -508,6 +602,14 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
             add(abs_url)
             continue
 
+        # GreenCloud listing pages are often top-level *.php pages (not WHMCS store URLs).
+        if domain == "greencloudvps.com":
+            path_l = (p.path or "").lower()
+            if path_l.endswith(".php") and "/billing/" not in path_l:
+                if any(k in path_l for k in ["vps", "server", "cloud", "resources", "vds"]):
+                    add(abs_url)
+                    continue
+
     # If we didn't find any obvious listing pages but this looks like WHMCS, try common entry points.
     html_l = (html or "").lower()
     base_l = (base_url or "").lower()
@@ -525,6 +627,8 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
         if "cart.php?gid=" in ul:
             s += 2
         if ul.endswith("/cart.php"):
+            s += 1
+        if domain == "greencloudvps.com" and ul.endswith(".php"):
             s += 1
         return s
 

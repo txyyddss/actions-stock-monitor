@@ -262,6 +262,52 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       color: rgba(0,0,0,.85);
       background: var(--amber);
     }}
+    .viz {{
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 12px 0 14px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255,255,255,.03);
+      box-shadow: 0 10px 36px rgba(0,0,0,.35);
+    }}
+    .donut {{
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: conic-gradient(var(--lime) 0 33%, var(--red) 33% 66%, rgba(255,255,255,.18) 66% 100%);
+      position: relative;
+      border: 1px solid var(--border);
+    }}
+    .donut::after {{
+      content: "";
+      position: absolute;
+      inset: 20px;
+      border-radius: 50%;
+      background: rgba(0,0,0,.38);
+      border: 1px solid rgba(255,255,255,.10);
+    }}
+    .legend {{
+      display: flex;
+      gap: 10px 14px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+      align-items: center;
+    }}
+    .litem {{ display: inline-flex; align-items: center; gap: 7px; }}
+    .swatch {{
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      display: inline-block;
+    }}
+    .sw-ok {{ background: var(--lime); }}
+    .sw-bad {{ background: var(--red); }}
+    .sw-unk {{ background: rgba(255,255,255,.18); }}
     @media (max-width: 760px) {{
       header {{ flex-direction: column; align-items: flex-start; }}
       .stats {{ grid-auto-flow: row; width: 100%; }}
@@ -310,6 +356,16 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       <span class="muted">Click headers to sort.</span>
     </div>
 
+    <div class="viz" aria-label="Stock distribution chart">
+      <div class="donut" id="pie" title="In Stock / Out of Stock / Unknown"></div>
+      <div class="legend">
+        <span class="litem"><span class="swatch sw-ok"></span> In Stock: <b id="cOk">0</b></span>
+        <span class="litem"><span class="swatch sw-bad"></span> Out: <b id="cBad">0</b></span>
+        <span class="litem"><span class="swatch sw-unk"></span> Unknown: <b id="cUnk">0</b></span>
+        <span class="litem">Total: <b id="cTot">0</b></span>
+      </div>
+    </div>
+
     <table class="table" id="t">
       <thead>
         <tr>
@@ -331,6 +387,11 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     const q = document.getElementById("q");
     const site = document.getElementById("site");
     const table = document.getElementById("t");
+    const pie = document.getElementById("pie");
+    const cOk = document.getElementById("cOk");
+    const cBad = document.getElementById("cBad");
+    const cUnk = document.getElementById("cUnk");
+    const cTot = document.getElementById("cTot");
 
     let sortCol = "available";
     let sortDir = 1;
@@ -351,6 +412,25 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       return String(av ?? "").localeCompare(String(bv ?? ""), undefined, {{numeric:true, sensitivity:"base"}}) * sortDir;
     }}
 
+    function updatePie(items) {{
+      const total = items.length || 0;
+      const ok = items.filter(p => p.available === true).length;
+      const bad = items.filter(p => p.available === false).length;
+      const unk = total - ok - bad;
+
+      if (cOk) cOk.textContent = String(ok);
+      if (cBad) cBad.textContent = String(bad);
+      if (cUnk) cUnk.textContent = String(unk);
+      if (cTot) cTot.textContent = String(total);
+
+      if (!pie) return;
+      const okPct = total ? (ok / total) * 100 : 0;
+      const badPct = total ? (bad / total) * 100 : 0;
+      const a = okPct;
+      const b = okPct + badPct;
+      pie.style.background = `conic-gradient(var(--lime) 0% ${{a}}%, var(--red) ${{a}}% ${{b}}%, rgba(255,255,255,.18) ${{b}}% 100%)`;
+    }}
+
     function render() {{
       const needle = (q.value || "").trim().toLowerCase();
       const siteNeedle = (site && site.value) ? String(site.value) : "";
@@ -365,6 +445,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         .slice()
         .sort(cmp);
 
+      updatePie(items);
       tb.innerHTML = "";
       for (const p of items) {{
         const meta = statusMeta(p.available);

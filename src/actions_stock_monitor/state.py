@@ -37,6 +37,14 @@ def load_state(path: Path) -> dict[str, Any]:
         return migrated
     data.setdefault("products", {})
     data.setdefault("domains", {})
+
+    # Config cleanup: drop accidental/legacy entries that should not be monitored.
+    if isinstance(data.get("domains"), dict):
+        data["domains"].pop("example.com", None)
+    if isinstance(data.get("products"), dict):
+        for pid, rec in list(data["products"].items()):
+            if isinstance(rec, dict) and rec.get("domain") == "example.com":
+                data["products"].pop(pid, None)
     return data
 
 
@@ -45,4 +53,3 @@ def save_state(path: Path, state: dict[str, Any]) -> None:
     state["schema_version"] = SCHEMA_VERSION
     state["updated_at"] = utc_now_iso()
     path.write_text(json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-
