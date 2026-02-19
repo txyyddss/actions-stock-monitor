@@ -43,6 +43,9 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
           FLARESOLVERR_URL: ${{ secrets.FLARESOLVERR_URL }}
+          PYTHONUNBUFFERED: "1"
+          MONITOR_LOG: "1"
+          STALE_MINUTES: "180"
         run: |
           export FLARESOLVERR_URL="${FLARESOLVERR_URL:-http://127.0.0.1:8191}"
           python -m actions_stock_monitor --state data/state.json --output docs/index.html

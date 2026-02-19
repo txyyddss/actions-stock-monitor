@@ -24,11 +24,54 @@ class TestMonitorMessage(unittest.TestCase):
         self.assertIn("RESTOCK ALERT", msg)
         self.assertIn("Example Plan", msg)
         self.assertIn("9.99 USD", msg)
-        self.assertIn("Link:", msg)
+        self.assertIn("Order Now", msg)
         self.assertIn("https://example.test/buy", msg)
-        self.assertIn("Detected:", msg)
+        self.assertIn("🕒", msg)
         self.assertTrue(msg.startswith("<b>"))
         self.assertLessEqual(len(msg), 3900)
+        # Verify the new hashtag domain format
+        self.assertIn("#exampletest", msg)
+        # Verify emoji-based formatting
+        self.assertIn("💰", msg)
+        self.assertIn("👉", msg)
+        self.assertIn("✅", msg)
+
+    def test_format_message_with_option(self) -> None:
+        p = Product(
+            id="d::u",
+            domain="greencloudvps.com",
+            url="https://greencloudvps.com/billing/store/budget-kvm-vps/budget-2gb",
+            name="Budget 2GB",
+            price="25.00 USD",
+            currency="USD",
+            description=None,
+            specs={"RAM": "2GB", "CPU": "2 vCPU", "Disk": "40GB", "Location": "Dallas"},
+            available=True,
+            variant_of="Budget KVM VPS",
+            option="Dallas",
+        )
+
+        msg = _format_message("NEW OPTION", "✨", p, "2026-02-18T00:00:00+00:00")
+        self.assertIn("Budget KVM VPS", msg)
+        self.assertIn("Dallas", msg)
+        self.assertIn("25.00 USD", msg)
+
+    def test_format_message_oos(self) -> None:
+        p = Product(
+            id="d::u",
+            domain="test.com",
+            url="https://test.com/buy",
+            name="OOS Plan",
+            price="5.00 USD",
+            currency="USD",
+            description=None,
+            specs=None,
+            available=False,
+        )
+
+        msg = _format_message("RESTOCK ALERT", "🔥", p, "2026-02-18T00:00:00+00:00")
+        self.assertIn("Out of Stock", msg)
+        self.assertIn("❌", msg)
 
 
 if __name__ == "__main__":

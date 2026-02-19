@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
@@ -216,40 +217,78 @@ def _notify_new_option(cfg, product: Product, now: str, *, timeout_seconds: floa
 
 
 def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
+    """
+    Format a Telegram notification message in a clean, informative layout inspired by:
+
+    #ZgoCloud
+    Los Angeles Ryzen9 Performance- Lite
+    • 1 Core AMD Ryzen9 7950X
+    • 512 MB DDR5 RAM
+    • 15G NVMe SSD
+    ℹ️ China Optimized, CN2GIA&9929&CMIN2
+    💰 Price: $38.9 USD Annually
+    👉 Order Now (link)
+    🕒 2026-02-18 11:10:56
+    """
     lines: list[str] = []
+
+    # Header: hashtag domain + alert type
+    domain_tag = product.domain.replace(".", "").replace("-", "")
     lines.append(f"<b>{h(icon)} {h(kind)}</b>")
-    lines.append(f"<b>{h(product.name)}</b>")
-    lines.append(f"Domain: <b>{h(product.domain)}</b>")
+    lines.append(f"<b>#{h(domain_tag)}</b>")
+    lines.append("")
+
+    # Product name
+    name = product.name
     if product.variant_of and product.option:
-        lines.append(f"Plan: <b>{h(product.variant_of)}</b>")
-        lines.append(f"Option: <b>{h(product.option)}</b>")
-    if product.available is True:
-        lines.append("Stock: <b>In Stock</b>")
-    elif product.available is False:
-        lines.append("Stock: <b>Out of Stock</b>")
-    else:
-        lines.append("Stock: <b>Unknown</b>")
-    if product.price:
-        lines.append(f"Price: <b>{h(product.price)}</b>")
-    if product.billing_cycles:
-        lines.append(f"Cycles: <b>{h(', '.join(product.billing_cycles))}</b>")
+        name = f"{product.variant_of} — {product.option}"
+    elif product.variant_of:
+        name = f"{product.variant_of} — {product.name}"
+    lines.append(f"<b>{h(name)}</b>")
+    lines.append("")
+
+    # Specs as bullet points
     if product.specs:
-        lines.append("Specs:")
-        prio = ["Location", "CPU", "RAM", "Disk", "Storage", "Traffic", "Bandwidth", "Port", "Cycles", "OS"]
+        prio = ["Location", "Node", "CPU", "RAM", "Disk", "Storage", "Transfer", "Traffic", "Bandwidth", "Port", "IPv4", "IPv6", "Cycles", "OS"]
         items = list(product.specs.items())
         items.sort(key=lambda kv: (prio.index(kv[0]) if kv[0] in prio else 999, str(kv[0])))
         for k, v in items[:12]:
             if not k or not v:
                 continue
-            lines.append(f"• <b>{h(str(k))}</b>: {h(str(v))}")
+            # Skip numeric-key specs (extracted from bullet lists) that are too noisy
+            if k.isdigit():
+                continue
+            lines.append(f"• {h(str(v))}")
+        lines.append("")
+
+    # Info line (description as a short contextual note)
     if product.description:
         desc = (product.description or "").strip()
-        if len(desc) > 500:
-            desc = desc[:500] + "…"
+        if len(desc) > 200:
+            desc = desc[:200] + "…"
         if desc:
-            lines.append(f"Details: {h(desc)}")
-    lines.append(f"Link: <a href=\"{h(product.url)}\">Open</a>")
-    lines.append(f"Detected: {h(now)}")
+            lines.append(f"ℹ️ {h(desc)}")
+            lines.append("")
+
+    # Price line
+    if product.price:
+        cycle_label = ""
+        if product.billing_cycles:
+            cycle_label = f" {', '.join(product.billing_cycles)}"
+        lines.append(f"💰 Price: <b>{h(product.price)}{h(cycle_label)}</b>")
+
+    # Stock status
+    if product.available is True:
+        lines.append("✅ <b>In Stock</b>")
+    elif product.available is False:
+        lines.append("❌ <b>Out of Stock</b>")
+
+    # Order link
+    lines.append(f'👉 <a href="{h(product.url)}">Order Now</a>')
+
+    # Timestamp
+    lines.append(f"🕒 {h(now)}")
+
     message = "\n".join(lines)
     return message[:3900]
 
@@ -285,9 +324,9 @@ def run_monitor(
             runs.append(run)
             if log_enabled:
                 if run.ok:
-                    print(f"[{run.domain}] ok products={len(run.products)} {run.duration_ms}ms")
+                    print(f"[{run.domain}] ok products={len(run.products)} {run.duration_ms}ms", flush=True)
                 else:
-                    print(f"[{run.domain}] error products=0 {run.duration_ms}ms :: {run.error}")
+                    print(f"[{run.domain}] error products=0 {run.duration_ms}ms :: {run.error}", flush=True)
 
     next_state, summary = _update_state_from_runs(previous_state, runs, dry_run=dry_run, timeout_seconds=timeout_seconds)
     return next_state, summary
@@ -314,9 +353,13 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             discovered.extend(_domain_extra_pages(domain))
             discovered = _dedupe_keep_order([u for u in discovered if u and u != fetch.url])
 
-            max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "250"))
-            stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", "3"))
-            stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "4"))
+            max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "500"))
+            # Use a higher no-new threshold for WHMCS sites where each gid= page has
+            # genuinely different products – stopping after 3 empty pages could miss
+            # entire product groups.
+            default_stop = "6" if _is_whmcs_domain(domain, fetch.text) else "4"
+            stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", default_stop))
+            stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "6"))
             no_new_streak = 0
             fetch_error_streak = 0
 
@@ -336,6 +379,12 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                         new_count += 1
                     deduped[p.id] = p
 
+                # Also discover more pages from this page's links.
+                more_pages = _discover_candidate_pages(page_fetch.text, base_url=page_fetch.url, domain=domain)
+                for mp in more_pages:
+                    if mp and mp not in discovered and mp != fetch.url:
+                        discovered.append(mp)
+
                 if new_count == 0:
                     no_new_streak += 1
                 else:
@@ -349,13 +398,15 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             products = list(deduped.values())
 
         # Some providers only reveal stock state on the product detail page (or render it client-side on listings).
-        if domain == "fachost.cloud":
-            products = _enrich_availability_via_product_pages(client, products, max_pages=30)
-        if domain == "backwaves.net":
-            # backwaves.net listings frequently render as "unavailable" without JS. If we saw no in-stock
-            # products at all, do a fast detail-page pass to avoid false negatives.
-            if products and not any(p.available is True for p in products):
-                products = _enrich_availability_via_product_pages(client, products, max_pages=30, include_false=True)
+        # Enrich all products with unknown or False availability via detail page fetches.
+        _ENRICH_DOMAINS = {"fachost.cloud", "backwaves.net", "app.vmiss.com", "wawo.wiki"}
+        if domain in _ENRICH_DOMAINS:
+            unknown_count = sum(1 for p in products if p.available is None)
+            false_only = all(p.available is False for p in products) if products else False
+            products = _enrich_availability_via_product_pages(
+                client, products, max_pages=40,
+                include_false=(false_only or domain in {"fachost.cloud", "backwaves.net"}),
+            )
 
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=True, error=None, duration_ms=duration_ms, products=products)
@@ -373,6 +424,21 @@ def _dedupe_keep_order(urls: list[str]) -> list[str]:
         seen.add(u)
         out.append(u)
     return out
+
+
+def _is_whmcs_domain(domain: str, html: str) -> bool:
+    """Detect WHMCS-based storefronts where product groups are separate pages."""
+    t = (html or "").lower()
+    if "whmcs" in t or "cart.php" in t or "rp=/store" in t:
+        return True
+    whmcs_domains = {
+        "my.rfchost.com", "fachost.cloud", "my.frantech.ca", "wawo.wiki",
+        "nmcloud.cc", "bgp.gd", "wap.ac", "www.bagevm.com", "backwaves.net",
+        "cloud.ggvision.net", "cloud.colocrossing.com", "bill.hostdare.com",
+        "clients.zgovps.com", "my.racknerd.com", "clientarea.gigsgigscloud.com",
+        "cloud.boil.network",
+    }
+    return domain.lower() in whmcs_domains
 
 
 def _should_force_discovery(html: str, *, base_url: str, domain: str, product_count: int) -> bool:
@@ -533,19 +599,54 @@ def _default_entrypoint_pages(base_url: str) -> list[str]:
 
 
 def _domain_extra_pages(domain: str) -> list[str]:
-    # Some targets are SPAs that render products client-side. For those, hit the backing API directly.
+    """Extra pages to crawl for specific domains, including API endpoints for SPAs
+    and explicit WHMCS product group pages for sites that were missing products."""
     if domain == "acck.io":
         return ["https://api.acck.io/api/v1/store/GetVpsStore"]
     if domain == "akile.io":
         return ["https://api.akile.io/api/v1/store/GetVpsStoreV3"]
+
+    # WHMCS sites: enumerate product groups to ensure all are crawled.
+    if domain == "my.rfchost.com":
+        base = "https://my.rfchost.com"
+        return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
+    if domain == "wawo.wiki":
+        base = "https://wawo.wiki"
+        return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
+    if domain == "fachost.cloud":
+        base = "https://fachost.cloud"
+        return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
+    if domain == "app.vmiss.com":
+        return [
+            "https://app.vmiss.com/cart.php",
+            "https://app.vmiss.com/index.php?rp=/store",
+        ] + [f"https://app.vmiss.com/cart.php?gid={i}" for i in range(1, 20)]
+    if domain == "my.racknerd.com":
+        return [f"https://my.racknerd.com/cart.php?gid={i}" for i in range(1, 30)]
+    if domain == "bill.hostdare.com":
+        return [f"https://bill.hostdare.com/cart.php?gid={i}" for i in range(1, 15)]
+    if domain == "clients.zgovps.com":
+        base = "https://clients.zgovps.com"
+        return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
+    if domain == "clientarea.gigsgigscloud.com":
+        base = "https://clientarea.gigsgigscloud.com"
+        return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
+    if domain == "www.dmit.io":
+        return [
+            "https://www.dmit.io/cart.php",
+            "https://www.dmit.io/pages/tier1",
+        ] + [f"https://www.dmit.io/cart.php?gid={i}" for i in range(1, 15)]
+
     return []
 
 
 def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[str]:
-    max_pages = int(os.getenv("DISCOVERY_MAX_PAGES_PER_DOMAIN", "10"))
+    max_pages = int(os.getenv("DISCOVERY_MAX_PAGES_PER_DOMAIN", "20"))
     if domain == "greencloudvps.com":
         # GreenCloud uses many non-WHMCS *.php listing pages; allow more crawl depth.
         max_pages = max(max_pages, 60)
+    if _is_whmcs_domain(domain, html):
+        max_pages = max(max_pages, 30)
     soup = BeautifulSoup(html, "lxml")
     base_netloc = urlparse(base_url).netloc.lower()
 

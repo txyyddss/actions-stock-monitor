@@ -1,49 +1,56 @@
+Add Sites, be aware of the hidden promotion products, you can run local tests to understand each website structure:
+- https://cloud.colocrossing.com/
+- https://www.dmit.io/
+- https://bill.hostdare.com/
+- https://clients.zgovps.com/
+- https://vps.hosting/
+- https://my.racknerd.com/
+- https://clientarea.gigsgigscloud.com/
+- https://cloud.boil.network/
+- https://www.vps.soy/
+- https://cloud.bffyun.com/
 
-**Role:** You are an expert Full-Stack Developer specializing in web scraping, Cloudflare bypass strategies (FlareSolverr), concurrency, and performance optimization.
+Fix Bugs:
+- my.rfchost.com Only listed part of the products (Only listed the first product group)
+- fachost.cloud Only listed products in stock
+- acck.io & akile.io Console output products is always 0 but the website shows the correct stock, need to fix the console output
+- Console output of "Run monitor" is not realtime
+- The element on website "Run:  → " does not fit small-sized screen like phones
+- wawo.wiki & my.rfchost.com & fachost.cloud does not display all the products
+- Many products are wrongly marked as "STALE"
+- Stock status of most of the products of app.vmiss.com are wrongly marked as "Unknown" and "STALE"
+- The pie chart is wrong at all, always fully green
 
-**Context:** I have a stock monitoring web scraper project that tracks product availability across various hosting/VPS providers and sends alerts via a Telegram bot. The current codebase suffers from parsing bugs, inefficient scraping workflows, and UI/notification glitches.
+Add Features:
+- Github functions
+    - Dependabot 
+    - Code scanning
+    - Issue templates
+- Display available payment cycles and prices of each product both on website and telegram messages
+- Integrate the "options"(like locations) of product into the button or description of the product instead of showing a standalone "Unknown" product
+- Check the "options" display of all sites if it can display correctly
+- Make the telegram message similar to the sample message below(You don't need to 100% follow, just for example):
+```
+#ZgoCloud
 
-**Objective:** Refactor and debug the codebase to maximize efficiency, reduce execution time for a single run, fix site-specific parsing logic, and generate comprehensive documentation.
+Los Angeles Ryzen9 Performance- Lite
 
-Please execute the following requirements in phases:
+• 1 Core AMD Ryzen9 7950X
+• 512 MB DDR5 RAM
+• 15G NVMe SSD
+• 500G/Month/200Mbps, Fair Use
 
-You can use local flaresoverr instance `http://127.0.0.1:8191/`
+ℹ️ China Optimized, CN2GIA&9929&CMIN2
 
-**Phase 1: Architecture & Performance Optimization**
+💰 Price: $38.9 USD Annually
 
-* **Direct Fetching First:** Modify the scraping logic to attempt direct data fetching first. Only use FlareSolverr as a fallback if the direct request is blocked.
-* **FlareSolverr Efficiency:** Implement a temporary cookie storage system. Extract and reuse Cloudflare clearance cookies from FlareSolverr to minimize redundant challenge-solving.
-* **Concurrency:** Introduce multi-threading/asynchronous data fetching to process multiple providers simultaneously.
-* **Retry Logic:** Enhance the retry mechanism to handle timeouts and network failures gracefully.
-* **Code Cleanup:** Audit the entire codebase to identify and remove useless fetch requests. Refactor any redundant logic to improve overall runtime efficiency.
-* **Logging:** Implement clean, simplified console logs to indicate real-time fetching status without cluttering the terminal.
+👉 Order Now (https://clients.zgovps.com/?cmd=cart&action=add&affid=806&id=101)
 
-**Phase 2: Bug Fixes (Parsing & Logic)**
-Audit the codebase and fix the following specific provider bugs:
+🕒 2026-02-18 11:10:56
+```
 
-* `wawo.wiki`: Scraper currently only lists the first product of each group; expand to fetch all.
-* `wap.ac`: Product names are incorrectly mapped to category descriptions. Fix the CSS selector/API mapping.
-* `bagevm.com`: Scraper only returns the group name instead of the actual products.
-* `my.rfchost.com`: Only fetching products from the first group.
-* `fachost.cloud`: Only listing in-stock items and incorrectly flagging their status as "Unknown". Update logic to capture out-of-stock items and correct the status.
-* `backwaves.net`: Product name incorrectly scrapes as "cart.php" and out-of-stock items are falsely reported as "In Stock".
-* `app.vmiss.com`: Fix the logic causing widespread "Unknown" statuses.
-* **General OOS Bug:** Fix the global logic flaw preventing some out-of-stock products from being fetched correctly.
+Run full local tests after changes
+Run customized local tests for investigation and analysis of the sites
+Check all codes throughly to discover and fix bugs
 
-**Phase 3: UI & Telegram Enhancements**
-
-* **Web UI:** Add the Telegram group link (`https://t.me/tx_stock_monitor`) to a prominent location on the web dashboard.
-* **Web UI:** Improve the display layout and formatting of product details on the frontend.
-* **Telegram Bot:** Inject more comprehensive product details into the alert messages.
-* **Encoding Fix:** Fix the character encoding bug causing the "NEW PRODUCT" Telegram message to display broken characters (e.g., "馃啎" instead of the intended emoji like 🆕).
-
-**Phase 4: Testing & QA**
-
-* Run thorough local tests and use debugging tools to ensure all the above issues are resolved.
-* After applying the fixes, run a full production-simulation test suite.
-* **KPI:** Your optimizations must tangibly decrease the total time required for a single complete scraping run.
-
-**Phase 5: Documentation**
-
-* Write a comprehensive, detailed `README.md`.
-* Include: A detailed Introduction, a technical breakdown of "How it Works" (including the FlareSolverr fallback logic), and explicit, step-by-step instructions for deploying the web interface to Cloudflare Pages.
+Local flaresoverr url: http://127.0.0.1:8191/

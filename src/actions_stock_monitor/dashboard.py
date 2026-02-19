@@ -21,12 +21,21 @@ def _h(s: Any) -> str:
     return html.escape("" if s is None else str(s), quote=True)
 
 
+def _format_ts_short(ts: str | None) -> str:
+    """Return a compact timestamp string suitable for small screens."""
+    dt = _parse_iso(ts)
+    if not dt:
+        return ""
+    return dt.strftime("%Y-%m-%d %H:%M")
+
+
 def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] | None = None) -> str:
     run_summary = run_summary or {}
     updated_at = state.get("updated_at") or run_summary.get("finished_at") or ""
     stale_minutes = int(os.getenv("STALE_MINUTES", "180"))
 
-    now = _parse_iso(updated_at) or datetime.now(timezone.utc)
+    # Use real current UTC time for stale detection, not the potentially-old updated_at.
+    now = datetime.now(timezone.utc)
 
     products: list[dict[str, Any]] = []
     for _, p in (state.get("products") or {}).items():
@@ -37,6 +46,18 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         if last_seen_dt:
             age_min = int((now - last_seen_dt).total_seconds() / 60)
             stale = age_min >= stale_minutes
+        else:
+            # If we have no last_seen at all, consider it stale only if > stale_minutes old.
+            first_seen_dt = _parse_iso(p.get("first_seen"))
+            if first_seen_dt:
+                stale = int((now - first_seen_dt).total_seconds() / 60) >= stale_minutes
+
+        billing = p.get("billing_cycles") or []
+        if isinstance(billing, list):
+            billing = ", ".join(str(c) for c in billing)
+        else:
+            billing = str(billing) if billing else ""
+
         products.append(
             {
                 "domain": p.get("domain", ""),
@@ -49,6 +70,9 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
                 "first_seen": p.get("first_seen") or "",
                 "last_seen": p.get("last_seen") or "",
                 "stale": stale,
+                "billing_cycles": billing,
+                "option": p.get("option") or "",
+                "variant_of": p.get("variant_of") or "",
             }
         )
 
@@ -67,12 +91,19 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
 
     data_json = json.dumps({"products": products}, ensure_ascii=False)
 
+    run_started = _format_ts_short(run_summary.get("started_at"))
+    run_finished = _format_ts_short(run_summary.get("finished_at"))
+
     return f"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Restock Monitor Dashboard</title>
+  <meta name="description" content="Real-time VPS hosting stock monitor dashboard tracking product availability across multiple providers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {{
       --bg0: #070914;
@@ -97,13 +128,13 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         radial-gradient(900px 700px at 85% 20%, rgba(255, 43, 214, 0.14), transparent 55%),
         radial-gradient(900px 700px at 35% 90%, rgba(124, 255, 0, 0.10), transparent 55%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
     }}
     a {{ color: var(--cyan); text-decoration: none; }}
     a:hover {{ text-decoration: underline; }}
     .plink {{ color: var(--text); }}
     .plink:hover {{ color: var(--cyan); }}
-    .wrap {{ max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }}
+    .wrap {{ max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }}
     header {{
       display: flex; gap: 16px; align-items: flex-end; justify-content: space-between;
       padding: 18px 18px 16px;
@@ -112,6 +143,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
+      flex-wrap: wrap;
     }}
     .title {{
       font-weight: 800;
@@ -126,9 +158,9 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       line-height: 1.35;
     }}
     .stats {{
-      display: grid;
-      grid-auto-flow: column;
-      grid-gap: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
       align-items: end;
     }}
     .pill {{
@@ -139,8 +171,16 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       font-size: 12px;
       color: var(--muted);
       white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }}
     .pill b {{ color: var(--text); }}
+    .pill.run-pill {{
+      white-space: normal;
+      word-break: break-all;
+      font-size: 11px;
+    }}
     .controls {{
       margin: 16px 0 10px;
       display: flex; gap: 12px; flex-wrap: wrap;
@@ -154,6 +194,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       background: rgba(0,0,0,.25);
       color: var(--text);
       outline: none;
+      font-family: inherit;
     }}
     input[type="search"]:focus {{
       border-color: rgba(0, 240, 255, 0.55);
@@ -166,20 +207,24 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       background: rgba(0,0,0,.25);
       color: var(--text);
       outline: none;
+      font-family: inherit;
     }}
     select:focus {{
       border-color: rgba(0, 240, 255, 0.55);
       box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12);
+    }}
+    .table-wrap {{
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      box-shadow: var(--shadow);
     }}
     .table {{
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
       overflow: hidden;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.03);
-      box-shadow: var(--shadow);
     }}
     thead th {{
       position: sticky; top: 0;
@@ -192,6 +237,13 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       border-bottom: 1px solid var(--border);
       user-select: none;
       cursor: pointer;
+      white-space: nowrap;
+    }}
+    thead th:hover {{
+      color: var(--cyan);
+    }}
+    thead th.sorted {{
+      color: var(--cyan);
     }}
     tbody td {{
       padding: 12px 12px;
@@ -215,6 +267,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     .dot {{
       width: 10px; height: 10px; border-radius: 50%;
       box-shadow: 0 0 12px rgba(0,0,0,.25);
+      flex-shrink: 0;
     }}
     .dot.ok {{ background: var(--lime); box-shadow: 0 0 18px rgba(124,255,0,.35); }}
     .dot.bad {{ background: var(--red); box-shadow: 0 0 18px rgba(255,77,77,.25); }}
@@ -230,11 +283,13 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       color: var(--text);
       font-weight: 650;
       font-size: 12px;
+      transition: all 0.2s ease;
     }}
     .btn:hover {{
       border-color: rgba(0,240,255,.65);
       box-shadow: 0 0 0 3px rgba(0,240,255,.12);
       text-decoration: none;
+      transform: translateY(-1px);
     }}
     .specs {{
       margin-top: 6px;
@@ -262,6 +317,15 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       color: rgba(0,0,0,.85);
       background: var(--amber);
     }}
+    .option-tag {{
+      margin-left: 6px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--cyan);
+      border: 1px solid rgba(0,240,255,.3);
+      background: rgba(0,240,255,.08);
+    }}
     .viz {{
       display: flex;
       gap: 14px;
@@ -278,9 +342,11 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       width: 92px;
       height: 92px;
       border-radius: 50%;
-      background: conic-gradient(var(--lime) 0 33%, var(--red) 33% 66%, rgba(255,255,255,.18) 66% 100%);
+      /* Start with neutral; JS will set correct conic-gradient */
+      background: rgba(255,255,255,.18);
       position: relative;
       border: 1px solid var(--border);
+      transition: background 0.3s ease;
     }}
     .donut::after {{
       content: "";
@@ -310,8 +376,10 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     .sw-unk {{ background: rgba(255,255,255,.18); }}
     @media (max-width: 760px) {{
       header {{ flex-direction: column; align-items: flex-start; }}
-      .stats {{ grid-auto-flow: row; width: 100%; }}
+      .stats {{ width: 100%; }}
+      .pill.run-pill {{ display: none; }}
       thead {{ display: none; }}
+      .table-wrap {{ border-radius: 12px; }}
       .table, tbody, tr, td {{ display: block; width: 100%; }}
       tbody td {{
         border-bottom: none;
@@ -344,7 +412,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         <div class="pill"><a href="https://t.me/tx_stock_monitor" target="_blank" rel="noreferrer noopener">Telegram group</a></div>
         <div class="pill">Restocks: <b>{_h(run_summary.get("restocks", 0))}</b></div>
         <div class="pill">New: <b>{_h(run_summary.get("new_products", 0))}</b></div>
-        <div class="pill">Run: <span class="muted">{_h(run_summary.get("started_at",""))}</span> → <span class="muted">{_h(run_summary.get("finished_at",""))}</span></div>
+        <div class="pill run-pill">Run: <span class="muted">{_h(run_started)}</span> → <span class="muted">{_h(run_finished)}</span></div>
       </div>
     </header>
 
@@ -352,6 +420,12 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       <input id="q" type="search" placeholder="Search domain, name, price, specs…" autocomplete="off" />
       <select id="site" aria-label="Site category">
         <option value="">All sites</option>
+      </select>
+      <select id="stock-filter" aria-label="Stock filter">
+        <option value="">All stock</option>
+        <option value="in">In Stock</option>
+        <option value="out">Out of Stock</option>
+        <option value="unknown">Unknown</option>
       </select>
       <span class="muted">Click headers to sort.</span>
     </div>
@@ -366,6 +440,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       </div>
     </div>
 
+    <div class="table-wrap">
     <table class="table" id="t">
       <thead>
         <tr>
@@ -373,12 +448,14 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
           <th data-col="domain">Domain</th>
           <th data-col="name">Product</th>
           <th data-col="price">Price</th>
+          <th data-col="billing_cycles">Cycles</th>
           <th data-col="last_seen">Last Seen</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody id="tb"></tbody>
     </table>
+    </div>
   </div>
 
   <script>
@@ -386,6 +463,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     const tb = document.getElementById("tb");
     const q = document.getElementById("q");
     const site = document.getElementById("site");
+    const stockFilter = document.getElementById("stock-filter");
     const table = document.getElementById("t");
     const pie = document.getElementById("pie");
     const cOk = document.getElementById("cOk");
@@ -424,8 +502,12 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       if (cTot) cTot.textContent = String(total);
 
       if (!pie) return;
-      const okPct = total ? (ok / total) * 100 : 0;
-      const badPct = total ? (bad / total) * 100 : 0;
+      if (total === 0) {{
+        pie.style.background = "rgba(255,255,255,.18)";
+        return;
+      }}
+      const okPct = (ok / total) * 100;
+      const badPct = (bad / total) * 100;
       const a = okPct;
       const b = okPct + badPct;
       pie.style.background = `conic-gradient(var(--lime) 0% ${{a}}%, var(--red) ${{a}}% ${{b}}%, rgba(255,255,255,.18) ${{b}}% 100%)`;
@@ -434,50 +516,70 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     function render() {{
       const needle = (q.value || "").trim().toLowerCase();
       const siteNeedle = (site && site.value) ? String(site.value) : "";
+      const stockNeedle = (stockFilter && stockFilter.value) ? String(stockFilter.value) : "";
       const items = DATA.products
         .filter(p => {{
           if (siteNeedle && String(p.domain || "") !== siteNeedle) return false;
+          if (stockNeedle === "in" && p.available !== true) return false;
+          if (stockNeedle === "out" && p.available !== false) return false;
+          if (stockNeedle === "unknown" && p.available !== null) return false;
           if (!needle) return true;
           const specText = Object.entries(p.specs || {{}}).map(([k,v]) => `${{k}}:${{v}}`).join(" ");
-          const blob = `${{p.domain}} ${{p.name}} ${{p.price}} ${{p.description || ""}} ${{specText}} ${{p.url}}`.toLowerCase();
+          const blob = `${{p.domain}} ${{p.name}} ${{p.price}} ${{p.description || ""}} ${{specText}} ${{p.url}} ${{p.billing_cycles || ""}} ${{p.option || ""}}`.toLowerCase();
           return blob.includes(needle);
         }})
         .slice()
         .sort(cmp);
 
       updatePie(items);
+
+      // Update sort indicator
+      table.querySelectorAll("thead th[data-col]").forEach(th => {{
+        th.classList.toggle("sorted", th.getAttribute("data-col") === sortCol);
+        th.textContent = th.textContent.replace(/ [▲▼]$/, "");
+        if (th.getAttribute("data-col") === sortCol) {{
+          th.textContent += sortDir === 1 ? " ▲" : " ▼";
+        }}
+      }});
+
       tb.innerHTML = "";
       for (const p of items) {{
         const meta = statusMeta(p.available);
         const tr = document.createElement("tr");
-        const specs = Object.entries(p.specs || {{}}).map(([k,v]) => `<span class="chip">${{k}}: ${{v}}</span>`).join("");
+        const specs = Object.entries(p.specs || {{}}).map(([k,v]) => `<span class="chip">${{escapeHtml(k)}}: ${{escapeHtml(v)}}</span>`).join("");
         const desc = p.description ? `<div class="desc">${{escapeHtml(p.description)}}</div>` : "";
         const staleTag = p.stale ? `<span class="tag-stale">STALE</span>` : "";
+        const optionTag = p.option ? `<span class="option-tag">${{escapeHtml(p.option)}}</span>` : "";
+        const variantInfo = p.variant_of ? `<div class="muted" style="font-size:11px;margin-top:2px">Plan: ${{escapeHtml(p.variant_of)}}</div>` : "";
+        const cyclesCell = p.billing_cycles ? escapeHtml(p.billing_cycles) : '<span class="muted">—</span>';
 
         tr.innerHTML = `
           <td data-k="Status">
             <span class="badge"><span class="dot ${{meta.cls}}"></span> ${{meta.label}} ${{staleTag}}</span>
           </td>
-          <td data-k="Domain"><span class="muted">${{p.domain}}</span></td>
+          <td data-k="Domain"><span class="muted">${{escapeHtml(p.domain)}}</span></td>
           <td data-k="Product">
-            <div><a class="plink" href="${{p.url}}" target="_blank" rel="noreferrer noopener"><b>${{escapeHtml(p.name)}}</b></a></div>
+            <div><a class="plink" href="${{escapeHtml(p.url)}}" target="_blank" rel="noreferrer noopener"><b>${{escapeHtml(p.name)}}</b></a>${{optionTag}}</div>
+            ${{variantInfo}}
             ${{desc}}
             <div class="specs">${{specs}}</div>
           </td>
           <td data-k="Price">${{escapeHtml(p.price || "")}}</td>
+          <td data-k="Cycles">${{cyclesCell}}</td>
           <td data-k="Last Seen"><span class="muted">${{escapeHtml(p.last_seen || "")}}</span></td>
-          <td data-k="Action"><a class="btn" href="${{p.url}}" target="_blank" rel="noreferrer noopener">Buy Now</a></td>
+          <td data-k="Action"><a class="btn" href="${{escapeHtml(p.url)}}" target="_blank" rel="noreferrer noopener">Buy Now</a></td>
         `;
         tb.appendChild(tr);
       }}
     }}
 
     function escapeHtml(s) {{
-      return String(s ?? "").replace(/[&<>"]/g, (c) => ({{"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}}[c]));
+      return String(s ?? "").replace(/[&<>"]/g, (c) => ({{"&":"&amp;","<":"&lt;",">":"&gt;","\\\\"":"&quot;"}}[c]));
     }}
 
     q.addEventListener("input", () => render());
     if (site) site.addEventListener("change", () => render());
+    if (stockFilter) stockFilter.addEventListener("change", () => render());
 
     table.querySelectorAll("thead th[data-col]").forEach(th => {{
       th.addEventListener("click", () => {{

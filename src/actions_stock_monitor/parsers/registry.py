@@ -22,6 +22,16 @@ _KNOWN_DOMAINS = [
     "cloud.ggvision.net",
     "wap.ac",
     "www.bagevm.com",
+    "cloud.colocrossing.com",
+    "www.dmit.io",
+    "bill.hostdare.com",
+    "clients.zgovps.com",
+    "vps.hosting",
+    "my.racknerd.com",
+    "clientarea.gigsgigscloud.com",
+    "cloud.boil.network",
+    "www.vps.soy",
+    "cloud.bffyun.com",
 ]
 
 _PARSERS = {d: GenericDomainParser(GenericParserConfig(domain=d)) for d in _KNOWN_DOMAINS}
