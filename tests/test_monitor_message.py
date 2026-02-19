@@ -20,11 +20,12 @@ class TestMonitorMessage(unittest.TestCase):
             available=True,
         )
 
-        msg = _format_message("RESTOCK ALERT", "🟢", p, "2026-02-18T00:00:00+00:00")
+        msg = _format_message("RESTOCK ALERT", "🔥", p, "2026-02-18T00:00:00+00:00")
         self.assertIn("RESTOCK ALERT", msg)
         self.assertIn("Example Plan", msg)
         self.assertIn("9.99 USD", msg)
-        self.assertIn("Buy now", msg)
+        self.assertIn("Link:", msg)
+        self.assertIn("https://example.test/buy", msg)
         self.assertIn("Detected:", msg)
         self.assertTrue(msg.startswith("<b>"))
         self.assertLessEqual(len(msg), 3900)
@@ -32,4 +33,3 @@ class TestMonitorMessage(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

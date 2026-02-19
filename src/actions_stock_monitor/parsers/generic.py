@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Iterable
 from urllib.parse import parse_qs, urlparse
@@ -47,6 +48,10 @@ class GenericDomainParser:
             if not text or len(text) < 8:
                 continue
 
+            # Skip obvious multi-product containers; these often collapse many products into one "card".
+            if self._distinct_product_link_count(card, base_url=base_url) >= 3:
+                continue
+
             url = self._extract_buy_url(card, base_url=base_url)
             if not url or self._is_non_product_url(url):
                 continue
@@ -58,7 +63,7 @@ class GenericDomainParser:
             except Exception:
                 pass
 
-            name = self._extract_name(card) or self.domain
+            name = self._extract_name(card) or self._name_from_text(text) or self.domain
             if self._looks_like_action_label(name):
                 name = self._name_from_url(url) or name
             if self._looks_like_non_name(name):
@@ -95,7 +100,7 @@ class GenericDomainParser:
 
     def _iter_cards(self, soup: BeautifulSoup) -> Iterable:
         # High-signal "card" selectors used by common hosting storefronts.
-        for sel in [".package", ".product", ".plan", ".pricing", ".card"]:
+        for sel in [".package", ".product", ".plan", ".pricing", ".card", ".tt-single-product"]:
             for tag in soup.select(sel):
                 yield tag
 
@@ -110,7 +115,20 @@ class GenericDomainParser:
                 yield tag
 
     def _extract_name(self, tag) -> str | None:
-        for sel in ["h1", "h2", "h3", ".title", ".name", "[class*='title']"]:
+        for sel in [
+            "h1",
+            "h2",
+            "h3",
+            ".title",
+            ".name",
+            ".product-name",
+            ".producttitle",
+            ".product-title",
+            ".plan-title",
+            ".tt-product-name",
+            "[class*='title']",
+            "[class*='name']",
+        ]:
             t = tag.select_one(sel)
             if t:
                 name = compact_ws(t.get_text(" ", strip=True))
@@ -155,8 +173,12 @@ class GenericDomainParser:
         n = compact_ws(name)
         if not n:
             return True
+        # Many sites use pipes in short plan names (e.g. "JP | TKY | Global 01").
         if "|" in n:
-            return True
+            if len(n) > 60:
+                return True
+            if n.count("|") >= 3:
+                return True
         if len(n) > 60:
             return True
         # Very long, sentence-like headings are usually introductions/category blurbs.
@@ -167,30 +189,62 @@ class GenericDomainParser:
         return False
 
     def _extract_buy_url(self, tag, *, base_url: str) -> str | None:
-        anchors = list(tag.find_all("a"))
         candidates: list[tuple[int, str]] = []
-        for a in anchors:
-            href = a.get("href")
+        def add_candidate(href: str | None, label: str) -> None:
+            if not href:
+                return
+            href = str(href).strip()
             if not href or href.startswith("#") or href.startswith("javascript:"):
-                continue
+                return
             abs_url = urljoin(base_url, href)
-            label = compact_ws(a.get_text(" ", strip=True)).lower()
-            if self._is_cart_view_url(abs_url):
-                continue
+            if self._is_non_product_url(abs_url):
+                return
+            url_l = abs_url.lower()
+            lab_l = compact_ws(label).lower()
 
             score = 0
-            url_l = abs_url.lower()
-            if "cart.php" in url_l and ("a=add" in url_l or "pid=" in url_l):
-                score += 5
+            if "cart.php" in url_l:
+                if "a=add" in url_l or ("pid=" in url_l and "a=view" not in url_l):
+                    score += 6
+                elif "a=view" in url_l and "pid=" in url_l:
+                    score += 4
             if ("/store/" in url_l or "rp=/store/" in url_l) and not self._is_non_product_url(abs_url):
                 score += 4
             if "/products/" in url_l and not self._is_non_product_url(abs_url):
                 score += 3
             if any(h in url_l for h in self._cfg.link_hints):
                 score += 1
-            if any(h in label for h in ("buy", "order", "checkout", "cart", "立即", "订购", "購買", "购买", "下单")):
+            if any(h in lab_l for h in ("buy", "order", "checkout", "cart", "add", "subscribe", "立即", "订购", "購買", "购买", "下单")):
                 score += 2
             candidates.append((score, abs_url))
+
+        for a in tag.find_all("a"):
+            add_candidate(a.get("href"), a.get_text(" ", strip=True))
+            for attr in ("data-href", "data-url"):
+                add_candidate(a.get(attr), a.get_text(" ", strip=True))
+
+        for el in tag.select("button, input"):
+            onclick = el.get("onclick")
+            if onclick and isinstance(onclick, str):
+                add_candidate(self._extract_url_from_onclick(onclick), getattr(el, "get_text", lambda *a, **k: "")(" ", strip=True))
+            for attr in ("data-href", "data-url"):
+                add_candidate(el.get(attr), getattr(el, "get_text", lambda *a, **k: "")(" ", strip=True))
+
+        for form in tag.find_all("form"):
+            action = form.get("action")
+            if not action:
+                continue
+            action_abs = urljoin(base_url, action)
+            if "cart.php" not in action_abs.lower():
+                continue
+            pid = None
+            try:
+                inp = form.find("input", attrs={"name": "pid"})
+                pid = inp.get("value") if inp else None
+            except Exception:
+                pid = None
+            if pid and str(pid).isdigit():
+                add_candidate(f"cart.php?a=add&pid={pid}", "order")
 
         if not candidates:
             return None
@@ -232,8 +286,15 @@ class GenericDomainParser:
             parts = [x for x in after.split("/") if x]
             return len(parts) <= 1
         if path.endswith("/cart.php"):
-            # Group listing pages like cart.php?gid=37 are categories.
-            return "gid" in qs and "pid" not in qs
+            # WHMCS cart pages:
+            # - cart.php (listing), cart.php?gid=.. (group listing), cart.php?a=view (view cart) -> non-product
+            # - cart.php?a=add&pid=.. or cart.php?pid=.. -> product-ish
+            if "pid" in qs:
+                return False
+            a = (qs.get("a") or [None])[0]
+            if isinstance(a, str) and a.lower() == "add":
+                return False
+            return True
         return False
 
     @staticmethod
@@ -245,10 +306,37 @@ class GenericDomainParser:
             parts = [x for x in rp.strip("/").split("/") if x]
             if len(parts) >= 3:
                 return parts[-1]
+        if p.path.lower().endswith("/cart.php"):
+            pid = (qs.get("pid") or [None])[0]
+            if isinstance(pid, str) and pid.strip():
+                return f"pid-{pid.strip()}"
         path_parts = [x for x in p.path.split("/") if x]
         if path_parts:
             return path_parts[-1]
         return None
+
+    _NAME_PRICE_SPLIT_RE = re.compile(r"(?:HK\$|US\$|\$|€|£|¥|USD|EUR|GBP|HKD|CNY|RMB)\s*\d", re.IGNORECASE)
+    _NAME_TRIM_TAIL_RE = re.compile(r"(?:\b\d+\s*(?:available|left|in\s*stock)\b|\bavailable\b|可用)\s*$", re.IGNORECASE)
+
+    @staticmethod
+    def _name_from_text(text: str) -> str | None:
+        t = compact_ws(text)
+        if not t:
+            return None
+        m = GenericDomainParser._NAME_PRICE_SPLIT_RE.search(t)
+        prefix = (t[: m.start()] if m else t).strip()
+        if not prefix:
+            return None
+        # Many storefront cards prefix a promo chunk like "Save 0 %".
+        prefix = re.split(r"\bsave\b", prefix, maxsplit=1, flags=re.IGNORECASE)[0].strip()
+        prefix = prefix.replace("Monthly", " ").replace("Per Month", " ").replace("每月", " ")
+        prefix = compact_ws(GenericDomainParser._NAME_TRIM_TAIL_RE.sub("", prefix))
+        if not (2 <= len(prefix) <= 120):
+            return None
+        # Avoid using a whole paragraph as a "name".
+        if prefix.count(" ") >= 10:
+            return None
+        return prefix
 
     @staticmethod
     def _looks_like_action_label(name: str) -> bool:
@@ -280,13 +368,20 @@ class GenericDomainParser:
         best = tag
         best_score = self._card_score(tag, base_url=base_url)
         cur = tag
+        cur_link_count = self._distinct_product_link_count(cur, base_url=base_url)
         for _ in range(5):
             cur = getattr(cur, "parent", None)
             if not cur or not hasattr(cur, "get_text"):
                 break
+            parent_link_count = self._distinct_product_link_count(cur, base_url=base_url)
+            # Stop before promoting into a multi-product container; this prevents collapsing
+            # multiple products into a single parsed card.
+            if parent_link_count > 1 and cur_link_count <= 1:
+                break
             score = self._card_score(cur, base_url=base_url)
             if score > best_score:
                 best, best_score = cur, score
+                cur_link_count = parent_link_count
         return best
 
     def _card_score(self, tag, *, base_url: str) -> int:
@@ -307,7 +402,7 @@ class GenericDomainParser:
         if self._extract_specs(tag):
             score += 1
         url = self._extract_buy_url(tag, base_url=base_url)
-        if url and not self._is_cart_view_url(url):
+        if url:
             score += 2
         anchor_count = len(tag.find_all("a"))
         if anchor_count <= 8:
@@ -323,19 +418,53 @@ class GenericDomainParser:
             for el in tag.select("a,button,input"):
                 cls = " ".join(el.get("class", [])) if hasattr(el, "get") else ""
                 cls_l = cls.lower()
-                if "disabled" in cls_l or "sold" in cls_l or "soldout" in cls_l or "out-of-stock" in cls_l:
+                if "sold" in cls_l or "soldout" in cls_l or "out-of-stock" in cls_l or "outofstock" in cls_l:
+                    return False
+                if "disabled" in cls_l or getattr(el, "has_attr", lambda *_: False)("disabled"):
                     lab = compact_ws(getattr(el, "get_text", lambda *a, **k: "")(" ", strip=True)).lower()
-                    if any(x in lab for x in ["order", "buy", "checkout", "cart", "订购", "購買", "购买"]):
+                    if extract_availability(lab) is False:
                         return False
         except Exception:
             pass
 
         u = (url or "").lower()
-        if "cart.php" in u and ("a=add" in u or "pid=" in u):
+        if "cart.php" in u and ("a=add" in u or ("pid=" in u and "a=view" not in u)):
             return True
         if ("rp=/store/" in u or "/store/" in u) and not GenericDomainParser._is_non_product_url(url):
             return True
         return None
+
+    @staticmethod
+    def _extract_url_from_onclick(onclick: str) -> str | None:
+        s = onclick or ""
+        for quote in ("'", '"'):
+            parts = s.split(quote)
+            for part in parts[1:]:
+                p = part.strip()
+                if p.startswith(("http://", "https://", "/")) or "cart.php" in p or "index.php?rp=" in p:
+                    return p
+        return None
+
+    def _distinct_product_link_count(self, tag, *, base_url: str) -> int:
+        seen: set[str] = set()
+        for a in tag.find_all("a"):
+            href = a.get("href")
+            if not href:
+                continue
+            abs_url = urljoin(base_url, str(href))
+            if self._is_non_product_url(abs_url):
+                continue
+            ul = abs_url.lower()
+            if "cart.php" in ul and ("pid=" in ul or "a=add" in ul):
+                seen.add(normalize_url_for_id(abs_url))
+                continue
+            if ("/store/" in ul or "rp=/store/" in ul) and not self._is_non_product_url(abs_url):
+                seen.add(normalize_url_for_id(abs_url))
+                continue
+            if "/products/" in ul and not self._is_non_product_url(abs_url):
+                seen.add(normalize_url_for_id(abs_url))
+                continue
+        return len(seen)
 
     @staticmethod
     def _extract_description(tag, *, name: str) -> str | None:

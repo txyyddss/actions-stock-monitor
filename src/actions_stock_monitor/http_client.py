@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import json
+import os
 import random
+import threading
 import time
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlparse
 
 import requests
 from requests import Response
+from requests.adapters import HTTPAdapter
 
 
 DEFAULT_USER_AGENTS = [
@@ -27,6 +31,13 @@ class FetchResult:
     elapsed_ms: int
 
 
+@dataclass
+class _CookieContext:
+    cookies: dict[str, str]
+    user_agent: str | None
+    expires_at: float
+
+
 class HttpClient:
     def __init__(
         self,
@@ -43,12 +54,32 @@ class HttpClient:
         self._user_agents = user_agents or DEFAULT_USER_AGENTS
         self._max_retries = max_retries
 
-        self._session = requests.Session()
+        self._local = threading.local()
+        self._cookie_lock = threading.Lock()
+        self._cookie_cache: dict[str, _CookieContext] = {}
+
+        # Keep this small-ish: monitor runs are frequent and we only need temporary reuse.
+        self._cf_cookie_ttl_seconds = float(os.getenv("CF_COOKIE_TTL_SECONDS", "1800"))
+
+    def _session(self) -> requests.Session:
+        sess = getattr(self._local, "session", None)
+        if isinstance(sess, requests.Session):
+            return sess
+        s = requests.Session()
+        adapter = HTTPAdapter(pool_connections=32, pool_maxsize=32)
+        s.mount("http://", adapter)
+        s.mount("https://", adapter)
+        self._local.session = s
+        return s
 
     def fetch_text(self, url: str) -> FetchResult:
-        if self._flaresolverr_url:
-            return self._fetch_via_flaresolverr(url)
-        return self._fetch_direct(url)
+        direct = self._fetch_direct(url)
+        if direct.ok or not self._flaresolverr_url:
+            return direct
+        if not self._is_likely_blocked(direct):
+            return direct
+        solved = self._fetch_via_flaresolverr(url)
+        return solved
 
     @staticmethod
     def _should_retry_status(status_code: int) -> bool:
@@ -77,8 +108,8 @@ class HttpClient:
         base = min(2.5, 0.35 * attempt)
         time.sleep(base + random.random() * 0.15)
 
-    def _headers(self) -> dict[str, str]:
-        ua = random.choice(self._user_agents)
+    def _headers(self, *, user_agent: str | None = None) -> dict[str, str]:
+        ua = user_agent or random.choice(self._user_agents)
         return {
             "User-Agent": ua,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -86,6 +117,36 @@ class HttpClient:
             "Cache-Control": "no-cache",
             "Pragma": "no-cache",
         }
+
+    @staticmethod
+    def _netloc(url: str) -> str:
+        try:
+            return urlparse(url).netloc.lower()
+        except Exception:
+            return ""
+
+    def _get_cookie_context(self, netloc: str) -> _CookieContext | None:
+        if not netloc:
+            return None
+        now = time.time()
+        with self._cookie_lock:
+            ctx = self._cookie_cache.get(netloc)
+            if not ctx:
+                return None
+            if ctx.expires_at <= now:
+                self._cookie_cache.pop(netloc, None)
+                return None
+            return ctx
+
+    def _store_cookie_context(self, netloc: str, *, cookies: dict[str, str] | None, user_agent: str | None, ttl_seconds: float | None = None) -> None:
+        if not netloc or not cookies:
+            return
+        ttl = float(ttl_seconds if ttl_seconds is not None else self._cf_cookie_ttl_seconds)
+        if ttl <= 0:
+            return
+        expires_at = time.time() + ttl
+        with self._cookie_lock:
+            self._cookie_cache[netloc] = _CookieContext(cookies=dict(cookies), user_agent=user_agent, expires_at=expires_at)
 
     def _proxies(self) -> dict[str, str] | None:
         if not self._proxy_url:
@@ -95,12 +156,17 @@ class HttpClient:
     def _fetch_direct(self, url: str) -> FetchResult:
         started = time.perf_counter()
         last_error: str | None = None
+        netloc = self._netloc(url)
+        ctx = self._get_cookie_context(netloc)
+        cookies = ctx.cookies if ctx else None
+        ua = ctx.user_agent if ctx else None
         for attempt in range(1, self._max_retries + 1):
             try:
-                resp: Response = self._session.get(
+                resp: Response = self._session().get(
                     url,
-                    headers=self._headers(),
+                    headers=self._headers(user_agent=ua),
                     proxies=self._proxies(),
+                    cookies=cookies,
                     timeout=(self._timeout_seconds, self._timeout_seconds),
                     allow_redirects=True,
                 )
@@ -110,12 +176,15 @@ class HttpClient:
                     continue
                 elapsed_ms = int((time.perf_counter() - started) * 1000)
                 ok = 200 <= resp.status_code < 400
+                blocked = self._looks_like_cloudflare_challenge(resp.status_code, resp.text or "")
+                if blocked:
+                    ok = False
                 return FetchResult(
                     url=str(resp.url),
                     status_code=resp.status_code,
                     ok=ok,
-                    text=resp.text if ok else None,
-                    error=None if ok else f"HTTP {resp.status_code}",
+                    text=resp.text if (ok or blocked) else None,
+                    error=None if ok else ("Blocked (Cloudflare)" if blocked else f"HTTP {resp.status_code}"),
                     elapsed_ms=elapsed_ms,
                 )
             except Exception as e:
@@ -135,6 +204,36 @@ class HttpClient:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
         return FetchResult(url=url, status_code=None, ok=False, text=None, error=last_error, elapsed_ms=elapsed_ms)
 
+    @staticmethod
+    def _is_likely_blocked(res: FetchResult) -> bool:
+        # Heuristics: Cloudflare/browser-challenge pages are often 403/503 and contain known markers.
+        if not res.text:
+            return res.status_code in (403, 503)
+        return HttpClient._looks_like_cloudflare_challenge(res.status_code, res.text)
+
+    @staticmethod
+    def _looks_like_cloudflare_challenge(status_code: int | None, body: str) -> bool:
+        if status_code in (403, 503):
+            return True
+        t = (body or "").lower()
+        # Avoid false positives: many normal pages include Cloudflare analytics beacons.
+        if "/cdn-cgi/" in t:
+            strong = (
+                "challenge-platform",
+                "cf-chl",
+                "__cf_chl",
+                "jschl",
+                "turnstile",
+                "cf-turnstile",
+            )
+            if any(m in t for m in strong):
+                return True
+        if "just a moment" in t and "checking your browser" in t:
+            return True
+        if "attention required" in t and "cloudflare" in t:
+            return True
+        return False
+
     def _fetch_via_flaresolverr(self, url: str) -> FetchResult:
         started = time.perf_counter()
         payload: dict[str, Any] = {
@@ -148,7 +247,7 @@ class HttpClient:
         last_error: str | None = None
         for attempt in range(1, self._max_retries + 1):
             try:
-                resp = self._session.post(
+                resp = self._session().post(
                     f"{self._flaresolverr_url}/v1",
                     headers={"Content-Type": "application/json"},
                     data=json.dumps(payload),
@@ -173,6 +272,21 @@ class HttpClient:
                 if not isinstance(final_url, str) or not final_url.startswith(("http://", "https://")):
                     final_url = url
                 html = solution.get("response")
+                user_agent = solution.get("userAgent") if isinstance(solution.get("userAgent"), str) else None
+                cookies_raw = solution.get("cookies")
+                cookies: dict[str, str] | None = None
+                if isinstance(cookies_raw, list):
+                    cookies = {}
+                    for c in cookies_raw:
+                        if not isinstance(c, dict):
+                            continue
+                        name = c.get("name")
+                        value = c.get("value")
+                        if isinstance(name, str) and isinstance(value, str) and name and value:
+                            cookies[name] = value
+                netloc = self._netloc(final_url) or self._netloc(url)
+                if cookies:
+                    self._store_cookie_context(netloc, cookies=cookies, user_agent=user_agent)
 
                 if isinstance(status_code, int) and self._should_retry_status(status_code) and attempt < self._max_retries:
                     last_error = f"FlareSolverr failed (status={status_code})"

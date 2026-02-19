@@ -101,6 +101,8 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     }}
     a {{ color: var(--cyan); text-decoration: none; }}
     a:hover {{ text-decoration: underline; }}
+    .plink {{ color: var(--text); }}
+    .plink:hover {{ color: var(--cyan); }}
     .wrap {{ max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }}
     header {{
       display: flex; gap: 16px; align-items: flex-end; justify-content: space-between;
@@ -293,6 +295,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         </div>
       </div>
       <div class="stats">
+        <div class="pill"><a href="https://t.me/tx_stock_monitor" target="_blank" rel="noreferrer noopener">Telegram group</a></div>
         <div class="pill">Restocks: <b>{_h(run_summary.get("restocks", 0))}</b></div>
         <div class="pill">New: <b>{_h(run_summary.get("new_products", 0))}</b></div>
         <div class="pill">Run: <span class="muted">{_h(run_summary.get("started_at",""))}</span> → <span class="muted">{_h(run_summary.get("finished_at",""))}</span></div>
@@ -376,7 +379,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
           </td>
           <td data-k="Domain"><span class="muted">${{p.domain}}</span></td>
           <td data-k="Product">
-            <div><b>${{escapeHtml(p.name)}}</b></div>
+            <div><a class="plink" href="${{p.url}}" target="_blank" rel="noreferrer noopener"><b>${{escapeHtml(p.name)}}</b></a></div>
             ${{desc}}
             <div class="specs">${{specs}}</div>
           </td>

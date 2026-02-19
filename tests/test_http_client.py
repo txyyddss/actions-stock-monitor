@@ -22,13 +22,13 @@ class TestHttpClientRetries(unittest.TestCase):
         resp_200.text = "<html>ok</html>"
         resp_200.headers = {}
 
-        client._session.get = Mock(side_effect=[resp_502, resp_200])
+        client._session().get = Mock(side_effect=[resp_502, resp_200])
 
         with patch("actions_stock_monitor.http_client.time.sleep", autospec=True) as _sleep:
             res = client.fetch_text("https://example.test/")
 
         self.assertTrue(res.ok)
-        self.assertEqual(client._session.get.call_count, 2)
+        self.assertEqual(client._session().get.call_count, 2)
         self.assertIsNotNone(res.text)
         self.assertEqual(res.status_code, 200)
         self.assertIsNone(res.error)
@@ -42,18 +42,24 @@ class TestHttpClientRetries(unittest.TestCase):
         resp_404.text = "not found"
         resp_404.headers = {}
 
-        client._session.get = Mock(return_value=resp_404)
+        client._session().get = Mock(return_value=resp_404)
 
         with patch("actions_stock_monitor.http_client.time.sleep", autospec=True) as _sleep:
             res = client.fetch_text("https://example.test/missing")
 
         self.assertFalse(res.ok)
-        self.assertEqual(client._session.get.call_count, 1)
+        self.assertEqual(client._session().get.call_count, 1)
         self.assertEqual(res.status_code, 404)
         self.assertIsNone(res.text)
 
     def test_flaresolverr_retries_on_http_5xx(self) -> None:
         client = HttpClient(timeout_seconds=1.0, flaresolverr_url="http://127.0.0.1:8191", max_retries=3)
+
+        resp_403 = Mock()
+        resp_403.status_code = 403
+        resp_403.url = "https://example.test/"
+        resp_403.text = "<html>Just a moment... cloudflare</html>"
+        resp_403.headers = {}
 
         resp_502 = Mock()
         resp_502.status_code = 502
@@ -68,16 +74,16 @@ class TestHttpClientRetries(unittest.TestCase):
             }
         )
 
-        client._session.post = Mock(side_effect=[resp_502, resp_200])
+        client._session().get = Mock(return_value=resp_403)
+        client._session().post = Mock(side_effect=[resp_502, resp_200])
 
         with patch("actions_stock_monitor.http_client.time.sleep", autospec=True) as _sleep:
             res = client.fetch_text("https://example.test/")
 
         self.assertTrue(res.ok)
-        self.assertEqual(client._session.post.call_count, 2)
+        self.assertEqual(client._session().post.call_count, 2)
         self.assertEqual(res.status_code, 200)
 
 
 if __name__ == "__main__":
     unittest.main()
-

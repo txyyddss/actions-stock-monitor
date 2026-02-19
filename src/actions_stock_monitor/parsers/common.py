@@ -12,7 +12,7 @@ def compact_ws(text: str) -> str:
 
 
 PRICE_RE = re.compile(
-    r"(?P<currency>\$|€|£|¥|USD|EUR|GBP|CNY|RMB)\s*(?P<amount>\d{1,6}(?:[.,]\d{1,2})?)",
+    r"(?P<currency>HK\$|US\$|\$|€|£|¥|USD|EUR|GBP|HKD|CNY|RMB)\s*(?P<amount>\d{1,6}(?:[.,]\d{1,2})?)",
     re.IGNORECASE,
 )
 PRICE_RE_2 = re.compile(
@@ -30,12 +30,16 @@ def extract_price(text: str) -> tuple[str | None, str | None]:
     amount = m.group("amount").replace(",", ".")
     if currency == "$":
         currency = "USD"
+    if currency == "US$":
+        currency = "USD"
     if currency == "€":
         currency = "EUR"
     if currency == "£":
         currency = "GBP"
     if currency == "¥":
         currency = "CNY"
+    if currency == "HK$":
+        currency = "HKD"
     if currency == "RMB":
         currency = "CNY"
     return f"{amount} {currency}", currency
@@ -49,10 +53,12 @@ OOS_WORDS = [
     "stockout",
     "out-of-stock",
     "sold-out",
+    "not available",
     "缺货",
     "缺貨",
     "无库存",
     "無庫存",
+    "不可用",
     "售罄",
     "已售罄",
 ]
@@ -77,7 +83,8 @@ def extract_availability(text: str) -> bool | None:
             return count > 0
         except Exception:
             pass
-    if any(w in t for w in OOS_WORDS) and not any(w in t for w in IN_STOCK_WORDS):
+    # Treat OOS markers as stronger than generic "available" text.
+    if any(w in t for w in OOS_WORDS):
         return False
     if any(w in t for w in IN_STOCK_WORDS):
         return True

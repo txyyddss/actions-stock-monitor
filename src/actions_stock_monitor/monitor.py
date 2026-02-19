@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 from .http_client import HttpClient
 from .models import DomainRun, Product, RunSummary
+from .parsers.common import extract_availability
 from .parsers.registry import get_parser_for_domain
 from .targets import DEFAULT_TARGETS
 from .telegram import h, load_telegram_config, send_telegram_html
@@ -172,12 +173,12 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
 
 
 def _notify_restock(cfg, product: Product, now: str, *, timeout_seconds: float) -> bool:
-    msg = _format_message("RESTOCK ALERT", "馃煝", product, now)
+    msg = _format_message("RESTOCK ALERT", "🔥", product, now)
     return send_telegram_html(cfg=cfg, message_html=msg, timeout_seconds=min(15.0, timeout_seconds))
 
 
 def _notify_new_product(cfg, product: Product, now: str, *, timeout_seconds: float) -> bool:
-    msg = _format_message("NEW PRODUCT", "馃啎", product, now)
+    msg = _format_message("NEW PRODUCT", "🆕", product, now)
     return send_telegram_html(cfg=cfg, message_html=msg, timeout_seconds=min(15.0, timeout_seconds))
 
 
@@ -185,6 +186,7 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
     lines: list[str] = []
     lines.append(f"<b>{h(icon)} {h(kind)}</b>")
     lines.append(f"<b>{h(product.name)}</b>")
+    lines.append(f"Domain: <b>{h(product.domain)}</b>")
     if product.available is True:
         lines.append("Stock: <b>In Stock</b>")
     elif product.available is False:
@@ -194,11 +196,18 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
     if product.price:
         lines.append(f"Price: <b>{h(product.price)}</b>")
     if product.specs:
-        specs_short = ", ".join([f"{k}:{v}" for k, v in product.specs.items()][:6])
-        if specs_short:
-            lines.append(f"Specs: {h(specs_short)}")
-    lines.append(f"Domain: {h(product.domain)}")
-    lines.append(f"<a href=\"{h(product.url)}\">Buy now</a>")
+        lines.append("Specs:")
+        for k, v in list(product.specs.items())[:10]:
+            if not k or not v:
+                continue
+            lines.append(f"• <b>{h(str(k))}</b>: {h(str(v))}")
+    if product.description:
+        desc = (product.description or "").strip()
+        if len(desc) > 500:
+            desc = desc[:500] + "…"
+        if desc:
+            lines.append(f"Details: {h(desc)}")
+    lines.append(f"Link: <a href=\"{h(product.url)}\">{h(product.url)}</a>")
     lines.append(f"Detected: {h(now)}")
     message = "\n".join(lines)
     return message[:3900]
@@ -227,10 +236,17 @@ def run_monitor(
     previous_state.setdefault("last_run", {})["started_at"] = started_at
 
     runs: list[DomainRun] = []
+    log_enabled = os.getenv("MONITOR_LOG", "1").strip() != "0"
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         futures = {ex.submit(_scrape_target, client, target): target for target in effective_targets}
         for fut in as_completed(futures):
-            runs.append(fut.result())
+            run = fut.result()
+            runs.append(run)
+            if log_enabled:
+                if run.ok:
+                    print(f"[{run.domain}] ok products={len(run.products)} {run.duration_ms}ms")
+                else:
+                    print(f"[{run.domain}] error products=0 {run.duration_ms}ms :: {run.error}")
 
     next_state, summary = _update_state_from_runs(previous_state, runs, dry_run=dry_run, timeout_seconds=timeout_seconds)
     return next_state, summary
@@ -248,37 +264,128 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
     parser = get_parser_for_domain(domain)
     try:
         products = parser.parse(fetch.text, base_url=fetch.url)
-        if _needs_discovery(products, base_url=fetch.url):
-            discovered = _discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain)
+        deduped: dict[str, Product] = {p.id: p for p in products}
+
+        if _needs_discovery(products, base_url=fetch.url) or _should_force_discovery(fetch.text, base_url=fetch.url, domain=domain, product_count=len(deduped)):
+            discovered = []
+            discovered.extend(_discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain))
             discovered.extend(_default_entrypoint_pages(fetch.url))
             discovered.extend(_domain_extra_pages(domain))
+            discovered = _dedupe_keep_order([u for u in discovered if u and u != fetch.url])
 
-            seen_pages: set[str] = set()
+            max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "250"))
+            stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", "3"))
+            no_new_streak = 0
+
             for page_url in discovered:
-                if page_url in seen_pages or page_url == fetch.url:
-                    continue
-                seen_pages.add(page_url)
                 page_fetch = client.fetch_text(page_url)
                 if not page_fetch.ok or not page_fetch.text:
+                    no_new_streak += 1
+                    if stop_after_no_new > 0 and no_new_streak >= stop_after_no_new:
+                        break
                     continue
+
                 page_products = parser.parse(page_fetch.text, base_url=page_fetch.url)
-                products.extend(page_products)
-                if page_products and _is_primary_listing_page(page_fetch.url):
+                new_count = 0
+                for p in page_products:
+                    if p.id not in deduped:
+                        new_count += 1
+                    deduped[p.id] = p
+
+                if new_count == 0:
+                    no_new_streak += 1
+                else:
+                    no_new_streak = 0
+
+                if len(deduped) >= max_products:
                     break
-                if len(products) >= int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "250")):
+                if stop_after_no_new > 0 and no_new_streak >= stop_after_no_new and _is_primary_listing_page(page_fetch.url):
                     break
 
-            # De-dupe by id after discovery.
-            deduped: dict[str, Product] = {}
-            for p in products:
-                deduped[p.id] = p
             products = list(deduped.values())
+
+        # Some providers only reveal stock state on the product detail page.
+        if domain == "fachost.cloud":
+            products = _enrich_availability_via_product_pages(client, products, max_pages=30)
 
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=True, error=None, duration_ms=duration_ms, products=products)
     except Exception as e:
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=False, error=f"{type(e).__name__}: {e}", duration_ms=duration_ms, products=[])
+
+
+def _dedupe_keep_order(urls: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for u in urls:
+        if not u or u in seen:
+            continue
+        seen.add(u)
+        out.append(u)
+    return out
+
+
+def _should_force_discovery(html: str, *, base_url: str, domain: str, product_count: int) -> bool:
+    """
+    Some storefront landing pages only show a small teaser (e.g., one product per category).
+    If we can see multiple likely listing pages, force a discovery pass.
+    """
+    if not html:
+        return False
+    candidates = _discover_candidate_pages(html, base_url=base_url, domain=domain)
+    # If there are multiple category/group pages and we only saw a handful of products, it's likely incomplete.
+    if len(candidates) < 2:
+        return False
+
+    threshold_small = int(os.getenv("DISCOVERY_FORCE_IF_PRODUCTS_LEQ", "6"))
+    if product_count <= threshold_small:
+        return True
+
+    if _is_primary_listing_page(base_url):
+        threshold_listing = int(os.getenv("DISCOVERY_FORCE_IF_PRIMARY_LISTING_PRODUCTS_LEQ", "40"))
+        return product_count <= threshold_listing
+
+    return False
+
+
+def _enrich_availability_via_product_pages(client: HttpClient, products: list[Product], *, max_pages: int) -> list[Product]:
+    enriched: list[Product] = []
+    remaining = max_pages
+    for p in products:
+        if remaining <= 0 or p.available is not None:
+            enriched.append(p)
+            continue
+        if not p.url.startswith(("http://", "https://")):
+            enriched.append(p)
+            continue
+        remaining -= 1
+        fetch = client.fetch_text(p.url)
+        if not fetch.ok or not fetch.text:
+            enriched.append(p)
+            continue
+        avail = extract_availability(fetch.text)
+        if avail is None:
+            tl = fetch.text.lower()
+            if "out of stock" in tl or "sold out" in tl:
+                avail = False
+            elif "add to cart" in tl or "buy now" in tl or "checkout" in tl:
+                avail = True
+        enriched.append(
+            Product(
+                id=p.id,
+                domain=p.domain,
+                url=p.url,
+                name=p.name,
+                price=p.price,
+                currency=p.currency,
+                description=p.description,
+                specs=p.specs,
+                available=avail,
+                raw=p.raw,
+            )
+        )
+    return enriched
 
 
 def _needs_discovery(products: list[Product], *, base_url: str) -> bool:
