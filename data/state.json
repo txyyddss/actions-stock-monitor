@@ -25575,6 +25575,29 @@
       "url": "https://wawo.wiki/index.php?rp=/store/hkpis-vps-ipv4/Pis-Excellence-2G-31",
       "variant_of": null
     },
+    "wawo.wiki::https://wawo.wiki/index.php?rp=%2Fstore%2Fhkpis-vps-ipv4%2FPis-Excellence-2G-31": {
+      "available": true,
+      "billing_cycles": null,
+      "currency": "CNY",
+      "description": "pis-Excellence-2G-31-pro ¥89.00CNY 每月 2 可用 在線SLA99% 處理器 2vcpu 記憶體 2048M|DDR4 磁盤 20G SSD|NVME 流量 2000GB |雙向 標準 速率 20Mbps 峰值 閒時1000Mbps(1-23) IP地址 ipv4*1（亞太 ip） IP地址 ipv6*1（香港 ip） 購買前請仔細閱讀TOS 1.ip被墻，請在一小時內發工單。 2.禁止禁止mtp 公共代理 挖矿 ss/ssr 等 立即訂購",
+      "domain": "wawo.wiki",
+      "first_seen": "2026-02-19T15:58:12+00:00",
+      "last_change": "2026-02-19T15:58:12+00:00",
+      "last_notified_new": "2026-02-19T15:58:12+00:00",
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-19T15:58:12+00:00",
+      "name": "pis-Excellence-2G-31-pro",
+      "option": null,
+      "price": "89.00 CNY",
+      "specs": {
+        "1": "pis-Excellence-2G-31-pro ¥89.00CNY 每月 2 可用 在線SLA99% 處理器 2vcpu 記憶體 2048M",
+        "2": "DDR4 磁盤 20G SSD",
+        "3": "NVME 流量 2000GB"
+      },
+      "url": "https://wawo.wiki/index.php?rp=/store/hkpis-vps-ipv4/Pis-Excellence-2G-31",
+      "variant_of": null
+    },
     "wawo.wiki::https://wawo.wiki/index.php?rp=%2Fstore%2Fhkpis-vps-ipv4%2Fhkpis-lite-37": {
       "available": true,
       "billing_cycles": null,
