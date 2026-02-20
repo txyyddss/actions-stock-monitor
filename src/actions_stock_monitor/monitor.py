@@ -481,25 +481,88 @@ def run_monitor(
 
     raw_runs: list[DomainRun] = []
     log_enabled = os.getenv("MONITOR_LOG", "1").strip() != "0"
+    total_targets = len(effective_targets)
+    if log_enabled:
+        print(
+            (
+                f"[monitor] start mode={mode} configured_targets={len(configured_targets)} "
+                f"selected_targets={total_targets} max_workers={max_workers} "
+                f"timeout_seconds={timeout_seconds} allow_expansion={allow_expansion} "
+                f"prune_missing_products={prune_missing_products}"
+            ),
+            flush=True,
+        )
+    completed = 0
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         futures = {
             ex.submit(_scrape_target, client, target, allow_expansion=allow_expansion): target
             for target in effective_targets
         }
         for fut in as_completed(futures):
+            target = futures[fut]
             run = fut.result()
             raw_runs.append(run)
+            if log_enabled:
+                completed += 1
+                in_stock = sum(1 for p in run.products if p.available is True)
+                out_of_stock = sum(1 for p in run.products if p.available is False)
+                unknown = len(run.products) - in_stock - out_of_stock
+                special = sum(1 for p in run.products if p.is_special)
+                if run.ok:
+                    print(
+                        (
+                            f"[monitor] progress={completed}/{total_targets} target={target} domain={run.domain} "
+                            f"status=ok products={len(run.products)} in_stock={in_stock} out_of_stock={out_of_stock} "
+                            f"unknown={unknown} special={special} duration_ms={run.duration_ms}"
+                        ),
+                        flush=True,
+                    )
+                else:
+                    print(
+                        (
+                            f"[monitor] progress={completed}/{total_targets} target={target} domain={run.domain} "
+                            f"status=error products=0 duration_ms={run.duration_ms} error={run.error or 'fetch failed'}"
+                        ),
+                        flush=True,
+                    )
 
     # Normalize per-domain runs before updating state. This prevents mode-dependent
     # behavior when multiple targets map to the same domain.
+    domain_target_counts: dict[str, int] = {}
+    for run in raw_runs:
+        domain_target_counts[run.domain] = domain_target_counts.get(run.domain, 0) + 1
     runs = _merge_runs_by_domain(raw_runs)
     if log_enabled:
-        print(f"[monitor] mode={mode} targets={len(effective_targets)} domains={len(runs)}", flush=True)
+        print(
+            (
+                f"[monitor] merge mode={mode} target_runs={len(raw_runs)} raw_domains={len(domain_target_counts)} "
+                f"merged_domains={len(runs)}"
+            ),
+            flush=True,
+        )
         for run in runs:
+            in_stock = sum(1 for p in run.products if p.available is True)
+            out_of_stock = sum(1 for p in run.products if p.available is False)
+            unknown = len(run.products) - in_stock - out_of_stock
+            special = sum(1 for p in run.products if p.is_special)
+            merged_targets = domain_target_counts.get(run.domain, 0)
             if run.ok:
-                print(f"[{run.domain}] ok products={len(run.products)} {run.duration_ms}ms", flush=True)
+                print(
+                    (
+                        f"[{run.domain}] status=ok merged_targets={merged_targets} products={len(run.products)} "
+                        f"in_stock={in_stock} out_of_stock={out_of_stock} unknown={unknown} special={special} "
+                        f"duration_ms={run.duration_ms}"
+                    ),
+                    flush=True,
+                )
             else:
-                print(f"[{run.domain}] error products=0 {run.duration_ms}ms :: {run.error}", flush=True)
+                print(
+                    (
+                        f"[{run.domain}] status=error merged_targets={merged_targets} products=0 "
+                        f"duration_ms={run.duration_ms} error={run.error or 'fetch failed'}"
+                    ),
+                    flush=True,
+                )
 
     next_state, summary = _update_state_from_runs(
         previous_state,
@@ -508,6 +571,16 @@ def run_monitor(
         timeout_seconds=timeout_seconds,
         prune_missing_products=prune_missing_products,
     )
+    if log_enabled:
+        tracked_products = len((next_state.get("products") or {}))
+        print(
+            (
+                f"[monitor] done mode={mode} domains_ok={summary.domains_ok} domains_error={summary.domains_error} "
+                f"new_products={summary.new_products} restocks={summary.restocks} tracked_products={tracked_products} "
+                f"started_at={summary.started_at} finished_at={summary.finished_at}"
+            ),
+            flush=True,
+        )
     return next_state, summary
 
 
