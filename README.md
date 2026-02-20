@@ -72,6 +72,8 @@ Common settings:
 Discovery tuning:
 
 - `DISCOVERY_MAX_PAGES_PER_DOMAIN` (default: `16`; bumped for some WHMCS and GreenCloud domains unless overridden)
+- `DISCOVERY_WORKERS` (default: `4`)
+- `DISCOVERY_BATCH` (default: `6`)
 - `DISCOVERY_MAX_PRODUCTS_PER_DOMAIN` (default: `500`)
 - `DISCOVERY_STOP_AFTER_NO_NEW_PAGES` (default: `4`; `0` for WHMCS by default)
 - `DISCOVERY_STOP_AFTER_FETCH_ERRORS` (default: `4`)
@@ -86,10 +88,12 @@ Cloudflare/FlareSolverr:
 Hidden WHMCS scanning (pid/gid brute scan):
 
 - `WHMCS_HIDDEN_STOP_AFTER_MISS` (default: `10`)
+- `WHMCS_HIDDEN_MIN_PROBE` (default: `80`)
 - `WHMCS_HIDDEN_BATCH` (default: `8`)
 - `WHMCS_HIDDEN_WORKERS` (default: `6`)
 - `WHMCS_HIDDEN_HARD_MAX_PID` (default: `2000`)
 - `WHMCS_HIDDEN_HARD_MAX_GID` (default: `2000`)
+- `WHMCS_HIDDEN_PID_CANDIDATES_MAX` (default: `200`)
 - `WHMCS_HIDDEN_LOG` (default: `0`; set to `1` to print in-stock hits from hidden scans)
 
 Telegram rate limiting/backoff:
@@ -143,4 +147,3 @@ Cloudflare Pages is ideal for hosting the static dashboard. It does not run the 
 ## GitHub Pages (Alternative)
 
 This repo also supports GitHub Pages: configure Pages to publish from the `main` branch and the `/docs` folder.
-

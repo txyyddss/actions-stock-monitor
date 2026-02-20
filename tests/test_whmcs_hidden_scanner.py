@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlparse
 
 from actions_stock_monitor.models import Product
 from actions_stock_monitor.monitor import _scan_whmcs_hidden_products
+from actions_stock_monitor.parsers.common import normalize_url_for_id
 
 
 @dataclass
@@ -26,7 +27,10 @@ class _FakeClient:
     def fetch_text(self, url: str, *, allow_flaresolverr: bool = True) -> _Fetch:
         html = self._pages.get(url)
         if html is None:
-            return _Fetch(url=url, ok=True, text="<html>product does not exist</html>")
+            # Simulate "invalid pid/gid returns default page" behavior (often via redirect).
+            p = urlparse(url)
+            root = f"{p.scheme}://{p.netloc}"
+            return _Fetch(url=f"{root}/cart.php", ok=True, text="<html>default page</html>")
         return _Fetch(url=url, ok=True, text=html)
 
 
@@ -40,9 +44,10 @@ class _FakeParser:
         gid = (qs.get("gid") or [None])[0]
         if isinstance(pid, str) and pid.isdigit():
             url = base_url
+            pid_norm = f"{self._domain}::{normalize_url_for_id(url)}"
             return [
                 Product(
-                    id=f"{self._domain}::{url}",
+                    id=pid_norm,
                     domain=self._domain,
                     url=url,
                     name=f"pid-{pid}",
@@ -55,9 +60,10 @@ class _FakeParser:
         if isinstance(gid, str) and gid.isdigit():
             # Simulate a listing page: link points to a pid add page.
             pid_url = f"https://{self._domain}/cart.php?a=add&pid={gid}"
+            pid_norm = f"{self._domain}::{normalize_url_for_id(pid_url)}"
             return [
                 Product(
-                    id=f"{self._domain}::{pid_url}",
+                    id=pid_norm,
                     domain=self._domain,
                     url=pid_url,
                     name=f"gid-{gid}",
@@ -91,6 +97,8 @@ class TestWhmcsHiddenScanner(unittest.TestCase):
 
         env = {
             "WHMCS_HIDDEN_STOP_AFTER_MISS": "10",
+            "WHMCS_HIDDEN_MIN_PROBE": "0",
+            "WHMCS_HIDDEN_PID_CANDIDATES_MAX": "50",
             "WHMCS_HIDDEN_BATCH": "4",
             "WHMCS_HIDDEN_WORKERS": "2",
             "WHMCS_HIDDEN_HARD_MAX_PID": "30",

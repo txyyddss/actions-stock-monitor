@@ -1153,6 +1153,51 @@ def _product_matches_pid(product: Product, pid: int) -> bool:
     return False
 
 
+def _query_param_int(url: str, key: str) -> int | None:
+    try:
+        qs = parse_qs(urlparse(url).query or "")
+    except Exception:
+        return None
+    raw = (qs.get(key) or [None])[0]
+    if isinstance(raw, str) and raw.strip().isdigit():
+        try:
+            return int(raw.strip())
+        except Exception:
+            return None
+    return None
+
+
+_PID_NUM_RE = re.compile(r"[?&]pid=(\d+)\b", re.IGNORECASE)
+
+
+def _extract_pid_numbers(html: str) -> set[int]:
+    out: set[int] = set()
+    for m in _PID_NUM_RE.finditer(html or ""):
+        try:
+            out.add(int(m.group(1)))
+        except Exception:
+            pass
+    return out
+
+
+_PID_HIDDEN_INPUT_RE = re.compile(r"""name=['"]pid['"][^>]*value=['"](\d+)['"]""", re.IGNORECASE)
+
+
+def _html_mentions_pid(html: str, pid: int) -> bool:
+    if pid <= 0:
+        return False
+    tl = (html or "").lower()
+    if f"pid={pid}" in tl:
+        return True
+    m = _PID_HIDDEN_INPUT_RE.search(html or "")
+    if m:
+        try:
+            return int(m.group(1)) == pid
+        except Exception:
+            return False
+    return False
+
+
 def _looks_like_pid_stock_page(html: str) -> bool:
     text = compact_ws(html or "")
     if not text:
@@ -1242,21 +1287,36 @@ def _scan_whmcs_hidden_products(
     Only return products that are currently in stock.
     """
     stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "10"))
+    min_probe_before_stop = int(os.getenv("WHMCS_HIDDEN_MIN_PROBE", "80"))
     batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "8"))
     workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "6"))
     hard_max_pid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_PID", "2000"))
     hard_max_gid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_GID", "2000"))
+    candidate_pid_limit = int(os.getenv("WHMCS_HIDDEN_PID_CANDIDATES_MAX", "200"))
 
     pid_endpoints = _pid_cart_endpoints(base_url)
     gid_endpoints = _gid_cart_endpoints(base_url)
     if not pid_endpoints and not gid_endpoints:
         return []
 
+    domain_for_ids = urlparse(base_url).netloc.lower()
     seen_ids: set[str] = set(existing_ids or set())
     found_in_stock: dict[str, Product] = {}
     log_hits = os.getenv("WHMCS_HIDDEN_LOG", "0").strip() == "1"
+    pid_candidates: set[int] = set()
+    probed_pids: set[int] = set()
 
-    def scan_ids(*, kind: str) -> None:
+    def _pid_id_candidates(pid: int) -> set[str]:
+        out: set[str] = set()
+        for tmpl in pid_endpoints:
+            u = tmpl.format(pid=pid)
+            try:
+                out.add(f"{domain_for_ids}::{normalize_url_for_id(u)}")
+            except Exception:
+                out.add(f"{domain_for_ids}::{u}")
+        return out
+
+    def scan_ids(*, kind: str, ids: list[int] | None = None) -> None:
         nonlocal seen_ids, found_in_stock
 
         if kind == "pid":
@@ -1271,10 +1331,11 @@ def _scan_whmcs_hidden_products(
 
         miss_streak = 0
         cur = 1
+        found_any = False
 
-        def probe_one(cur_id: int) -> tuple[int, bool, bool, list[Product]]:
+        def probe_one(cur_id: int) -> tuple[int, bool, bool, list[Product], set[int]]:
             """
-            Returns: (id, has_evidence, is_duplicate, parsed_products)
+            Returns: (id, has_evidence, is_duplicate, parsed_products, extra_pids)
             """
             for tmpl in endpoints:
                 url = tmpl.format(**{kind: cur_id})
@@ -1282,16 +1343,34 @@ def _scan_whmcs_hidden_products(
                 if not fetch.ok or not fetch.text:
                     continue
                 html = fetch.text
+                pid_mentioned = _html_mentions_pid(html, cur_id) if kind == "pid" else True
+
+                # Many WHMCS installs redirect invalid ids back to cart.php or the homepage.
+                # Treat those as misses (no product/stock evidence for this id).
+                if kind == "pid":
+                    got = _query_param_int(fetch.url, "pid")
+                    if got != cur_id:
+                        continue
+                else:
+                    got = _query_param_int(fetch.url, "gid")
+                    if got != cur_id:
+                        continue
 
                 evidence = _looks_like_whmcs_pid_page(html) if kind == "pid" else _looks_like_whmcs_gid_page(html)
+                if kind == "pid" and evidence and not pid_mentioned:
+                    # Some sites serve a generic default/cart page for any pid; don't treat that as evidence.
+                    evidence = False
+                extra_pids: set[int] = set()
+                if kind == "gid":
+                    extra_pids = _extract_pid_numbers(html)
+                    if extra_pids:
+                        evidence = True
+
                 parsed = parser.parse(html, base_url=fetch.url)
                 parsed = [_product_with_special_flag(p) for p in parsed]
 
                 if kind == "pid" and parsed:
-                    matched = [p for p in parsed if _product_matches_pid(p, cur_id)]
-                    if not matched and len(parsed) == 1:
-                        matched = parsed
-                    parsed = matched
+                    parsed = [p for p in parsed if _product_matches_pid(p, cur_id)]
 
                 normalized: list[Product] = []
                 for p in parsed:
@@ -1300,46 +1379,103 @@ def _scan_whmcs_hidden_products(
 
                 if normalized:
                     is_dup = all(p.id in seen_ids for p in normalized)
-                    return cur_id, True, is_dup, normalized
+                    return cur_id, True, is_dup, normalized, extra_pids
 
                 # Some WHMCS themes require JS rendering or hide details; fall back to heuristics.
                 if evidence:
-                    return cur_id, True, False, []
+                    is_dup = False
+                    if kind == "gid" and extra_pids:
+                        is_dup = not any((cid not in seen_ids) for pid in extra_pids for cid in _pid_id_candidates(pid))
+                    return cur_id, True, is_dup, [], extra_pids
 
-            return cur_id, False, False, []
+            return cur_id, False, False, [], set()
 
-        while miss_streak < stop_after_miss and cur <= hard_max:
-            batch = list(range(cur, min(hard_max, cur + batch_size - 1) + 1))
-            cur = batch[-1] + 1
+        max_workers = max(1, min(max(1, workers), 16))
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            if ids is not None:
+                # Explicit id list: probe all (useful for sparse/non-consecutive ids discovered from gid pages).
+                id_list = [i for i in ids if isinstance(i, int) and i > 0]
+                if not id_list:
+                    return
+                id_list = sorted(set(id_list))
+                idx = 0
+                while idx < len(id_list):
+                    batch = id_list[idx : idx + batch_size]
+                    idx += len(batch)
+                    futs = {ex.submit(probe_one, cid): cid for cid in batch}
+                    batch_results = [f.result() for f in as_completed(futs)]
+                    batch_results.sort(key=lambda x: x[0])
+                    for _id, has_evidence, is_dup, products, extra_pids in batch_results:
+                        if kind == "gid" and extra_pids:
+                            pid_candidates.update(extra_pids)
+                        if not has_evidence or is_dup:
+                            continue
+                        found_any = True
+                        for p in products:
+                            if p.id in seen_ids:
+                                continue
+                            seen_ids.add(p.id)
+                            if p.available is True:
+                                found_in_stock[p.id] = p
+                                if log_hits:
+                                    print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
+                return
 
-            batch_results: list[tuple[int, bool, bool, list[Product]]] = []
-            max_workers = max(1, min(len(batch), max(1, workers)))
-            with ThreadPoolExecutor(max_workers=max_workers) as ex:
-                futs = [ex.submit(probe_one, cid) for cid in batch]
-                for fut in as_completed(futs):
-                    batch_results.append(fut.result())
+            while cur <= hard_max:
+                if miss_streak >= stop_after_miss and (found_any or cur > min_probe_before_stop):
+                    break
 
-            batch_results.sort(key=lambda x: x[0])
-            for _id, has_evidence, is_dup, products in batch_results:
-                if not has_evidence:
-                    miss_streak += 1
-                    continue
-                if is_dup:
-                    miss_streak += 1
-                    continue
-
-                # Evidence and not duplicate: reset streak.
-                miss_streak = 0
-                for p in products:
-                    if p.id in seen_ids:
+                batch = list(range(cur, min(hard_max, cur + batch_size - 1) + 1))
+                cur = batch[-1] + 1
+                if kind == "pid" and probed_pids:
+                    # Avoid re-fetching candidate pids we already probed (count as duplicates for stop logic).
+                    kept: list[int] = []
+                    for cid in batch:
+                        if cid in probed_pids:
+                            miss_streak += 1
+                        else:
+                            kept.append(cid)
+                    batch = kept
+                    if not batch:
                         continue
-                    seen_ids.add(p.id)
-                    if p.available is True:
-                        found_in_stock[p.id] = p
-                        if log_hits:
-                            print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
+
+                futs = {ex.submit(probe_one, cid): cid for cid in batch}
+                batch_results = [f.result() for f in as_completed(futs)]
+                batch_results.sort(key=lambda x: x[0])
+
+                for _id, has_evidence, is_dup, products, extra_pids in batch_results:
+                    if kind == "gid" and extra_pids:
+                        pid_candidates.update(extra_pids)
+
+                    if not has_evidence:
+                        miss_streak += 1
+                        continue
+                    if is_dup:
+                        miss_streak += 1
+                        continue
+
+                    found_any = True
+                    miss_streak = 0
+                    for p in products:
+                        if p.id in seen_ids:
+                            continue
+                        seen_ids.add(p.id)
+                        if p.available is True:
+                            found_in_stock[p.id] = p
+                            if log_hits:
+                                print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
 
     scan_ids(kind="gid")
+
+    # If gid pages expose pid links, probe those pids first (handles sparse/non-consecutive pid allocations).
+    if pid_candidates and pid_endpoints:
+        probe_list = sorted(pid_candidates)
+        if candidate_pid_limit > 0:
+            probe_list = probe_list[:candidate_pid_limit]
+        if probe_list:
+            probed_pids.update(probe_list)
+            scan_ids(kind="pid", ids=probe_list)
+
     scan_ids(kind="pid")
     return list(found_in_stock.values())
 
