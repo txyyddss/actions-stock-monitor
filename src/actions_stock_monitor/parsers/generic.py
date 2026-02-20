@@ -17,6 +17,7 @@ from .common import (
     extract_cycle_prices,
     extract_price,
     extract_specs,
+    looks_like_purchase_action,
     looks_like_special_offer,
     normalize_url_for_id,
 )
@@ -746,7 +747,10 @@ class GenericDomainParser:
                 label = compact_ws(getattr(el, "get_text", lambda *a, **k: "")(" ", strip=True))
                 if not label and hasattr(el, "get"):
                     label = compact_ws(str(el.get("value") or ""))
-                if extract_availability(label) is True:
+                marker = extract_availability(label)
+                if marker is True:
+                    return True
+                if marker is None and looks_like_purchase_action(label):
                     return True
         except Exception:
             pass

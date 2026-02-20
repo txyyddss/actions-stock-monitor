@@ -114,17 +114,22 @@ OOS_WORDS = [
     "\u5e93\u5b58\u4e0d\u8db3",
     "\u5eab\u5b58\u4e0d\u8db3",
 ]
-IN_STOCK_WORDS = [
+IN_STOCK_WORDS_STRONG = [
     "in stock",
     "instock",
     "available now",
-    "add to cart",
-    "order now",
-    "buy now",
     "\u6709\u5e93\u5b58",
     "\u6709\u5eab\u5b58",
     "\u5e93\u5b58\u5145\u8db3",
     "\u5eab\u5b58\u5145\u8db3",
+]
+
+# Purchase/action labels are common on both in-stock and out-of-stock pages (often disabled).
+# Treat these as weak hints in plain-text extraction; HTML-aware callers should evaluate disabled state.
+IN_STOCK_WORDS_WEAK = [
+    "add to cart",
+    "order now",
+    "buy now",
     "\u52a0\u5165\u8d2d\u7269\u8f66",
     "\u52a0\u5165\u8cfc\u7269\u8eca",
     "\u7acb\u5373\u8d2d\u4e70",
@@ -165,14 +170,27 @@ def extract_availability(text: str) -> bool | None:
             return False
 
     has_oos = any(w in t for w in OOS_WORDS)
-    has_in = any(w in t for w in IN_STOCK_WORDS)
-    if has_oos and has_in:
+    has_in_strong = any(w in t for w in IN_STOCK_WORDS_STRONG)
+    has_in_weak = any(w in t for w in IN_STOCK_WORDS_WEAK)
+
+    # If a page says "Out of Stock" anywhere, prefer False unless there is also a strong positive marker.
+    if has_oos and has_in_strong:
         return None
     if has_oos:
         return False
-    if has_in:
+    if has_in_strong:
         return True
+    # Weak purchase-action labels are too ambiguous in plain text; let HTML-aware logic decide.
+    if has_in_weak:
+        return None
     return None
+
+
+def looks_like_purchase_action(text: str) -> bool:
+    t = compact_ws(text).lower()
+    if not t:
+        return False
+    return any(w in t for w in IN_STOCK_WORDS_WEAK)
 
 
 _CYCLE_LABELS: dict[str, str] = {
@@ -407,16 +425,35 @@ def _clean_location_value(raw_value: str) -> str:
 
 def _iter_location_variants_from_group(group) -> list[tuple[str, bool | None]]:
     out: list[tuple[str, bool | None]] = []
-    for sel in group.select("select option"):
-        label = compact_ws(sel.get_text(" ", strip=True))
-        if not label:
+
+    def is_location_control(el) -> bool:
+        if not hasattr(el, "get"):
+            return False
+        name = str(el.get("name") or "").strip().lower()
+        # WHMCS location/datacenter selectors commonly use these namespaces.
+        if "configoption[" in name or name.startswith("configoption"):
+            return True
+        if "custom[" in name or name.startswith("custom"):
+            return True
+        if "location" in name or "datacenter" in name or "data_center" in name or "data center" in name:
+            return True
+        return False
+
+    for select in group.select("select"):
+        if not is_location_control(select):
             continue
-        avail = extract_availability(label)
-        cleaned = _clean_location_value(label)
-        if cleaned and cleaned.lower() not in _VALUE_BLOCKLIST:
-            out.append((cleaned, avail))
+        for opt in select.find_all("option"):
+            label = compact_ws(opt.get_text(" ", strip=True))
+            if not label:
+                continue
+            avail = extract_availability(label)
+            cleaned = _clean_location_value(label)
+            if cleaned and cleaned.lower() not in _VALUE_BLOCKLIST:
+                out.append((cleaned, avail))
 
     for inp in group.select("input[type='radio'], input[type='checkbox']"):
+        if not is_location_control(inp):
+            continue
         text_parts: list[str] = []
         sib = inp.next_sibling
         while sib is not None:

@@ -18,6 +18,7 @@ from .parsers.common import (
     extract_billing_cycles,
     extract_cycle_prices,
     extract_location_variants,
+    looks_like_purchase_action,
     looks_like_special_offer,
     normalize_url_for_id,
 )
@@ -42,7 +43,10 @@ def _telegram_domain_tag(domain: str) -> str:
     labels = [x for x in (domain or "").lower().split(".") if x]
     if not labels:
         return "site"
-    if len(labels) >= 2:
+    if len(labels) >= 3 and labels[-2] in {"co", "com", "net", "org", "gov", "edu"} and len(labels[-1]) == 2:
+        # e.g. example.co.uk, example.com.au, example.com.cn
+        candidate = labels[-3]
+    elif len(labels) >= 2:
         candidate = labels[-2]
     else:
         candidate = labels[0]
@@ -385,7 +389,10 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
         lines.append(f"<b>Cycles:</b> {h(', '.join(product.billing_cycles))}")
     if product.cycle_prices:
         lines.append("<b>Cycle Prices</b>")
-        cp_lines = [f"{k}: {v}" for k, v in product.cycle_prices.items()]
+        order = ["Monthly", "Quarterly", "Semiannual", "Yearly", "Biennial", "Triennial", "Quadrennial", "Quinquennial", "One-Time"]
+        items = list(product.cycle_prices.items())
+        items.sort(key=lambda kv: (order.index(kv[0]) if kv[0] in order else 999, kv[0]))
+        cp_lines = [f"{k}: {v}" for k, v in items]
         lines.append(f"<pre>{h(chr(10).join(cp_lines))}</pre>")
 
     if product.available is True:
@@ -479,6 +486,7 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=False, error=fetch.error or "fetch failed", duration_ms=duration_ms, products=[])
 
+    is_whmcs = _is_whmcs_domain(domain, fetch.text)
     parser = get_parser_for_domain(domain)
     try:
         products = [_product_with_special_flag(p) for p in parser.parse(fetch.text, base_url=fetch.url)]
@@ -488,91 +496,117 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
         if _needs_discovery(products, base_url=fetch.url) or _should_force_discovery(fetch.text, base_url=fetch.url, domain=domain, product_count=len(deduped)):
             raw_page_limit = os.environ.get("DISCOVERY_MAX_PAGES_PER_DOMAIN")
             max_pages_limit = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 16
+            if max_pages_limit <= 0:
+                # Treat 0/negative as "disable discovery" to avoid useless crawl loops.
+                max_pages_limit = 0
             # Only apply higher defaults when the user hasn't explicitly configured a limit.
             if raw_page_limit is None:
                 if domain == "greencloudvps.com":
                     max_pages_limit = max(max_pages_limit, 40)
-                if _is_whmcs_domain(domain, fetch.text):
+                if is_whmcs:
                     max_pages_limit = max(max_pages_limit, 64)
                 if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
                     # HostBill-style carts often require an extra discovery hop from category -> products.
                     max_pages_limit = max(max_pages_limit, 48)
 
-            discovered = []
-            # Try domain-specific extra pages (including SPA API endpoints) first so we don't
-            # abort discovery after a streak of 404/blocked default entry points.
-            discovered.extend(_domain_extra_pages(domain))
-            if _is_whmcs_domain(domain, fetch.text):
-                discovered.extend(_whmcs_gid_pages(fetch.url))
-            discovered.extend(_discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain))
-            discovered.extend(_default_entrypoint_pages(fetch.url))
-            discovered = _dedupe_keep_order([u for u in discovered if u and u != fetch.url])
-            discovered_seen = set(discovered)
+            if max_pages_limit > 0:
+                discovered = []
+                # Try domain-specific extra pages (including SPA API endpoints) first so we don't
+                # abort discovery after a streak of 404/blocked default entry points.
+                discovered.extend(_domain_extra_pages(domain))
+                if is_whmcs:
+                    discovered.extend(_whmcs_gid_pages(fetch.url))
+                discovered.extend(_discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain))
+                discovered.extend(_default_entrypoint_pages(fetch.url))
+                discovered = _dedupe_keep_order([u for u in discovered if u and u != fetch.url])
+                discovered_seen = set(discovered)
 
-            max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "500"))
-            # WHMCS category pages may be sparse/non-contiguous; avoid stopping too early.
-            default_stop = "0" if _is_whmcs_domain(domain, fetch.text) else "4"
-            stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", default_stop))
-            stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "4"))
-            if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
-                # HostBill sites often discover real product pages only after several category hops.
-                stop_after_no_new = 0
-            no_new_streak = 0
-            fetch_error_streak = 0
-            pages_visited = 0
-
-            queue_idx = 0
-            while queue_idx < len(discovered):
-                page_url = discovered[queue_idx]
-                queue_idx += 1
-                if max_pages_limit > 0 and pages_visited >= max_pages_limit:
-                    break
-                pages_visited += 1
-                allow_solver = _should_use_flaresolverr_for_discovery_page(page_url)
-                page_fetch = _fetch_text(client, page_url, allow_flaresolverr=allow_solver)
-                if (not page_fetch.ok or not page_fetch.text) and (not allow_solver) and _is_blocked_fetch(page_fetch):
-                    # Retry blocked pages with FlareSolverr only when needed.
-                    page_fetch = _fetch_text(client, page_url, allow_flaresolverr=True)
-                if not page_fetch.ok or not page_fetch.text:
-                    fetch_error_streak += 1
-                    if stop_after_fetch_errors > 0 and fetch_error_streak >= stop_after_fetch_errors and _is_primary_listing_page(page_url):
-                        break
-                    continue
+                max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "500"))
+                # WHMCS category pages may be sparse/non-contiguous; avoid stopping too early.
+                default_stop = "0" if is_whmcs else "4"
+                stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", default_stop))
+                stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "4"))
+                if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+                    # HostBill sites often discover real product pages only after several category hops.
+                    stop_after_no_new = 0
+                no_new_streak = 0
                 fetch_error_streak = 0
+                pages_visited = 0
+                discovery_workers = int(os.getenv("DISCOVERY_WORKERS", "4"))
+                discovery_workers = max(1, min(discovery_workers, 12))
+                discovery_batch = int(os.getenv("DISCOVERY_BATCH", "6"))
+                discovery_batch = max(1, min(discovery_batch, 20))
 
-                page_products = [_product_with_special_flag(p) for p in parser.parse(page_fetch.text, base_url=page_fetch.url)]
-                page_products = [p for p in page_products if not _looks_like_noise_product(p)]
-                new_count = 0
-                for p in page_products:
-                    if p.id not in deduped:
-                        new_count += 1
-                    deduped[p.id] = p
+                queue_idx = 0
+                def fetch_one(page_url: str):
+                    allow_solver = _should_use_flaresolverr_for_discovery_page(page_url)
+                    page_fetch = _fetch_text(client, page_url, allow_flaresolverr=allow_solver)
+                    if (not page_fetch.ok or not page_fetch.text) and (not allow_solver) and _is_blocked_fetch(page_fetch):
+                        # Retry blocked pages with FlareSolverr only when needed.
+                        page_fetch = _fetch_text(client, page_url, allow_flaresolverr=True)
+                    return page_fetch
 
-                # Also discover more pages from this page's links.
-                more_pages = _discover_candidate_pages(page_fetch.text, base_url=page_fetch.url, domain=domain)
-                for mp in more_pages:
-                    if mp and mp not in discovered_seen and mp != fetch.url:
-                        discovered_seen.add(mp)
-                        discovered.append(mp)
+                with ThreadPoolExecutor(max_workers=discovery_workers) as ex:
+                    while queue_idx < len(discovered):
+                        if pages_visited >= max_pages_limit:
+                            break
+                        remaining = max_pages_limit - pages_visited
+                        batch_n = min(discovery_batch, remaining, len(discovered) - queue_idx)
+                        batch_urls = discovered[queue_idx : queue_idx + batch_n]
+                        queue_idx += batch_n
+                        pages_visited += batch_n
 
-                if new_count == 0:
-                    no_new_streak += 1
-                else:
-                    no_new_streak = 0
+                        futs = {u: ex.submit(fetch_one, u) for u in batch_urls}
+                        fetched: dict[str, object] = {}
+                        for u in batch_urls:
+                            try:
+                                fetched[u] = futs[u].result()
+                            except Exception:
+                                fetched[u] = None
 
-                if len(deduped) >= max_products:
-                    break
-                if stop_after_no_new > 0 and no_new_streak >= stop_after_no_new and _is_primary_listing_page(page_fetch.url):
-                    break
+                        for page_url in batch_urls:
+                            page_fetch = fetched.get(page_url)
+                            if not page_fetch or not getattr(page_fetch, "ok", False) or not getattr(page_fetch, "text", None):
+                                fetch_error_streak += 1
+                                if stop_after_fetch_errors > 0 and fetch_error_streak >= stop_after_fetch_errors and _is_primary_listing_page(page_url):
+                                    queue_idx = len(discovered)
+                                    break
+                                continue
+                            fetch_error_streak = 0
 
-            products = [p for p in deduped.values() if not _looks_like_noise_product(p)]
+                            page_products = [_product_with_special_flag(p) for p in parser.parse(page_fetch.text, base_url=page_fetch.url)]
+                            page_products = [p for p in page_products if not _looks_like_noise_product(p)]
+                            new_count = 0
+                            for p in page_products:
+                                if p.id not in deduped:
+                                    new_count += 1
+                                deduped[p.id] = p
 
-        # Hidden WHMCS products: brute-scan pid pages and keep only in-stock hits.
-        if _is_whmcs_domain(domain, fetch.text):
-            hidden = _scan_whmcs_hidden_pids(client, parser, base_url=fetch.url)
+                            # Also discover more pages from this page's links.
+                            more_pages = _discover_candidate_pages(page_fetch.text, base_url=page_fetch.url, domain=domain)
+                            for mp in more_pages:
+                                if mp and mp not in discovered_seen and mp != fetch.url:
+                                    discovered_seen.add(mp)
+                                    discovered.append(mp)
+
+                            if new_count == 0:
+                                no_new_streak += 1
+                            else:
+                                no_new_streak = 0
+
+                            if len(deduped) >= max_products:
+                                queue_idx = len(discovered)
+                                break
+                            if stop_after_no_new > 0 and no_new_streak >= stop_after_no_new and _is_primary_listing_page(page_fetch.url):
+                                queue_idx = len(discovered)
+                                break
+
+                products = [p for p in deduped.values() if not _looks_like_noise_product(p)]
+
+        # Hidden WHMCS products: brute-scan pid/gid pages and keep only in-stock hits.
+        if is_whmcs:
+            hidden = _scan_whmcs_hidden_products(client, parser, base_url=fetch.url, existing_ids=set(deduped.keys()))
             for hp in hidden:
-                if hp.available is not True:
-                    continue
                 hp = _product_with_special_flag(hp)
                 deduped[hp.id] = hp
             products = [p for p in deduped.values() if not _looks_like_noise_product(p)]
@@ -606,10 +640,12 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             "www.vps.soy",
             "www.dmit.io",
         }
-        if domain in _ENRICH_DOMAINS:
+        if domain in _ENRICH_DOMAINS or is_whmcs:
             false_only = all(p.available is False for p in products) if products else False
-            include_missing_cycles = domain in _CYCLE_ENRICH_DOMAINS
+            include_missing_cycles = is_whmcs or (domain in _CYCLE_ENRICH_DOMAINS)
             enrich_pages = 80 if include_missing_cycles and domain in {"wawo.wiki", "clientarea.gigsgigscloud.com"} else 40
+            if is_whmcs:
+                enrich_pages = max(enrich_pages, 60)
             products = _enrich_availability_via_product_pages(
                 client,
                 products,
@@ -711,6 +747,8 @@ def _infer_availability_from_detail_html(html: str) -> bool | None:
         if marker is False:
             return False
         if marker is True and not disabled:
+            return True
+        if marker is None and not disabled and looks_like_purchase_action(label):
             return True
     return None
 
@@ -1135,82 +1173,175 @@ def _looks_like_pid_stock_page(html: str) -> bool:
     return False
 
 
-def _scan_whmcs_hidden_pids(client: HttpClient, parser, *, base_url: str) -> list[Product]:
-    """
-    Brute-force WHMCS cart.php?a=add&pid=N pages.
-    Stop when we hit 10 consecutive pids without product/stock evidence,
-    while still probing a minimum range to catch sparse pid allocations.
-    """
-    max_pid = int(os.getenv("WHMCS_PID_SCAN_MAX", "260"))
-    min_probe_before_stop = int(os.getenv("WHMCS_PID_MIN_PROBE", "80"))
-    stop_after_miss = int(os.getenv("WHMCS_PID_STOP_AFTER_MISS", "10"))
-    batch_size = int(os.getenv("WHMCS_PID_BATCH", "8"))
-    allow_solver = os.getenv("WHMCS_PID_USE_SOLVER", "0").strip() == "1"
+def _gid_cart_endpoints(base_url: str) -> list[str]:
+    p = urlparse(base_url)
+    root = f"{p.scheme}://{p.netloc}"
+    prefixes = [""]
+    path_l = (p.path or "").lower()
+    if "/billing" in path_l:
+        prefixes.append("/billing")
+    if "/clients" in path_l:
+        prefixes.append("/clients")
+    return [f"{root}{pref}/cart.php?gid={{gid}}" for pref in prefixes]
 
-    endpoints = _pid_cart_endpoints(base_url)
-    if not endpoints:
+
+def _looks_like_whmcs_pid_page(html: str) -> bool:
+    text = compact_ws(html or "")
+    if not text:
+        return False
+    tl = text.lower()
+    known_miss = (
+        "product does not exist",
+        "not found",
+        "invalid product",
+        "no product selected",
+    )
+    if any(m in tl for m in known_miss):
+        return False
+    # Strong WHMCS markers for product configuration pages.
+    if "billingcycle" in tl or "configoption[" in tl or "custom[" in tl:
+        return True
+    # Stock markers (some templates show OOS without a config form).
+    if extract_availability(text) is not None:
+        return True
+    return False
+
+
+def _looks_like_whmcs_gid_page(html: str) -> bool:
+    text = compact_ws(html or "")
+    if not text:
+        return False
+    tl = text.lower()
+    known_miss = (
+        "not found",
+        "invalid",
+        "no product groups found",
+        "no products found",
+        "no products",
+    )
+    if any(m in tl for m in known_miss):
+        return False
+    # Group/listing pages usually contain product boxes with "pid=" links.
+    if "cart.php" in tl and "pid=" in tl:
+        return True
+    if "rp=/store" in tl and ("add to cart" in tl or "configure" in tl or "order" in tl):
+        return True
+    return False
+
+
+def _scan_whmcs_hidden_products(
+    client: HttpClient,
+    parser,
+    *,
+    base_url: str,
+    existing_ids: set[str],
+) -> list[Product]:
+    """
+    Brute-force WHMCS cart.php?a=add&pid=N and cart.php?gid=N pages.
+    Stop scanning only when 10 consecutive IDs have no product/stock evidence OR are duplicates.
+    Only return products that are currently in stock.
+    """
+    stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "10"))
+    batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "8"))
+    workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "6"))
+    hard_max_pid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_PID", "2000"))
+    hard_max_gid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_GID", "2000"))
+
+    pid_endpoints = _pid_cart_endpoints(base_url)
+    gid_endpoints = _gid_cart_endpoints(base_url)
+    if not pid_endpoints and not gid_endpoints:
         return []
 
-    found: dict[str, Product] = {}
-    miss_streak = 0
-    found_any = False
-    pid = 1
+    seen_ids: set[str] = set(existing_ids or set())
+    found_in_stock: dict[str, Product] = {}
+    log_hits = os.getenv("WHMCS_HIDDEN_LOG", "0").strip() == "1"
 
-    while pid <= max_pid:
-        batch = list(range(pid, min(max_pid, pid + batch_size - 1) + 1))
+    def scan_ids(*, kind: str) -> None:
+        nonlocal seen_ids, found_in_stock
 
-        def probe_one(cur_pid: int) -> tuple[int, bool, list[Product]]:
+        if kind == "pid":
+            endpoints = pid_endpoints
+            hard_max = hard_max_pid
+        else:
+            endpoints = gid_endpoints
+            hard_max = hard_max_gid
+
+        if not endpoints:
+            return
+
+        miss_streak = 0
+        cur = 1
+
+        def probe_one(cur_id: int) -> tuple[int, bool, bool, list[Product]]:
+            """
+            Returns: (id, has_evidence, is_duplicate, parsed_products)
+            """
             for tmpl in endpoints:
-                url = tmpl.format(pid=cur_pid)
-                fetch = _fetch_text(client, url, allow_flaresolverr=allow_solver)
+                url = tmpl.format(**{kind: cur_id})
+                fetch = _fetch_text(client, url, allow_flaresolverr=True)
                 if not fetch.ok or not fetch.text:
                     continue
                 html = fetch.text
+
+                evidence = _looks_like_whmcs_pid_page(html) if kind == "pid" else _looks_like_whmcs_gid_page(html)
                 parsed = parser.parse(html, base_url=fetch.url)
                 parsed = [_product_with_special_flag(p) for p in parsed]
-                if parsed:
-                    matched = [p for p in parsed if _product_matches_pid(p, cur_pid)]
+
+                if kind == "pid" and parsed:
+                    matched = [p for p in parsed if _product_matches_pid(p, cur_id)]
                     if not matched and len(parsed) == 1:
                         matched = parsed
-                    normalized: list[Product] = []
-                    for p in matched:
-                        page_avail = _infer_availability_from_detail_html(html)
-                        normalized.append(
-                            _clone_product(
-                                p,
-                                available=(p.available if page_avail is None else page_avail),
-                            )
-                        )
-                    if normalized:
-                        return cur_pid, True, normalized
-                if _looks_like_pid_stock_page(html):
-                    return cur_pid, True, []
-            return cur_pid, False, []
+                    parsed = matched
 
-        workers = max(1, min(len(batch), int(os.getenv("WHMCS_PID_WORKERS", "6"))))
-        batch_results: list[tuple[int, bool, list[Product]]] = []
-        with ThreadPoolExecutor(max_workers=workers) as ex:
-            futs = [ex.submit(probe_one, cur_pid) for cur_pid in batch]
-            for fut in as_completed(futs):
-                batch_results.append(fut.result())
+                normalized: list[Product] = []
+                for p in parsed:
+                    page_avail = _infer_availability_from_detail_html(html)
+                    normalized.append(_clone_product(p, available=(p.available if page_avail is None else page_avail)))
 
-        batch_results.sort(key=lambda x: x[0])
-        for _pid_value, hit, products in batch_results:
-            if hit:
-                found_any = True
+                if normalized:
+                    is_dup = all(p.id in seen_ids for p in normalized)
+                    return cur_id, True, is_dup, normalized
+
+                # Some WHMCS themes require JS rendering or hide details; fall back to heuristics.
+                if evidence:
+                    return cur_id, True, False, []
+
+            return cur_id, False, False, []
+
+        while miss_streak < stop_after_miss and cur <= hard_max:
+            batch = list(range(cur, min(hard_max, cur + batch_size - 1) + 1))
+            cur = batch[-1] + 1
+
+            batch_results: list[tuple[int, bool, bool, list[Product]]] = []
+            max_workers = max(1, min(len(batch), max(1, workers)))
+            with ThreadPoolExecutor(max_workers=max_workers) as ex:
+                futs = [ex.submit(probe_one, cid) for cid in batch]
+                for fut in as_completed(futs):
+                    batch_results.append(fut.result())
+
+            batch_results.sort(key=lambda x: x[0])
+            for _id, has_evidence, is_dup, products in batch_results:
+                if not has_evidence:
+                    miss_streak += 1
+                    continue
+                if is_dup:
+                    miss_streak += 1
+                    continue
+
+                # Evidence and not duplicate: reset streak.
                 miss_streak = 0
-                for hp in products:
-                    if hp.available is True:
-                        found[hp.id] = hp
-            else:
-                miss_streak += 1
+                for p in products:
+                    if p.id in seen_ids:
+                        continue
+                    seen_ids.add(p.id)
+                    if p.available is True:
+                        found_in_stock[p.id] = p
+                        if log_hits:
+                            print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
 
-        last_pid_in_batch = batch[-1]
-        if miss_streak >= stop_after_miss and (found_any or last_pid_in_batch >= min_probe_before_stop):
-            break
-        pid = last_pid_in_batch + 1
-
-    return list(found.values())
+    scan_ids(kind="gid")
+    scan_ids(kind="pid")
+    return list(found_in_stock.values())
 
 
 def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[str]:

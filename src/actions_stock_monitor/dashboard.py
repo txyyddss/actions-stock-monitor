@@ -456,9 +456,9 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
 
       table.querySelectorAll("thead th[data-col]").forEach(th => {{
         th.classList.toggle("sorted", th.getAttribute("data-col") === sortCol);
-        th.textContent = th.textContent.replace(/ [▲▼]$/, "");
+        th.textContent = th.textContent.replace(/ [\\^v]$/, "");
         if (th.getAttribute("data-col") === sortCol) {{
-          th.textContent += sortDir === 1 ? " ▲" : " ▼";
+          th.textContent += sortDir === 1 ? " ^" : " v";
         }}
       }});
 
@@ -471,13 +471,13 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
           ? `<details class="desc-wrap"><summary>Description</summary><div class="desc-box">${{escapeHtml(p.description)}}</div></details>`
           : "";
         const locationTag = p.location ? `<span class="location-tag">${{escapeHtml(p.location)}}</span>` : "";
-        const specialTag = p.is_special ? `<span class="special-tag">Special</span>` : "";
+        const specialTag = p.is_special ? `<span class="special-tag">Special/Promo</span>` : "";
         const variantInfo = p.variant_of ? `<div class="muted" style="font-size:11px;margin-top:2px">Plan: ${{escapeHtml(p.variant_of)}}</div>` : "";
-        const cyclesCell = p.billing_cycles ? escapeHtml(p.billing_cycles) : '<span class="muted">—</span>';
+        const cyclesCell = p.billing_cycles ? escapeHtml(p.billing_cycles) : '<span class="muted">-</span>';
         const cyclePrices = Object.entries(p.cycle_prices || {{}}).map(([k,v]) => `<div><span class="muted">${{escapeHtml(k)}}:</span> ${{escapeHtml(v)}}</div>`).join("");
         const priceCell = p.price
           ? `<div>${{escapeHtml(p.price)}}</div>${{cyclePrices ? `<div class="muted" style="font-size:11px; margin-top:4px">${{cyclePrices}}</div>` : ""}}`
-          : `<span class="muted">—</span>`;
+          : `<span class="muted">-</span>`;
 
         tr.innerHTML = `
           <td data-k="Status"><span class="badge"><span class="dot ${{meta.cls}}"></span> ${{meta.label}}</span></td>

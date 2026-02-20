@@ -1,0 +1,88 @@
+name: Bug report
+description: Report a bug in the crawler, parsers, alerts, or dashboard
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: input
+    id: site
+    attributes:
+      label: Domain / site affected
+      description: The provider domain (e.g. bill.hostdare.com) or the base URL you ran.
+      placeholder: bill.hostdare.com
+    validations:
+      required: true
+
+  - type: dropdown
+    id: run_mode
+    attributes:
+      label: Where did you run it?
+      options:
+        - GitHub Actions
+        - Local (Windows/macOS/Linux)
+    validations:
+      required: true
+
+  - type: input
+    id: flaresolverr
+    attributes:
+      label: FlareSolverr URL (if used)
+      description: Set via FLARESOLVERR_URL. Leave blank if not used.
+      placeholder: http://127.0.0.1:8191
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: "Example: product X should show In Stock and trigger RESTOCK."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      placeholder: "Example: product X shows Out of Stock / no alert."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the exact command line and any environment variables you set.
+      render: shell
+      placeholder: |
+        $env:FLARESOLVERR_URL="http://127.0.0.1:8191"
+        python -m actions_stock_monitor --targets https://bill.hostdare.com/ --dry-run
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Paste relevant console output. Redact tokens/secrets.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: cf
+    attributes:
+      label: Cloudflare / blocking indicators
+      options:
+        - label: I saw "Blocked (Cloudflare)" or a challenge page
+          required: false
+        - label: The site works in my browser but fails in the monitor
+          required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Anything else that helps diagnose (HTML snippet, product URL, PID/GID link, etc.).
+    validations:
+      required: false
+

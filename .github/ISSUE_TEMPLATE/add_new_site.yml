@@ -1,0 +1,62 @@
+name: Add new site
+description: Request monitoring support for a new provider storefront
+title: "[SITE] "
+labels: ["new-site"]
+body:
+  - type: input
+    id: base_url
+    attributes:
+      label: Base URL
+      description: Root URL used as a target (one per provider).
+      placeholder: https://example.com/
+    validations:
+      required: true
+
+  - type: input
+    id: listing_url
+    attributes:
+      label: Product listing URL
+      description: If different from base URL (storefront page that shows products).
+      placeholder: https://example.com/cart.php?gid=1
+    validations:
+      required: false
+
+  - type: input
+    id: example_product_url
+    attributes:
+      label: Example product URL
+      description: Direct add/config link if available (pid/gid/store link). This is the most useful field.
+      placeholder: https://example.com/cart.php?a=add&pid=53
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: site_type
+    attributes:
+      label: Site type (best guess)
+      options:
+        - label: WHMCS (cart.php, rp=/store, configoption/custom fields)
+          required: false
+        - label: SPA storefront (JSON API)
+          required: false
+        - label: Other / custom
+          required: false
+
+  - type: checkboxes
+    id: cf
+    attributes:
+      label: Cloudflare / anti-bot
+      options:
+        - label: Requires Cloudflare bypass (browser challenge / turnstile)
+          required: false
+        - label: Not sure
+          required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Any quirks (pagination, hidden products, language, login requirement, etc.).
+    validations:
+      required: false
+

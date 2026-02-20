@@ -174,15 +174,29 @@ class HttpClient:
                 return None
             return ctx
 
-    def _store_cookie_context(self, netloc: str, *, cookies: dict[str, str] | None, user_agent: str | None, ttl_seconds: float | None = None) -> None:
-        if not netloc or not cookies:
+    def _store_cookie_context(
+        self,
+        netloc: str,
+        *,
+        cookies: dict[str, str] | None,
+        user_agent: str | None,
+        ttl_seconds: float | None = None,
+    ) -> None:
+        if not netloc:
             return
         ttl = float(ttl_seconds if ttl_seconds is not None else self._cf_cookie_ttl_seconds)
         if ttl <= 0:
             return
         expires_at = time.time() + ttl
         with self._cookie_lock:
-            self._cookie_cache[netloc] = _CookieContext(cookies=dict(cookies), user_agent=user_agent, expires_at=expires_at)
+            prev = self._cookie_cache.get(netloc)
+            merged_cookies: dict[str, str] = dict(prev.cookies) if prev and isinstance(prev.cookies, dict) else {}
+            if cookies:
+                merged_cookies.update(dict(cookies))
+            merged_ua = user_agent or (prev.user_agent if prev else None)
+            if not merged_cookies and not merged_ua:
+                return
+            self._cookie_cache[netloc] = _CookieContext(cookies=merged_cookies, user_agent=merged_ua, expires_at=expires_at)
 
     def _proxies(self) -> dict[str, str] | None:
         if not self._proxy_url:
@@ -196,6 +210,10 @@ class HttpClient:
         ctx = self._get_cookie_context(netloc)
         cookies = ctx.cookies if ctx else None
         ua = ctx.user_agent if ctx else None
+        if netloc and not ua:
+            # Keep a stable UA per domain across a run to reduce anti-bot churn.
+            ua = random.choice(self._user_agents)
+            self._store_cookie_context(netloc, cookies=cookies, user_agent=ua, ttl_seconds=self._cf_cookie_ttl_seconds)
         for attempt in range(1, self._max_retries + 1):
             try:
                 resp: Response = self._session().get(
@@ -274,16 +292,12 @@ class HttpClient:
         started = time.perf_counter()
         netloc = self._netloc(url)
         ctx = self._get_cookie_context(netloc)
-        user_agent = ctx.user_agent if ctx else None
         payload: dict[str, Any] = {
             "cmd": "request.get",
             "url": url,
             "maxTimeout": int(self._timeout_seconds * 1000),
         }
-        # FlareSolverr v2 removed support for custom request headers.
-        # Keep compatibility by only passing userAgent when available.
-        if user_agent:
-            payload["userAgent"] = user_agent
+        # FlareSolverr v2 removed the "userAgent" request parameter; do not send it.
         if self._proxy_url and self._proxy_url.startswith(("http://", "https://")):
             payload["proxy"] = {"url": self._proxy_url}
 
@@ -328,8 +342,12 @@ class HttpClient:
                         if isinstance(name, str) and isinstance(value, str) and name and value:
                             cookies[name] = value
                 netloc = self._netloc(final_url) or self._netloc(url)
-                if cookies:
-                    self._store_cookie_context(netloc, cookies=cookies, user_agent=user_agent)
+                # Store whatever we get back for cross-page reuse; UA may be absent in v2.
+                self._store_cookie_context(
+                    netloc,
+                    cookies=cookies,
+                    user_agent=user_agent or (ctx.user_agent if ctx else None),
+                )
 
                 if isinstance(status_code, int) and self._should_retry_status(status_code) and attempt < self._max_retries:
                     last_error = f"FlareSolverr failed (status={status_code})"

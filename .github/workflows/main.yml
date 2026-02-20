@@ -5,6 +5,10 @@ on:
     - cron: "*/30 * * * *"
   workflow_dispatch: {}
 
+concurrency:
+  group: restock-monitor
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -22,14 +26,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            pyproject.toml
 
       - name: Install dependencies
         run: |
@@ -43,6 +51,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
           FLARESOLVERR_URL: ${{ secrets.FLARESOLVERR_URL }}
+          PIP_DISABLE_PIP_VERSION_CHECK: "1"
           PYTHONUNBUFFERED: "1"
           MONITOR_LOG: "1"
           STALE_MINUTES: "180"
@@ -52,7 +61,7 @@ jobs:
 
       - name: Commit updated state + dashboard
         run: |
-          if [[ -z "$(git status --porcelain)" ]]; then
+          if git diff --quiet; then
             echo "No changes to commit."
             exit 0
           fi

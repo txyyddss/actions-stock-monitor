@@ -113,6 +113,7 @@ class TestHttpClientRetries(unittest.TestCase):
         self.assertEqual(payload.get("cmd"), "request.get")
         self.assertEqual(payload.get("url"), "https://example.test/")
         self.assertNotIn("headers", payload)
+        self.assertNotIn("userAgent", payload)
 
     def test_can_skip_flaresolverr_fallback(self) -> None:
         client = HttpClient(timeout_seconds=1.0, flaresolverr_url="http://127.0.0.1:8191", max_retries=1)

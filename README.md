@@ -1,6 +1,6 @@
 # Actions Stock Monitor
 
-A stock/restock monitor that scrapes a set of provider storefronts, sends Telegram alerts for **new products** and **restocks**, and generates a fast static dashboard (`docs/index.html`).
+A stock/restock monitor that scrapes a set of provider storefronts, sends Telegram alerts for new products and restocks, and generates a fast static dashboard (`docs/index.html`).
 
 This repo is designed to run on a schedule via GitHub Actions (see `.github/workflows/main.yml`) and commit updates to:
 
@@ -13,16 +13,16 @@ This repo is designed to run on a schedule via GitHub Actions (see `.github/work
 
 Targets are base URLs (one per provider) defined in `src/actions_stock_monitor/targets.py`. You can override them at runtime with `--targets`.
 
-### 2) Fetching (Direct First → FlareSolverr Fallback)
+### 2) Fetching (Direct First -> FlareSolverr Fallback)
 
 `src/actions_stock_monitor/http_client.py` implements:
 
-- **Direct fetch first** using `requests`
-- **Cloudflare challenge detection**
-- **Fallback to FlareSolverr** (if `FLARESOLVERR_URL` is set)
-- **English-biased fetch headers** (`Accept-Language: en-US,en;q=0.9`) for both direct and FlareSolverr requests
-- **Temporary cookie + UA reuse** per domain, extracted from FlareSolverr solutions, to reduce repeated challenge solving across multiple pages in the same run
-- **Fast secondary crawl behavior**: discovery/detail sub-pages avoid FlareSolverr fallback unless they are primary listing pages
+- Direct fetch first using `requests`
+- Cloudflare challenge detection
+- Fallback to FlareSolverr (if `FLARESOLVERR_URL` is set)
+- English-biased fetch headers (`Accept-Language: en-US,en;q=0.9`)
+- Temporary cookie reuse per domain (when available)
+- Stable per-domain User-Agent during a run to reduce anti-bot churn (FlareSolverr v2 removes the `userAgent` request parameter)
 
 ### 3) Parsing
 
@@ -31,7 +31,7 @@ Parsers live in `src/actions_stock_monitor/parsers/`:
 - `GenericDomainParser`: HTML card-based parsing for common hosting storefronts
 - `SpaStoreApiParser`: JSON-backed SPA storefronts (API endpoints)
 
-The monitor also runs a **discovery pass** for storefronts that only show partial inventories on the landing page (e.g., category teasers). Discovery follows in-domain store/group links and de-dupes products by a stable URL-based id.
+The monitor also runs a discovery pass for storefronts that only show partial inventories on the landing page (e.g., category teasers). Discovery follows in-domain store/group links and de-dupes products by a stable URL-based id.
 
 ### 4) State + Notifications
 
@@ -42,8 +42,9 @@ The monitor also runs a **discovery pass** for storefronts that only show partia
 
 Telegram notifications are sent for:
 
-- **NEW PRODUCT**: first time a product is seen *and* in stock
-- **RESTOCK ALERT**: transitions from out-of-stock → in-stock
+- NEW PRODUCT: first time a product is seen and in stock
+- RESTOCK ALERT: transitions from out-of-stock -> in-stock
+- NEW LOCATION: a new in-stock location variant for an existing plan
 
 ### 5) Dashboard
 
@@ -70,9 +71,9 @@ Common settings:
 
 Discovery tuning:
 
-- `DISCOVERY_MAX_PAGES_PER_DOMAIN` (default: `16`; bumped to `24` for WHMCS, `40` for GreenCloud unless overridden)
+- `DISCOVERY_MAX_PAGES_PER_DOMAIN` (default: `16`; bumped for some WHMCS and GreenCloud domains unless overridden)
 - `DISCOVERY_MAX_PRODUCTS_PER_DOMAIN` (default: `500`)
-- `DISCOVERY_STOP_AFTER_NO_NEW_PAGES` (default: `4`; `6` for WHMCS)
+- `DISCOVERY_STOP_AFTER_NO_NEW_PAGES` (default: `4`; `0` for WHMCS by default)
 - `DISCOVERY_STOP_AFTER_FETCH_ERRORS` (default: `4`)
 - `DISCOVERY_FORCE_IF_PRODUCTS_LEQ` (default: `6`)
 - `DISCOVERY_FORCE_IF_PRIMARY_LISTING_PRODUCTS_LEQ` (default: `40`)
@@ -81,6 +82,15 @@ Cloudflare/FlareSolverr:
 
 - `FLARESOLVERR_URL` (e.g. `http://127.0.0.1:8191`)
 - `CF_COOKIE_TTL_SECONDS` (default: `1800`)
+
+Hidden WHMCS scanning (pid/gid brute scan):
+
+- `WHMCS_HIDDEN_STOP_AFTER_MISS` (default: `10`)
+- `WHMCS_HIDDEN_BATCH` (default: `8`)
+- `WHMCS_HIDDEN_WORKERS` (default: `6`)
+- `WHMCS_HIDDEN_HARD_MAX_PID` (default: `2000`)
+- `WHMCS_HIDDEN_HARD_MAX_GID` (default: `2000`)
+- `WHMCS_HIDDEN_LOG` (default: `0`; set to `1` to print in-stock hits from hidden scans)
 
 Telegram rate limiting/backoff:
 
@@ -110,27 +120,27 @@ $env:FLARESOLVERR_URL="http://127.0.0.1:8191"
 python -m actions_stock_monitor --state data/state.json --output docs/index.html --dry-run
 ```
 
+Live smoke test (per-domain) is available via pytest:
+
+```powershell
+$env:RUN_LIVE_TESTS="1"
+$env:FLARESOLVERR_URL="http://127.0.0.1:8191"
+pytest -q
+```
+
 ## Deploy Dashboard to Cloudflare Pages (Static)
 
-Cloudflare Pages is ideal for hosting the **static dashboard**. It does not run the scheduled scraping job itself; keep the schedule in GitHub Actions.
+Cloudflare Pages is ideal for hosting the static dashboard. It does not run the scheduled scraping job itself; keep the schedule in GitHub Actions.
 
-1) Ensure `docs/index.html` exists in the repo
-   - Run locally once, or let GitHub Actions run at least once (workflow commits `docs/index.html`).
-
-2) In Cloudflare Dashboard → **Pages** → **Create a project**
-   - Connect your GitHub account and select this repository.
-
-3) Configure build settings
-   - **Framework preset**: `None`
-   - **Build command**: leave empty (or `echo "no build"`)
-   - **Build output directory**: `docs`
-
-4) Deploy
-   - Cloudflare Pages will publish the contents of `docs/` and serve `docs/index.html` as the site root.
-
-5) Keep the dashboard fresh
-   - GitHub Actions commits updates to `docs/index.html` and Cloudflare Pages will redeploy automatically on each commit.
+1) Ensure `docs/index.html` exists in the repo.
+2) In Cloudflare Dashboard -> Pages -> Create a project.
+3) Configure build settings:
+   - Framework preset: None
+   - Build command: empty (or `echo "no build"`)
+   - Build output directory: `docs`
+4) Deploy.
 
 ## GitHub Pages (Alternative)
 
 This repo also supports GitHub Pages: configure Pages to publish from the `main` branch and the `/docs` folder.
+
