@@ -101,6 +101,23 @@ def _extract_cycles(price_datas: Any) -> list[str] | None:
     return out or None
 
 
+def _extract_cycle_prices(price_datas: Any, *, currency: str) -> dict[str, str] | None:
+    if not isinstance(price_datas, list):
+        return None
+    out: dict[str, str] = {}
+    for item in price_datas:
+        if not isinstance(item, dict):
+            continue
+        cycle_label = _cycle_months_to_label(item.get("cycle"))
+        price = item.get("price")
+        if not cycle_label or not isinstance(price, (int, float)):
+            continue
+        price_text, _ = _fmt_money_cents(float(price), currency=currency)
+        if price_text:
+            out[cycle_label] = price_text
+    return out or None
+
+
 def _mb_to_gb_str(mb: Any) -> str | None:
     if not isinstance(mb, (int, float)):
         return None
@@ -223,12 +240,13 @@ class SpaStoreApiParser:
                     best_price_cents = _best_monthly_price(plan.get("price_datas"))
                     price, currency = _fmt_money_cents(best_price_cents, currency=self._cfg.currency)
                     billing_cycles = _extract_cycles(plan.get("price_datas"))
+                    cycle_prices = _extract_cycle_prices(plan.get("price_datas"), currency=self._cfg.currency)
                     if billing_cycles:
                         specs["Cycles"] = ", ".join(billing_cycles)
 
                     description_parts = [p for p in [area_name, node_name] if p]
                     description = " / ".join(description_parts) if description_parts else None
-                    option = area_name or node_name
+                    location = area_name or node_name
                     variant_of = node_name if node_name and node_name.lower() not in plan_name.lower() else None
                     if not variant_of and area_name and area_name.lower() not in plan_name.lower():
                         variant_of = area_name
@@ -247,8 +265,10 @@ class SpaStoreApiParser:
                             available=available,
                             raw=None,
                             variant_of=variant_of,
-                            option=option,
+                            location=location,
                             billing_cycles=billing_cycles,
+                            cycle_prices=cycle_prices,
+                            is_special=False,
                         )
                     )
 

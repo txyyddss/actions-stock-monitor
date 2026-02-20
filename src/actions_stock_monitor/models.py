@@ -17,8 +17,10 @@ class Product:
     currency: str | None = None
     raw: dict[str, Any] | None = None
     variant_of: str | None = None
-    option: str | None = None
     billing_cycles: list[str] | None = None
+    cycle_prices: dict[str, str] | None = None
+    location: str | None = None
+    is_special: bool = False
 
 
 @dataclass(frozen=True)

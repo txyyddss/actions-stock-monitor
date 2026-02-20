@@ -6,14 +6,21 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
-from dataclasses import asdict
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qs, urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
 from .http_client import HttpClient
 from .models import DomainRun, Product, RunSummary
-from .parsers.common import extract_availability, extract_billing_cycles, normalize_url_for_id
+from .parsers.common import (
+    compact_ws,
+    extract_availability,
+    extract_billing_cycles,
+    extract_cycle_prices,
+    extract_location_variants,
+    looks_like_special_offer,
+    normalize_url_for_id,
+)
 from .parsers.registry import get_parser_for_domain
 from .targets import DEFAULT_TARGETS
 from .telegram import h, load_telegram_config, send_telegram_html
@@ -23,6 +30,83 @@ from .timeutil import utc_now_iso
 def _domain_from_url(url: str) -> str:
     netloc = urlparse(url).netloc.lower()
     return netloc
+
+
+def _slugify_fragment(value: str) -> str:
+    v = compact_ws(value).lower()
+    v = re.sub(r"[^a-z0-9]+", "-", v).strip("-")
+    return v or "x"
+
+
+def _telegram_domain_tag(domain: str) -> str:
+    labels = [x for x in (domain or "").lower().split(".") if x]
+    if not labels:
+        return "site"
+    if len(labels) >= 2:
+        candidate = labels[-2]
+    else:
+        candidate = labels[0]
+    return re.sub(r"[^a-z0-9]", "", candidate) or "site"
+
+
+def _product_with_special_flag(product: Product) -> Product:
+    is_special = bool(
+        product.is_special
+        or looks_like_special_offer(name=product.name, url=product.url, description=product.description)
+    )
+    if is_special == product.is_special:
+        return product
+    return Product(
+        id=product.id,
+        domain=product.domain,
+        url=product.url,
+        name=product.name,
+        price=product.price,
+        currency=product.currency,
+        description=product.description,
+        specs=product.specs,
+        available=product.available,
+        raw=product.raw,
+        variant_of=product.variant_of,
+        location=product.location,
+        billing_cycles=product.billing_cycles,
+        cycle_prices=product.cycle_prices,
+        is_special=is_special,
+    )
+
+
+def _clone_product(
+    product: Product,
+    *,
+    id: str | None = None,
+    name: str | None = None,
+    price: str | None = None,
+    description: str | None = None,
+    specs: dict[str, str] | None = None,
+    available: bool | None = None,
+    variant_of: str | None = None,
+    location: str | None = None,
+    billing_cycles: list[str] | None = None,
+    cycle_prices: dict[str, str] | None = None,
+    is_special: bool | None = None,
+) -> Product:
+    return Product(
+        id=id or product.id,
+        domain=product.domain,
+        url=product.url,
+        name=name if name is not None else product.name,
+        price=price if price is not None else product.price,
+        currency=product.currency,
+        description=description if description is not None else product.description,
+        specs=specs if specs is not None else product.specs,
+        available=available if available is not None else product.available,
+        raw=product.raw,
+        variant_of=variant_of if variant_of is not None else product.variant_of,
+        location=location if location is not None else product.location,
+        billing_cycles=billing_cycles if billing_cycles is not None else product.billing_cycles,
+        cycle_prices=cycle_prices if cycle_prices is not None else product.cycle_prices,
+        is_special=product.is_special if is_special is None else bool(is_special),
+    )
 
 
 def _fetch_text(client: HttpClient, url: str, *, allow_flaresolverr: bool = True):
@@ -35,11 +119,20 @@ def _fetch_text(client: HttpClient, url: str, *, allow_flaresolverr: bool = True
         return client.fetch_text(url)
 
 
+def _is_blocked_fetch(fetch_res) -> bool:
+    err = (getattr(fetch_res, "error", None) or "").lower()
+    if "blocked" in err or "cloudflare" in err or "challenge" in err:
+        return True
+    status = getattr(fetch_res, "status_code", None)
+    return status in {401, 403, 429, 503, 520, 521, 522, 523, 525, 526}
+
+
 _NON_PRODUCT_URL_FRAGMENTS = (
-    "cart",
     "clientarea.php",
     "register",
     "login",
+    "ticket",
+    "tickets",
     "submitticket.php",
     "announcements",
     "knowledgebase",
@@ -66,6 +159,13 @@ def _looks_like_non_product_page(url: str) -> bool:
         return False
     u = (p.path or "").lower()
     q = (p.query or "").lower()
+    # Explicit add/configure links with product IDs are product pages.
+    if ("action=add" in q or "a=add" in q or "a=configure" in q) and any(
+        x in q for x in ("pid=", "id=", "product=", "product_id=")
+    ):
+        return False
+    if "cart.php" in u and ("pid=" in q or "product_id=" in q):
+        return False
     if u.rstrip("/") in ("/cart", "/products", "/store"):
         if not any(x in q for x in ("a=add", "pid=", "id=", "product=", "gid=", "fid=")):
             return True
@@ -79,6 +179,10 @@ def _looks_like_non_product_page(url: str) -> bool:
     if "index.php?/products/" in url.lower() and not any(x in q for x in ("a=add", "action=add", "pid=", "id=", "product=")):
         return True
     if "a=view" in q and "cart.php" in u:
+        return True
+    if "cart.php" in u and "a=add" in q and not any(x in q for x in ("pid=", "id=", "product=", "product_id=")):
+        return True
+    if "domain=register" in q or "domain=transfer" in q:
         return True
     if any(x in u for x in _NON_PRODUCT_URL_FRAGMENTS):
         return True
@@ -98,15 +202,17 @@ def _product_to_state_record(product: Product, now: str, *, first_seen: str | No
         "description": product.description,
         "specs": product.specs,
         "variant_of": product.variant_of,
-        "option": product.option,
+        "location": product.location,
         "billing_cycles": product.billing_cycles,
+        "cycle_prices": product.cycle_prices,
+        "is_special": bool(product.is_special),
         "available": product.available,
         "first_seen": first_seen or now,
         "last_seen": now,
         "last_change": now,
         "last_notified_new": None,
         "last_notified_restock": None,
-        "last_notified_new_option": None,
+        "last_notified_new_location": None,
     }
 
 
@@ -166,18 +272,19 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
                 state["products"].pop(pid, None)
 
         for product in run.products:
+            product = _product_with_special_flag(product)
             prev = state["products"].get(product.id)
             if not prev:
                 state["products"][product.id] = _product_to_state_record(product, now)
                 new_products += 1
                 had_variant = bool(product.variant_of and (product.domain, product.variant_of) in existing_variant_keys)
-                is_new_option = bool(product.option and had_variant)
+                is_new_location = bool(product.location and had_variant)
                 if product.variant_of:
                     existing_variant_keys.add((product.domain, product.variant_of))
                 if telegram_cfg:
-                    if is_new_option and product.available is not False:
-                        if _notify_new_option(telegram_cfg, product, now, timeout_seconds=timeout_seconds):
-                            state["products"][product.id]["last_notified_new_option"] = now
+                    if is_new_location and product.available is not False:
+                        if _notify_new_location(telegram_cfg, product, now, timeout_seconds=timeout_seconds):
+                            state["products"][product.id]["last_notified_new_location"] = now
                     elif product.available is True:
                         if _notify_new_product(telegram_cfg, product, now, timeout_seconds=timeout_seconds):
                             state["products"][product.id]["last_notified_new"] = now
@@ -193,8 +300,10 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
                 or prev.get("url") != product.url
                 or prev.get("specs") != product.specs
                 or prev.get("variant_of") != product.variant_of
-                or prev.get("option") != product.option
+                or (prev.get("location") or prev.get("option")) != product.location
                 or prev.get("billing_cycles") != product.billing_cycles
+                or prev.get("cycle_prices") != product.cycle_prices
+                or bool(prev.get("is_special")) != bool(product.is_special)
             )
             if changed:
                 prev["last_change"] = now
@@ -209,8 +318,10 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
                     "description": product.description,
                     "specs": product.specs,
                     "variant_of": product.variant_of,
-                    "option": product.option,
+                    "location": product.location,
                     "billing_cycles": product.billing_cycles,
+                    "cycle_prices": product.cycle_prices,
+                    "is_special": bool(product.is_special),
                     "available": next_available,
                     "last_seen": now,
                 }
@@ -236,56 +347,64 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
 
 
 def _notify_restock(cfg, product: Product, now: str, *, timeout_seconds: float) -> bool:
-    msg = _format_message("RESTOCK ALERT", "🔥", product, now)
+    msg = _format_message("RESTOCK ALERT", "RESTOCK", product, now)
     return send_telegram_html(cfg=cfg, message_html=msg, timeout_seconds=min(15.0, timeout_seconds))
 
 
 def _notify_new_product(cfg, product: Product, now: str, *, timeout_seconds: float) -> bool:
-    msg = _format_message("NEW PRODUCT", "✨", product, now)
+    msg = _format_message("NEW PRODUCT", "NEW", product, now)
     return send_telegram_html(cfg=cfg, message_html=msg, timeout_seconds=min(15.0, timeout_seconds))
 
 
-def _notify_new_option(cfg, product: Product, now: str, *, timeout_seconds: float) -> bool:
-    msg = _format_message("NEW OPTION", "🧩", product, now)
+def _notify_new_location(cfg, product: Product, now: str, *, timeout_seconds: float) -> bool:
+    msg = _format_message("NEW LOCATION", "LOCATION", product, now)
     return send_telegram_html(cfg=cfg, message_html=msg, timeout_seconds=min(15.0, timeout_seconds))
 
 
 def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
     lines: list[str] = []
 
-    domain_tag = product.domain.replace(".", "").replace("-", "")
+    domain_tag = _telegram_domain_tag(product.domain)
     lines.append(f"<b>[{h(icon)}] {h(kind)}</b>")
     lines.append(f"<b>#{h(domain_tag)}</b>")
     lines.append("")
 
     name = product.name
-    if product.variant_of and product.option:
-        name = f"{product.variant_of} - {product.option}"
+    if product.variant_of and product.location:
+        name = f"{product.variant_of} - {product.location}"
     elif product.variant_of:
         name = f"{product.variant_of} - {product.name}"
+    if product.is_special:
+        name = f"[SPECIAL] {name}"
     lines.append(f"<b>{h(name)}</b>")
     lines.append("")
 
     if product.price:
-        lines.append(f"💰 <b>Price:</b> {h(product.price)}")
+        lines.append(f"<b>Price:</b> {h(product.price)}")
     if product.billing_cycles:
         lines.append(f"<b>Cycles:</b> {h(', '.join(product.billing_cycles))}")
+    if product.cycle_prices:
+        lines.append("<b>Cycle Prices</b>")
+        cp_lines = [f"{k}: {v}" for k, v in product.cycle_prices.items()]
+        lines.append(f"<pre>{h(chr(10).join(cp_lines))}</pre>")
 
     if product.available is True:
-        lines.append("✅ <b>Status:</b> In Stock")
+        lines.append("<b>Status:</b> In Stock")
     elif product.available is False:
-        lines.append("❌ <b>Status:</b> Out of Stock")
+        lines.append("<b>Status:</b> Out of Stock")
     else:
         lines.append("<b>Status:</b> Unknown")
 
-    if product.option:
-        lines.append(f"<b>Option:</b> {h(product.option)}")
+    if product.location:
+        lines.append(f"<b>Location:</b> {h(product.location)}")
     if product.variant_of:
         lines.append(f"<b>Plan:</b> {h(product.variant_of)}")
+    if product.is_special:
+        lines.append("<b>Tag:</b> Special/Promo")
     lines.append("")
 
     if product.specs:
-        prio = ["Location", "Node", "CPU", "RAM", "Disk", "Storage", "Transfer", "Traffic", "Bandwidth", "Port", "IPv4", "IPv6", "Cycles", "OS"]
+        prio = ["Location", "Data Center", "Node", "CPU", "RAM", "Disk", "Storage", "Transfer", "Traffic", "Bandwidth", "Port", "IPv4", "IPv6", "Cycles", "OS"]
         items = list(product.specs.items())
         items.sort(key=lambda kv: (prio.index(kv[0]) if kv[0] in prio else 999, str(kv[0])))
         spec_lines: list[str] = []
@@ -297,17 +416,15 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
             lines.append("<b>Specs</b>")
             lines.append(f"<pre>{h(chr(10).join(spec_lines))}</pre>")
 
-    # Detailed description in a code block (no ellipsis truncation).
     if product.description and product.description.strip():
         lines.append("<b>Details</b>")
         lines.append(f"<pre>{h(product.description.strip())}</pre>")
 
-    lines.append(f'👉 <a href="{h(product.url)}">Order Now</a>')
-    lines.append(f"🕒 <code>{h(now)}</code>")
+    lines.append(f'<a href="{h(product.url)}">Open Product Page</a>')
+    lines.append(f"<code>{h(now)}</code>")
 
     message = "\n".join(lines)
     return message[:3900]
-
 
 def run_monitor(
     *,
@@ -364,7 +481,8 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
 
     parser = get_parser_for_domain(domain)
     try:
-        products = parser.parse(fetch.text, base_url=fetch.url)
+        products = [_product_with_special_flag(p) for p in parser.parse(fetch.text, base_url=fetch.url)]
+        products = [p for p in products if not _looks_like_noise_product(p)]
         deduped: dict[str, Product] = {p.id: p for p in products}
 
         if _needs_discovery(products, base_url=fetch.url) or _should_force_discovery(fetch.text, base_url=fetch.url, domain=domain, product_count=len(deduped)):
@@ -375,7 +493,7 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                 if domain == "greencloudvps.com":
                     max_pages_limit = max(max_pages_limit, 40)
                 if _is_whmcs_domain(domain, fetch.text):
-                    max_pages_limit = max(max_pages_limit, 24)
+                    max_pages_limit = max(max_pages_limit, 64)
                 if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
                     # HostBill-style carts often require an extra discovery hop from category -> products.
                     max_pages_limit = max(max_pages_limit, 48)
@@ -384,17 +502,16 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             # Try domain-specific extra pages (including SPA API endpoints) first so we don't
             # abort discovery after a streak of 404/blocked default entry points.
             discovered.extend(_domain_extra_pages(domain))
+            if _is_whmcs_domain(domain, fetch.text):
+                discovered.extend(_whmcs_gid_pages(fetch.url))
             discovered.extend(_discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain))
             discovered.extend(_default_entrypoint_pages(fetch.url))
             discovered = _dedupe_keep_order([u for u in discovered if u and u != fetch.url])
-            if max_pages_limit > 0:
-                discovered = discovered[:max_pages_limit]
+            discovered_seen = set(discovered)
 
             max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "500"))
-            # Use a higher no-new threshold for WHMCS sites where each gid= page has
-            # genuinely different products – stopping after 3 empty pages could miss
-            # entire product groups.
-            default_stop = "6" if _is_whmcs_domain(domain, fetch.text) else "4"
+            # WHMCS category pages may be sparse/non-contiguous; avoid stopping too early.
+            default_stop = "0" if _is_whmcs_domain(domain, fetch.text) else "4"
             stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", default_stop))
             stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "4"))
             if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
@@ -404,12 +521,18 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             fetch_error_streak = 0
             pages_visited = 0
 
-            for page_url in discovered:
+            queue_idx = 0
+            while queue_idx < len(discovered):
+                page_url = discovered[queue_idx]
+                queue_idx += 1
                 if max_pages_limit > 0 and pages_visited >= max_pages_limit:
                     break
                 pages_visited += 1
                 allow_solver = _should_use_flaresolverr_for_discovery_page(page_url)
                 page_fetch = _fetch_text(client, page_url, allow_flaresolverr=allow_solver)
+                if (not page_fetch.ok or not page_fetch.text) and (not allow_solver) and _is_blocked_fetch(page_fetch):
+                    # Retry blocked pages with FlareSolverr only when needed.
+                    page_fetch = _fetch_text(client, page_url, allow_flaresolverr=True)
                 if not page_fetch.ok or not page_fetch.text:
                     fetch_error_streak += 1
                     if stop_after_fetch_errors > 0 and fetch_error_streak >= stop_after_fetch_errors and _is_primary_listing_page(page_url):
@@ -417,7 +540,8 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                     continue
                 fetch_error_streak = 0
 
-                page_products = parser.parse(page_fetch.text, base_url=page_fetch.url)
+                page_products = [_product_with_special_flag(p) for p in parser.parse(page_fetch.text, base_url=page_fetch.url)]
+                page_products = [p for p in page_products if not _looks_like_noise_product(p)]
                 new_count = 0
                 for p in page_products:
                     if p.id not in deduped:
@@ -427,9 +551,8 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                 # Also discover more pages from this page's links.
                 more_pages = _discover_candidate_pages(page_fetch.text, base_url=page_fetch.url, domain=domain)
                 for mp in more_pages:
-                    if max_pages_limit > 0 and len(discovered) >= max_pages_limit:
-                        break
-                    if mp and mp not in discovered and mp != fetch.url:
+                    if mp and mp not in discovered_seen and mp != fetch.url:
+                        discovered_seen.add(mp)
                         discovered.append(mp)
 
                 if new_count == 0:
@@ -442,7 +565,17 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                 if stop_after_no_new > 0 and no_new_streak >= stop_after_no_new and _is_primary_listing_page(page_fetch.url):
                     break
 
-            products = list(deduped.values())
+            products = [p for p in deduped.values() if not _looks_like_noise_product(p)]
+
+        # Hidden WHMCS products: brute-scan pid pages and keep only in-stock hits.
+        if _is_whmcs_domain(domain, fetch.text):
+            hidden = _scan_whmcs_hidden_pids(client, parser, base_url=fetch.url)
+            for hp in hidden:
+                if hp.available is not True:
+                    continue
+                hp = _product_with_special_flag(hp)
+                deduped[hp.id] = hp
+            products = [p for p in deduped.values() if not _looks_like_noise_product(p)]
 
         # Some providers only reveal stock state on the product detail page (or render it client-side on listings).
         # Enrich all products with unknown or False availability via detail page fetches.
@@ -454,6 +587,9 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             "vps.hosting",
             "clients.zgovps.com",
             "clientarea.gigsgigscloud.com",
+            "www.vps.soy",
+            "www.dmit.io",
+            "bill.hostdare.com",
         }
         _CYCLE_ENRICH_DOMAINS = {
             "fachost.cloud",
@@ -461,6 +597,14 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             "vps.hosting",
             "clients.zgovps.com",
             "clientarea.gigsgigscloud.com",
+            "www.vps.soy",
+            "www.dmit.io",
+        }
+        _TRUE_RECHECK_DOMAINS = {
+            "vps.hosting",
+            "clientarea.gigsgigscloud.com",
+            "www.vps.soy",
+            "www.dmit.io",
         }
         if domain in _ENRICH_DOMAINS:
             false_only = all(p.available is False for p in products) if products else False
@@ -471,8 +615,11 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                 products,
                 max_pages=enrich_pages,
                 include_false=(false_only or domain in {"fachost.cloud", "backwaves.net"}),
+                include_true=(domain in _TRUE_RECHECK_DOMAINS),
                 include_missing_cycles=include_missing_cycles,
             )
+
+        products = list({p.id: _product_with_special_flag(p) for p in products}.values())
 
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=True, error=None, duration_ms=duration_ms, products=products)
@@ -509,8 +656,9 @@ def _is_whmcs_domain(domain: str, html: str) -> bool:
         "my.rfchost.com", "fachost.cloud", "my.frantech.ca", "wawo.wiki",
         "nmcloud.cc", "bgp.gd", "wap.ac", "www.bagevm.com", "backwaves.net",
         "cloud.ggvision.net", "cloud.colocrossing.com", "bill.hostdare.com",
-        "clients.zgovps.com", "my.racknerd.com", "clientarea.gigsgigscloud.com",
-        "cloud.boil.network",
+        "clients.zgovps.com", "my.racknerd.com",
+        "cloud.boil.network", "bandwagonhost.com", "www.lycheen.com",
+        "cloud.tizz.yt", "bestvm.cloud", "www.mkcloud.net", "alphavps.com",
     }
     return domain.lower() in whmcs_domains
 
@@ -542,11 +690,28 @@ def _infer_availability_from_detail_html(html: str) -> bool | None:
     avail = extract_availability(html)
     if avail is not None:
         return avail
-    tl = (html or "").lower()
-    if "add to cart" in tl or "checkout" in tl:
-        return True
-    if "加入购物车" in html or "加入購物車" in html:
-        return True
+    try:
+        soup = BeautifulSoup(html or "", "lxml")
+    except Exception:
+        return None
+
+    for el in soup.select(".outofstock, .out-of-stock, .soldout, [class*='outofstock'], [class*='soldout'], [class*='unavailable']"):
+        txt = compact_ws(getattr(el, "get_text", lambda *a, **k: "")(" ", strip=True))
+        if extract_availability(txt) is not True:
+            return False
+
+    for el in soup.select("a, button, input[type='submit'], input[type='button']"):
+        cls = " ".join(el.get("class", [])) if hasattr(el, "get") else ""
+        cls_l = cls.lower()
+        disabled = "disabled" in cls_l or getattr(el, "has_attr", lambda *_: False)("disabled")
+        label = compact_ws(getattr(el, "get_text", lambda *a, **k: "")(" ", strip=True))
+        if not label and hasattr(el, "get"):
+            label = compact_ws(str(el.get("value") or ""))
+        marker = extract_availability(label)
+        if marker is False:
+            return False
+        if marker is True and not disabled:
+            return True
     return None
 
 
@@ -556,70 +721,156 @@ def _enrich_availability_via_product_pages(
     *,
     max_pages: int,
     include_false: bool = False,
+    include_true: bool = False,
     include_missing_cycles: bool = False,
 ) -> list[Product]:
-    candidates: list[tuple[int, Product]] = []
+    # Group by URL so we fetch each detail page once.
+    candidates_by_url: dict[str, list[int]] = {}
     for idx, p in enumerate(products):
-        if len(candidates) >= max_pages:
+        if len(candidates_by_url) >= max_pages:
             break
         if not p.url.startswith(("http://", "https://")):
             continue
-        needs_availability = p.available is None or (include_false and p.available is False)
-        needs_cycles = include_missing_cycles and not p.billing_cycles
-        if needs_availability or needs_cycles:
-            candidates.append((idx, p))
+        needs_availability = p.available is None or (include_false and p.available is False) or (include_true and p.available is True)
+        needs_cycles = include_missing_cycles and (not p.billing_cycles or not p.cycle_prices)
+        needs_location = not p.location
+        if not (needs_availability or needs_cycles or needs_location):
+            continue
+        candidates_by_url.setdefault(p.url, []).append(idx)
 
-    if not candidates:
+    if not candidates_by_url:
         return products
 
     enriched = list(products)
     max_workers = int(os.getenv("ENRICH_WORKERS", "6"))
-    max_workers = max(1, min(max_workers, len(candidates)))
+    max_workers = max(1, min(max_workers, len(candidates_by_url)))
 
-    def fetch_one(p: Product) -> tuple[bool | None, list[str] | None]:
-        allow_solver = _should_use_flaresolverr_for_discovery_page(p.url)
-        fetch = _fetch_text(client, p.url, allow_flaresolverr=allow_solver)
+    def fetch_one(url: str) -> dict | None:
+        allow_solver = _should_use_flaresolverr_for_discovery_page(url)
+        fetch = _fetch_text(client, url, allow_flaresolverr=allow_solver)
+        if (not fetch.ok or not fetch.text) and (not allow_solver) and _is_blocked_fetch(fetch):
+            fetch = _fetch_text(client, url, allow_flaresolverr=True)
         if not fetch.ok or not fetch.text:
-            return None, None
+            return None
         html = fetch.text
-        avail = _infer_availability_from_detail_html(html)
-        cycles = extract_billing_cycles(html)
-        return avail, cycles
+        return {
+            "availability": _infer_availability_from_detail_html(html),
+            "billing_cycles": extract_billing_cycles(html),
+            "cycle_prices": extract_cycle_prices(html),
+            "location_variants": extract_location_variants(html),
+        }
 
+    fetched: dict[str, dict] = {}
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futs = {ex.submit(fetch_one, p): (idx, p) for idx, p in candidates}
+        futs = {ex.submit(fetch_one, url): url for url in candidates_by_url.keys()}
         for fut in as_completed(futs):
-            idx, p = futs[fut]
+            url = futs[fut]
             try:
-                avail, cycles = fut.result()
+                data = fut.result()
             except Exception:
-                avail = None
-                cycles = None
-            if avail is None and not cycles:
-                continue
+                data = None
+            if data:
+                fetched[url] = data
+
+    if not fetched:
+        return products
+
+    seen_ids = {p.id for p in enriched}
+    generated: list[Product] = []
+
+    for url, indices in candidates_by_url.items():
+        data = fetched.get(url)
+        if not data:
+            continue
+        avail = data.get("availability")
+        cycles = data.get("billing_cycles")
+        cycle_prices = data.get("cycle_prices")
+        location_variants: list[tuple[str, bool | None]] = data.get("location_variants") or []
+
+        for idx in indices:
+            p = enriched[idx]
 
             next_available = p.available if avail is None else avail
             next_cycles = p.billing_cycles if not cycles else cycles
-            next_specs = p.specs
-            if cycles:
-                next_specs = dict(p.specs or {})
-                next_specs.setdefault("Cycles", ", ".join(cycles))
-            enriched[idx] = Product(
-                id=p.id,
-                domain=p.domain,
-                url=p.url,
-                name=p.name,
-                price=p.price,
-                currency=p.currency,
-                description=p.description,
-                specs=next_specs,
-                available=next_available,
-                raw=p.raw,
-                variant_of=p.variant_of,
-                option=p.option,
-                billing_cycles=next_cycles,
+            next_cycle_prices = dict(p.cycle_prices or {})
+            if cycle_prices:
+                next_cycle_prices.update(cycle_prices)
+            if not next_cycle_prices:
+                next_cycle_prices = None
+
+            next_specs: dict[str, str] | None = dict(p.specs or {})
+            if next_cycles and "Cycles" not in next_specs:
+                next_specs["Cycles"] = ", ".join(next_cycles)
+            if not next_specs:
+                next_specs = None
+
+            resolved_location = p.location
+            if location_variants:
+                if p.location:
+                    for loc, loc_avail in location_variants:
+                        if loc.lower() == p.location.lower():
+                            if loc_avail is not None:
+                                next_available = loc_avail
+                            resolved_location = loc
+                            break
+                elif len(location_variants) == 1:
+                    loc, loc_avail = location_variants[0]
+                    resolved_location = loc
+                    if loc_avail is not None:
+                        next_available = loc_avail
+                else:
+                    # Keep the first location on the base product and emit extra variants.
+                    base_loc, base_avail = location_variants[0]
+                    resolved_location = base_loc
+                    if base_avail is not None:
+                        next_available = base_avail
+                    variant_base_name = p.variant_of or p.name
+                    for loc, loc_avail in location_variants[1:]:
+                        variant_id = f"{p.id}::loc-{_slugify_fragment(loc)}"
+                        if variant_id in seen_ids:
+                            continue
+                        seen_ids.add(variant_id)
+                        generated.append(
+                            _clone_product(
+                                p,
+                                id=variant_id,
+                                name=p.name,
+                                available=(next_available if loc_avail is None else loc_avail),
+                                variant_of=variant_base_name,
+                                location=loc,
+                                billing_cycles=next_cycles,
+                                cycle_prices=next_cycle_prices,
+                                specs=next_specs,
+                            )
+                        )
+
+            # Prefer monthly price for the canonical price field when absent.
+            next_price = p.price
+            if not next_price and next_cycle_prices:
+                for preferred in ("Monthly", "Quarterly", "Yearly"):
+                    if preferred in next_cycle_prices:
+                        next_price = next_cycle_prices[preferred]
+                        break
+                if not next_price:
+                    try:
+                        next_price = next(iter(next_cycle_prices.values()))
+                    except Exception:
+                        next_price = p.price
+
+            enriched[idx] = _product_with_special_flag(
+                _clone_product(
+                    p,
+                    price=next_price,
+                    available=next_available,
+                    location=resolved_location,
+                    billing_cycles=next_cycles,
+                    cycle_prices=next_cycle_prices,
+                    specs=next_specs,
+                )
             )
 
+    if generated:
+        enriched.extend(generated)
     return enriched
 
 
@@ -643,6 +894,35 @@ def _needs_discovery(products: list[Product], *, base_url: str) -> bool:
         except Exception:
             pass
 
+    return False
+
+
+def _looks_like_noise_product(product: Product) -> bool:
+    name_l = compact_ws(product.name).lower()
+    if not name_l:
+        return True
+    if _looks_like_non_product_page(product.url):
+        return True
+    url_l = (product.url or "").lower()
+    if any(x in url_l for x in ("/ticket", "/tickets", "submitticket", "support")):
+        return True
+    if name_l in {"new", "item", "product"} and "cart" in url_l and product.available is None:
+        return True
+    noise_name_fragments = (
+        "make payment",
+        "transfer domains",
+        "buy a domain",
+        "order hosting",
+        "browse all",
+        "cart is empty",
+        "套餐与价格",
+        "pricing only",
+        "proceed to cart",
+    )
+    if any(x in name_l for x in noise_name_fragments):
+        return True
+    if not product.price and not product.specs and product.available is None:
+        return True
     return False
 
 
@@ -678,17 +958,24 @@ def _should_use_flaresolverr_for_discovery_page(url: str) -> bool:
         return False
     path = (p.path or "").lower()
     if "?/cart/" in ul:
-        return True
+        tail = ul.split("?/cart/", 1)[1]
+        tail = tail.split("&", 1)[0].strip("/")
+        return (not tail) or (tail.count("/") <= 1)
     if path.rstrip("/") in ("/cart", "/products", "/store"):
         return True
-    if "/cart/" in path or "/products/" in path:
+    if path.endswith("/cart.php"):
+        q = (p.query or "").lower()
+        if "a=add" in q or "pid=" in q:
+            return False
+        if "gid=" in q or "fid=" in q:
+            return False
         return True
     return False
 
 
 def _default_entrypoint_pages(base_url: str) -> list[str]:
     # Common product listing entry points across WHMCS installs and similar billing setups.
-    return [
+    pages = [
         urljoin(base_url, "/cart.php"),
         urljoin(base_url, "/index.php?rp=/store"),
         urljoin(base_url, "/store"),
@@ -699,6 +986,19 @@ def _default_entrypoint_pages(base_url: str) -> list[str]:
         urljoin(base_url, "/billing/index.php?rp=/store"),
         urljoin(base_url, "/billing/store"),
     ]
+    try:
+        path_l = (urlparse(base_url).path or "").lower()
+    except Exception:
+        path_l = ""
+    if "/clients" in path_l:
+        pages.extend(
+            [
+                urljoin(base_url, "/clients/cart.php"),
+                urljoin(base_url, "/clients/index.php?rp=/store"),
+                urljoin(base_url, "/clients/store"),
+            ]
+        )
+    return pages
 
 
 def _domain_extra_pages(domain: str) -> list[str]:
@@ -712,10 +1012,10 @@ def _domain_extra_pages(domain: str) -> list[str]:
     # WHMCS sites: enumerate product groups to ensure all are crawled.
     if domain == "my.rfchost.com":
         base = "https://my.rfchost.com"
-        return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
+        return [f"{base}/cart.php?gid={i}" for i in range(1, 80)]
     if domain == "wawo.wiki":
         base = "https://wawo.wiki"
-        return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
+        return [f"{base}/cart.php?gid={i}" for i in range(1, 80)]
     if domain == "fachost.cloud":
         base = "https://fachost.cloud"
         return [
@@ -725,16 +1025,18 @@ def _domain_extra_pages(domain: str) -> list[str]:
             f"{base}/products/hk-hkt-vds",
             f"{base}/products/tw-seednet-vds",
             f"{base}/products/tw-tbc-vds",
+            f"{base}/products/hk-vds",
+            f"{base}/products/specials",
         ]
     if domain == "app.vmiss.com":
         return [
             "https://app.vmiss.com/cart.php",
             "https://app.vmiss.com/index.php?rp=/store",
-        ] + [f"https://app.vmiss.com/cart.php?gid={i}" for i in range(1, 20)]
+        ] + [f"https://app.vmiss.com/cart.php?gid={i}" for i in range(1, 80)]
     if domain == "my.racknerd.com":
-        return [f"https://my.racknerd.com/cart.php?gid={i}" for i in range(1, 30)]
+        return [f"https://my.racknerd.com/cart.php?gid={i}" for i in range(1, 80)]
     if domain == "bill.hostdare.com":
-        return [f"https://bill.hostdare.com/cart.php?gid={i}" for i in range(1, 15)]
+        return [f"https://bill.hostdare.com/cart.php?gid={i}" for i in range(1, 80)]
     if domain == "clients.zgovps.com":
         return ["https://clients.zgovps.com/index.php?/cart/"]
     if domain == "vps.hosting":
@@ -743,15 +1045,172 @@ def _domain_extra_pages(domain: str) -> list[str]:
         return ["https://clientarea.gigsgigscloud.com/cart/"]
     if domain == "www.vps.soy":
         base = "https://www.vps.soy"
-        return [f"{base}/cart?fid=1"] + [f"{base}/cart?fid=1&gid={i}" for i in range(1, 20)]
+        return [f"{base}/cart?fid=1"] + [f"{base}/cart?fid=1&gid={i}" for i in range(1, 80)]
     if domain == "www.dmit.io":
         return [
             "https://www.dmit.io/cart.php",
             "https://www.dmit.io/pages/pricing",
             "https://www.dmit.io/pages/tier1",
-        ] + [f"https://www.dmit.io/cart.php?gid={i}" for i in range(1, 15)]
+        ] + [f"https://www.dmit.io/cart.php?gid={i}" for i in range(1, 80)]
+    if domain == "cloud.colocrossing.com":
+        return [
+            "https://cloud.colocrossing.com/index.php?rp=/store/specials",
+        ] + [f"https://cloud.colocrossing.com/cart.php?gid={i}" for i in range(1, 80)]
+    if domain == "bandwagonhost.com":
+        return [f"https://bandwagonhost.com/cart.php?gid={i}" for i in range(1, 80)]
+    if domain == "www.lycheen.com":
+        return [f"https://www.lycheen.com/cart.php?gid={i}" for i in range(1, 80)]
+    if domain == "cloud.tizz.yt":
+        return [f"https://cloud.tizz.yt/cart.php?gid={i}" for i in range(1, 80)]
+    if domain == "bestvm.cloud":
+        return [f"https://bestvm.cloud/cart.php?gid={i}" for i in range(1, 80)]
+    if domain == "www.mkcloud.net":
+        return [f"https://www.mkcloud.net/cart.php?gid={i}" for i in range(1, 80)]
+    if domain == "alphavps.com":
+        return [f"https://alphavps.com/clients/cart.php?gid={i}" for i in range(1, 80)]
 
     return []
+
+
+def _whmcs_gid_pages(base_url: str) -> list[str]:
+    max_gid = int(os.getenv("WHMCS_MAX_GID_SCAN", "80"))
+    p = urlparse(base_url)
+    root = f"{p.scheme}://{p.netloc}"
+    prefixes = [""]
+    path_l = (p.path or "").lower()
+    if "/billing" in path_l:
+        prefixes.append("/billing")
+    if "/clients" in path_l:
+        prefixes.append("/clients")
+
+    pages: list[str] = []
+    for pref in prefixes:
+        for gid in range(1, max_gid + 1):
+            pages.append(f"{root}{pref}/cart.php?gid={gid}")
+    return pages
+
+
+def _pid_cart_endpoints(base_url: str) -> list[str]:
+    p = urlparse(base_url)
+    root = f"{p.scheme}://{p.netloc}"
+    prefixes = [""]
+    path_l = (p.path or "").lower()
+    if "/billing" in path_l:
+        prefixes.append("/billing")
+    if "/clients" in path_l:
+        prefixes.append("/clients")
+    return [f"{root}{pref}/cart.php?a=add&pid={{pid}}" for pref in prefixes]
+
+
+def _product_matches_pid(product: Product, pid: int) -> bool:
+    try:
+        parsed = urlparse(product.url)
+        qs = parse_qs(parsed.query or "")
+        for key in ("pid", "id", "product_id", "planid"):
+            val = (qs.get(key) or [None])[0]
+            if isinstance(val, str) and val.strip().isdigit() and int(val.strip()) == pid:
+                return True
+    except Exception:
+        return False
+    return False
+
+
+def _looks_like_pid_stock_page(html: str) -> bool:
+    text = compact_ws(html or "")
+    if not text:
+        return False
+    tl = text.lower()
+    known_miss = (
+        "product does not exist",
+        "not found",
+        "invalid product",
+        "no product selected",
+    )
+    if any(m in tl for m in known_miss):
+        return False
+    if extract_availability(text) is not None:
+        return True
+    if any(k in tl for k in ("add to cart", "configure", "billing cycle", "configoption", "custom[")):
+        return True
+    return False
+
+
+def _scan_whmcs_hidden_pids(client: HttpClient, parser, *, base_url: str) -> list[Product]:
+    """
+    Brute-force WHMCS cart.php?a=add&pid=N pages.
+    Stop when we hit 10 consecutive pids without product/stock evidence,
+    while still probing a minimum range to catch sparse pid allocations.
+    """
+    max_pid = int(os.getenv("WHMCS_PID_SCAN_MAX", "260"))
+    min_probe_before_stop = int(os.getenv("WHMCS_PID_MIN_PROBE", "80"))
+    stop_after_miss = int(os.getenv("WHMCS_PID_STOP_AFTER_MISS", "10"))
+    batch_size = int(os.getenv("WHMCS_PID_BATCH", "8"))
+    allow_solver = os.getenv("WHMCS_PID_USE_SOLVER", "0").strip() == "1"
+
+    endpoints = _pid_cart_endpoints(base_url)
+    if not endpoints:
+        return []
+
+    found: dict[str, Product] = {}
+    miss_streak = 0
+    found_any = False
+    pid = 1
+
+    while pid <= max_pid:
+        batch = list(range(pid, min(max_pid, pid + batch_size - 1) + 1))
+
+        def probe_one(cur_pid: int) -> tuple[int, bool, list[Product]]:
+            for tmpl in endpoints:
+                url = tmpl.format(pid=cur_pid)
+                fetch = _fetch_text(client, url, allow_flaresolverr=allow_solver)
+                if not fetch.ok or not fetch.text:
+                    continue
+                html = fetch.text
+                parsed = parser.parse(html, base_url=fetch.url)
+                parsed = [_product_with_special_flag(p) for p in parsed]
+                if parsed:
+                    matched = [p for p in parsed if _product_matches_pid(p, cur_pid)]
+                    if not matched and len(parsed) == 1:
+                        matched = parsed
+                    normalized: list[Product] = []
+                    for p in matched:
+                        page_avail = _infer_availability_from_detail_html(html)
+                        normalized.append(
+                            _clone_product(
+                                p,
+                                available=(p.available if page_avail is None else page_avail),
+                            )
+                        )
+                    if normalized:
+                        return cur_pid, True, normalized
+                if _looks_like_pid_stock_page(html):
+                    return cur_pid, True, []
+            return cur_pid, False, []
+
+        workers = max(1, min(len(batch), int(os.getenv("WHMCS_PID_WORKERS", "6"))))
+        batch_results: list[tuple[int, bool, list[Product]]] = []
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            futs = [ex.submit(probe_one, cur_pid) for cur_pid in batch]
+            for fut in as_completed(futs):
+                batch_results.append(fut.result())
+
+        batch_results.sort(key=lambda x: x[0])
+        for _pid_value, hit, products in batch_results:
+            if hit:
+                found_any = True
+                miss_streak = 0
+                for hp in products:
+                    if hp.available is True:
+                        found[hp.id] = hp
+            else:
+                miss_streak += 1
+
+        last_pid_in_batch = batch[-1]
+        if miss_streak >= stop_after_miss and (found_any or last_pid_in_batch >= min_probe_before_stop):
+            break
+        pid = last_pid_in_batch + 1
+
+    return list(found.values())
 
 
 def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[str]:
@@ -768,6 +1227,8 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
             max_pages = max(max_pages, 32)
     soup = BeautifulSoup(html, "lxml")
     base_netloc = urlparse(base_url).netloc.lower()
+    hostbill_like_domains = {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}
+    cart_depth = 2 if domain in hostbill_like_domains else 1
 
     candidates: list[str] = []
     seen: set[str] = set()
@@ -814,7 +1275,25 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
             return
         u = abs_url.lower()
         path_l = (p.path or "").lower()
-        if any(x in u for x in ["a=view", "/knowledgebase", "rp=/knowledgebase", "/login", "clientarea.php", "register"]):
+        if any(
+            x in u
+            for x in [
+                "a=view",
+                "/knowledgebase",
+                "rp=/knowledgebase",
+                "/login",
+                "clientarea.php",
+                "register",
+                "/clientarea/",
+                "/affiliates/",
+                "/tickets/",
+                "/chat/",
+                "/userapi/",
+                "/status/",
+                "/signup/",
+                "action=passreminder",
+            ]
+        ):
             return
 
         # WHMCS store/category pages (avoid individual product detail pages).
@@ -844,7 +1323,7 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
         if "?/cart/" in u:
             tail = u.split("?/cart/", 1)[1]
             tail = tail.split("&", 1)[0].strip("/")
-            if tail and tail.count("/") <= 1:
+            if tail and tail.count("/") <= cart_depth:
                 add(abs_url)
             elif not tail:
                 add(abs_url)
@@ -854,7 +1333,7 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
         if "/cart/" in path_l:
             after = path_l.split("/cart/", 1)[1]
             parts = [x for x in after.split("/") if x]
-            if len(parts) <= 1:
+            if len(parts) <= cart_depth:
                 add(abs_url)
             return
 

@@ -10,6 +10,12 @@ from actions_stock_monitor.targets import DEFAULT_TARGETS
 
 
 def main() -> int:
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
     targets_env = os.getenv("LIVE_TARGETS", "").strip()
     targets = [t.strip() for t in targets_env.split(",") if t.strip()] if targets_env else list(DEFAULT_TARGETS)
 
@@ -48,10 +54,10 @@ def main() -> int:
             cycles_str = ""
             if p.billing_cycles:
                 cycles_str = f" | cycles={', '.join(p.billing_cycles)}"
-            option_str = ""
-            if p.option:
-                option_str = f" | option={p.option}"
-            print(f"- {p.name} | {p.price} | available={p.available}{option_str}{cycles_str} | {p.url}{specs_preview}", flush=True)
+            location_str = ""
+            if p.location:
+                location_str = f" | location={p.location}"
+            print(f"- {p.name} | {p.price} | available={p.available}{location_str}{cycles_str} | {p.url}{specs_preview}", flush=True)
 
         if len(run.products) > max_products:
             print(f"  ... and {len(run.products) - max_products} more products", flush=True)

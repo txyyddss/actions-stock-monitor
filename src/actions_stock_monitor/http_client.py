@@ -38,6 +38,12 @@ class _CookieContext:
     expires_at: float
 
 
+@dataclass
+class _FetchCacheEntry:
+    result: FetchResult
+    expires_at: float
+
+
 class HttpClient:
     def __init__(
         self,
@@ -57,9 +63,13 @@ class HttpClient:
         self._local = threading.local()
         self._cookie_lock = threading.Lock()
         self._cookie_cache: dict[str, _CookieContext] = {}
+        self._fetch_cache_lock = threading.Lock()
+        self._fetch_cache: dict[str, _FetchCacheEntry] = {}
 
         # Keep this small-ish: monitor runs are frequent and we only need temporary reuse.
         self._cf_cookie_ttl_seconds = float(os.getenv("CF_COOKIE_TTL_SECONDS", "1800"))
+        self._fetch_cache_ttl_seconds = float(os.getenv("FETCH_CACHE_TTL_SECONDS", "600"))
+        self._fetch_cache_error_ttl_seconds = float(os.getenv("FETCH_CACHE_ERROR_TTL_SECONDS", "120"))
 
     def _session(self) -> requests.Session:
         sess = getattr(self._local, "session", None)
@@ -73,13 +83,39 @@ class HttpClient:
         return s
 
     def fetch_text(self, url: str, *, allow_flaresolverr: bool = True) -> FetchResult:
+        cache_key = f"{int(bool(allow_flaresolverr))}:{url}"
+        cached = self._fetch_cache_get(cache_key)
+        if cached is not None:
+            return cached
+
         direct = self._fetch_direct(url)
-        if direct.ok or not self._flaresolverr_url or not allow_flaresolverr:
-            return direct
-        if not self._is_likely_blocked(direct):
-            return direct
-        solved = self._fetch_via_flaresolverr(url)
-        return solved
+        final = direct
+        if not (direct.ok or not self._flaresolverr_url or not allow_flaresolverr):
+            if self._is_likely_blocked(direct):
+                final = self._fetch_via_flaresolverr(url)
+
+        self._fetch_cache_store(cache_key, final)
+        return final
+
+    def _fetch_cache_get(self, key: str) -> FetchResult | None:
+        if self._fetch_cache_ttl_seconds <= 0:
+            return None
+        now = time.time()
+        with self._fetch_cache_lock:
+            entry = self._fetch_cache.get(key)
+            if not entry:
+                return None
+            if entry.expires_at <= now:
+                self._fetch_cache.pop(key, None)
+                return None
+            return entry.result
+
+    def _fetch_cache_store(self, key: str, result: FetchResult) -> None:
+        ttl = self._fetch_cache_ttl_seconds if result.ok else self._fetch_cache_error_ttl_seconds
+        if ttl <= 0:
+            return
+        with self._fetch_cache_lock:
+            self._fetch_cache[key] = _FetchCacheEntry(result=result, expires_at=time.time() + ttl)
 
     @staticmethod
     def _should_retry_status(status_code: int) -> bool:
@@ -208,7 +244,7 @@ class HttpClient:
     def _is_likely_blocked(res: FetchResult) -> bool:
         # Heuristics: Cloudflare/browser-challenge pages are often 403/503 and contain known markers.
         if not res.text:
-            return res.status_code in (403, 503)
+            return res.status_code in (401, 403, 429, 502, 503, 520, 521, 522, 523, 525, 526)
         return HttpClient._looks_like_cloudflare_challenge(res.status_code, res.text)
 
     @staticmethod
@@ -243,9 +279,11 @@ class HttpClient:
             "cmd": "request.get",
             "url": url,
             "maxTimeout": int(self._timeout_seconds * 1000),
-            # Keep locale deterministic so parsed fields stay English.
-            "headers": self._headers(user_agent=user_agent),
         }
+        # FlareSolverr v2 removed support for custom request headers.
+        # Keep compatibility by only passing userAgent when available.
+        if user_agent:
+            payload["userAgent"] = user_agent
         if self._proxy_url and self._proxy_url.startswith(("http://", "https://")):
             payload["proxy"] = {"url": self._proxy_url}
 

@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
 from ..models import Product
-from .common import compact_ws, extract_price, normalize_url_for_id
+from .common import compact_ws, extract_price, looks_like_special_offer, normalize_url_for_id
 from .generic import GenericDomainParser, GenericParserConfig
 
 
@@ -138,8 +138,10 @@ class GreenCloudVpsParser:
                         available=None,
                         raw=None,
                         variant_of=plan_name,
-                        option=location_label or None,
+                        location=location_label or None,
                         billing_cycles=None,
+                        cycle_prices=None,
+                        is_special=looks_like_special_offer(name=name, url=href, description=None),
                     )
                 )
 

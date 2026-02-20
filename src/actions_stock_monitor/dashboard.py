@@ -21,7 +21,6 @@ def _h(s: Any) -> str:
 
 
 def _format_ts_short(ts: str | None) -> str:
-    """Return a compact timestamp string suitable for small screens."""
     dt = _parse_iso(ts)
     if not dt:
         return ""
@@ -36,12 +35,14 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     for _, p in (state.get("products") or {}).items():
         if not isinstance(p, dict):
             continue
-
         billing = p.get("billing_cycles") or []
         if isinstance(billing, list):
             billing = ", ".join(str(c) for c in billing)
         else:
             billing = str(billing) if billing else ""
+        cycle_prices = p.get("cycle_prices") or {}
+        if not isinstance(cycle_prices, dict):
+            cycle_prices = {}
 
         products.append(
             {
@@ -55,8 +56,10 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
                 "first_seen": p.get("first_seen") or "",
                 "last_seen": p.get("last_seen") or "",
                 "billing_cycles": billing,
-                "option": p.get("option") or "",
+                "cycle_prices": cycle_prices,
+                "location": p.get("location") or p.get("option") or "",
                 "variant_of": p.get("variant_of") or "",
+                "is_special": bool(p.get("is_special")),
             }
         )
 
@@ -94,310 +97,210 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
   <meta name="description" content="Real-time VPS hosting stock monitor dashboard tracking product availability across multiple providers." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {{
-      --bg0: #070914;
-      --bg1: #0b0f23;
+      --bg: #061426;
+      --bg2: #0a1f35;
       --panel: rgba(255, 255, 255, 0.06);
-      --border: rgba(255, 255, 255, 0.12);
-      --text: rgba(255, 255, 255, 0.92);
-      --muted: rgba(255, 255, 255, 0.62);
-      --cyan: #00f0ff;
-      --magenta: #ff2bd6;
-      --lime: #7CFF00;
-      --red: #ff4d4d;
-      --amber: #ffbf00;
-      --shadow: 0 12px 48px rgba(0,0,0,.55);
+      --line: rgba(255, 255, 255, 0.14);
+      --txt: #f2fbff;
+      --muted: rgba(242, 251, 255, 0.68);
+      --ok: #2ed37a;
+      --bad: #ff6565;
+      --unk: #ffc55a;
+      --accent: #42e5ff;
+      --accent2: #6fffcf;
+      --special: #ffdb6e;
+      --shadow: 0 12px 36px rgba(0,0,0,.35);
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0;
-      color: var(--text);
+      color: var(--txt);
       background:
-        radial-gradient(1200px 800px at 10% 10%, rgba(0, 240, 255, 0.16), transparent 55%),
-        radial-gradient(900px 700px at 85% 20%, rgba(255, 43, 214, 0.14), transparent 55%),
-        radial-gradient(900px 700px at 35% 90%, rgba(124, 255, 0, 0.10), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        radial-gradient(900px 540px at 8% 0%, rgba(66,229,255,.22), transparent 60%),
+        radial-gradient(860px 520px at 92% 0%, rgba(111,255,207,.16), transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      font-family: "Space Grotesk", sans-serif;
     }}
-    a {{ color: var(--cyan); text-decoration: none; }}
+    a {{ color: var(--accent); text-decoration: none; }}
     a:hover {{ text-decoration: underline; }}
-    .plink {{ color: var(--text); }}
-    .plink:hover {{ color: var(--cyan); }}
-    .wrap {{ max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }}
+    .wrap {{ max-width: 1320px; margin: 0 auto; padding: 22px 14px 40px; }}
     header {{
-      display: flex; gap: 16px; align-items: flex-end; justify-content: space-between;
-      padding: 18px 18px 16px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--line);
       border-radius: 16px;
-      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.03));
       box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: flex-end;
       flex-wrap: wrap;
     }}
-    .title {{
-      font-weight: 800;
-      letter-spacing: .4px;
-      font-size: 20px;
-      margin: 0;
-    }}
-    .sub {{
-      margin-top: 6px;
+    .title {{ margin: 0; font-weight: 700; letter-spacing: .2px; }}
+    .sub {{ margin-top: 4px; color: var(--muted); font-size: 13px; line-height: 1.35; }}
+    .stats {{ display: flex; gap: 8px; flex-wrap: wrap; }}
+    .pill {{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
+      white-space: nowrap;
     }}
-    .stats {{
+    .pill b {{ color: var(--txt); }}
+    .controls {{
+      margin: 12px 0 10px;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      align-items: end;
-    }}
-    .pill {{
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 8px 10px;
-      background: rgba(255,255,255,.04);
-      font-size: 12px;
-      color: var(--muted);
-      white-space: nowrap;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }}
-    .pill b {{ color: var(--text); }}
-    .pill.run-pill {{
-      white-space: normal;
-      word-break: break-all;
-      font-size: 11px;
-    }}
-    .controls {{
-      margin: 16px 0 10px;
-      display: flex; gap: 12px; flex-wrap: wrap;
       align-items: center;
     }}
-    input[type="search"] {{
-      width: min(520px, 100%);
+    input[type="search"], select {{
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.2);
+      color: var(--txt);
       padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,.25);
-      color: var(--text);
-      outline: none;
       font-family: inherit;
-    }}
-    input[type="search"]:focus {{
-      border-color: rgba(0, 240, 255, 0.55);
-      box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12);
-    }}
-    select {{
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,.25);
-      color: var(--text);
       outline: none;
-      font-family: inherit;
     }}
-    select:focus {{
-      border-color: rgba(0, 240, 255, 0.55);
-      box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12);
-    }}
-    .table-wrap {{
-      overflow-x: auto;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.03);
-      box-shadow: var(--shadow);
-    }}
-    .table {{
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      overflow: hidden;
-    }}
-    thead th {{
-      position: sticky; top: 0;
-      background: rgba(10, 12, 26, 0.96);
-      backdrop-filter: blur(8px);
-      text-align: left;
-      font-size: 12px;
-      color: var(--muted);
-      padding: 12px 12px;
-      border-bottom: 1px solid var(--border);
-      user-select: none;
-      cursor: pointer;
-      white-space: nowrap;
-    }}
-    thead th:hover {{
-      color: var(--cyan);
-    }}
-    thead th.sorted {{
-      color: var(--cyan);
-    }}
-    tbody td {{
-      padding: 12px 12px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      vertical-align: top;
-      font-size: 13px;
-    }}
-    tbody tr:hover td {{
-      background: rgba(0, 240, 255, 0.05);
-    }}
-    .muted {{ color: var(--muted); }}
-    .badge {{
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.03);
-      font-size: 12px;
-      color: var(--muted);
-    }}
-    .dot {{
-      width: 10px; height: 10px; border-radius: 50%;
-      box-shadow: 0 0 12px rgba(0,0,0,.25);
-      flex-shrink: 0;
-    }}
-    .dot.ok {{ background: var(--lime); box-shadow: 0 0 18px rgba(124,255,0,.35); }}
-    .dot.bad {{ background: var(--red); box-shadow: 0 0 18px rgba(255,77,77,.25); }}
-    .dot.unk {{ background: var(--amber); box-shadow: 0 0 18px rgba(255,191,0,.22); }}
-    .btn {{
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 10px;
-      border-radius: 12px;
-      background: linear-gradient(180deg, rgba(0,240,255,.18), rgba(0,240,255,.07));
-      border: 1px solid rgba(0,240,255,.35);
-      color: var(--text);
-      font-weight: 650;
-      font-size: 12px;
-      transition: all 0.2s ease;
-    }}
-    .btn:hover {{
-      border-color: rgba(0,240,255,.65);
-      box-shadow: 0 0 0 3px rgba(0,240,255,.12);
-      text-decoration: none;
-      transform: translateY(-1px);
-    }}
-    .specs {{
-      margin-top: 6px;
-      display: flex; flex-wrap: wrap; gap: 6px;
-    }}
-    .desc-wrap {{
-      margin-top: 8px;
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 10px;
-      background: rgba(0,0,0,.24);
-      overflow: hidden;
-    }}
-    .desc-wrap summary {{
-      cursor: pointer;
-      padding: 7px 10px;
-      font-size: 11px;
-      color: var(--muted);
-      background: rgba(255,255,255,.04);
-      user-select: none;
-    }}
-    .desc-wrap[open] summary {{
-      color: var(--text);
-    }}
-    .desc-box {{
-      padding: 8px 10px;
-      color: var(--text);
-      font-size: 12px;
-      line-height: 1.45;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      max-height: 180px;
-      overflow-y: auto;
-    }}
-    .chip {{
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.10);
-      color: var(--muted);
-      font-size: 11px;
-    }}
-    .option-tag {{
-      margin-left: 6px;
-      padding: 2px 6px;
-      border-radius: 8px;
-      font-size: 11px;
-      color: var(--cyan);
-      border: 1px solid rgba(0,240,255,.3);
-      background: rgba(0,240,255,.08);
-    }}
+    input[type="search"] {{ width: min(540px, 100%); }}
     .viz {{
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin: 12px 0 14px;
-      padding: 12px;
-      border: 1px solid var(--border);
+      margin: 10px 0 12px;
+      border: 1px solid var(--line);
       border-radius: 14px;
       background: rgba(255,255,255,.03);
-      box-shadow: 0 10px 36px rgba(0,0,0,.35);
+      padding: 10px 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
     }}
     .donut {{
-      width: 92px;
-      height: 92px;
+      width: 86px;
+      height: 86px;
       border-radius: 50%;
-      /* Start with neutral; JS will set correct conic-gradient */
-      background: rgba(255,255,255,.18);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.16);
       position: relative;
-      border: 1px solid var(--border);
-      transition: background 0.3s ease;
     }}
     .donut::after {{
       content: "";
       position: absolute;
-      inset: 20px;
+      inset: 18px;
       border-radius: 50%;
-      background: rgba(0,0,0,.38);
-      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.36);
+      border: 1px solid rgba(255,255,255,.12);
     }}
-    .legend {{
-      display: flex;
-      gap: 10px 14px;
-      flex-wrap: wrap;
-      font-size: 12px;
-      color: var(--muted);
-      align-items: center;
-    }}
-    .litem {{ display: inline-flex; align-items: center; gap: 7px; }}
-    .swatch {{
-      width: 10px;
-      height: 10px;
-      border-radius: 3px;
-      display: inline-block;
-    }}
-    .sw-ok {{ background: var(--lime); }}
-    .sw-bad {{ background: var(--red); }}
+    .legend {{ display: flex; gap: 8px 12px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }}
+    .sw {{ width: 10px; height: 10px; border-radius: 3px; display: inline-block; }}
+    .sw-ok {{ background: var(--ok); }}
+    .sw-bad {{ background: var(--bad); }}
     .sw-unk {{ background: rgba(255,255,255,.18); }}
+    .table-wrap {{
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.03);
+      overflow: auto;
+      box-shadow: var(--shadow);
+    }}
+    table {{ width: 100%; border-collapse: collapse; }}
+    thead th {{
+      position: sticky; top: 0;
+      background: rgba(6,20,38,.95);
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      padding: 10px;
+      text-align: left;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }}
+    thead th.sorted {{ color: var(--accent); }}
+    tbody td {{
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      padding: 10px;
+      font-size: 13px;
+      vertical-align: top;
+    }}
+    tbody tr:hover td {{ background: rgba(66,229,255,.06); }}
+    .muted {{ color: var(--muted); }}
+    .badge {{
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }}
+    .dot {{ width: 9px; height: 9px; border-radius: 50%; display: inline-block; }}
+    .ok {{ background: var(--ok); }}
+    .bad {{ background: var(--bad); }}
+    .unk {{ background: var(--unk); }}
+    .chip {{
+      display: inline-block;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      padding: 3px 7px;
+      font-size: 11px;
+      color: var(--muted);
+      margin: 2px 4px 0 0;
+    }}
+    .location-tag {{
+      margin-left: 6px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(66,229,255,.34);
+      background: rgba(66,229,255,.12);
+      color: var(--accent);
+      font-size: 11px;
+    }}
+    .special-tag {{
+      margin-left: 6px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,219,110,.45);
+      background: rgba(255,219,110,.16);
+      color: var(--special);
+      font-size: 11px;
+    }}
+    .desc-wrap {{
+      margin-top: 6px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(0,0,0,.22);
+    }}
+    .desc-wrap summary {{ padding: 6px 8px; font-size: 11px; color: var(--muted); cursor: pointer; }}
+    .desc-box {{ padding: 7px 8px; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }}
+    .btn {{
+      display: inline-flex;
+      border-radius: 10px;
+      border: 1px solid rgba(66,229,255,.4);
+      background: rgba(66,229,255,.14);
+      color: var(--txt);
+      font-weight: 700;
+      padding: 7px 10px;
+      font-size: 12px;
+      text-decoration: none;
+    }}
+    .btn:hover {{ text-decoration: none; border-color: rgba(66,229,255,.7); }}
     @media (max-width: 760px) {{
-      header {{ flex-direction: column; align-items: flex-start; }}
-      .stats {{ width: 100%; }}
-      .pill.run-pill {{ display: none; }}
       thead {{ display: none; }}
-      .table-wrap {{ border-radius: 12px; }}
-      .table, tbody, tr, td {{ display: block; width: 100%; }}
-      tbody td {{
-        border-bottom: none;
-        padding: 10px 12px;
-      }}
-      tbody tr {{
-        border-bottom: 1px solid rgba(255,255,255,.10);
-      }}
+      table, tbody, tr, td {{ display: block; width: 100%; }}
       tbody td[data-k]::before {{
         content: attr(data-k);
         display: block;
-        font-size: 11px;
         color: var(--muted);
+        font-size: 11px;
         margin-bottom: 4px;
       }}
     }}
@@ -410,14 +313,14 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         <h1 class="title">Restock Monitor - Cyber Dashboard</h1>
         <div class="sub">
           Last updated: <b>{_h(updated_at)}</b><br/>
-          Domains: <b>{domains_ok}</b> ok, <b>{domains_error}</b> error · Products: <b>{len(products)}</b>
+          Domains: <b>{domains_ok}</b> ok, <b>{domains_error}</b> error | Products: <b>{len(products)}</b>
         </div>
       </div>
       <div class="stats">
         <div class="pill"><a href="https://t.me/tx_stock_monitor" target="_blank" rel="noreferrer noopener">Telegram group</a></div>
         <div class="pill">Restocks: <b>{_h(run_summary.get("restocks", 0))}</b></div>
         <div class="pill">New: <b>{_h(run_summary.get("new_products", 0))}</b></div>
-        <div class="pill run-pill">Run: <span class="muted">{_h(run_started)}</span> -> <span class="muted">{_h(run_finished)}</span></div>
+        <div class="pill">Run: <span class="muted">{_h(run_started)}</span> -> <span class="muted">{_h(run_finished)}</span></div>
       </div>
     </header>
 
@@ -438,28 +341,28 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     <div class="viz" aria-label="Stock distribution chart">
       <div class="donut" id="pie" title="In Stock / Out of Stock / Unknown"></div>
       <div class="legend">
-        <span class="litem"><span class="swatch sw-ok"></span> In Stock: <b id="cOk">0</b></span>
-        <span class="litem"><span class="swatch sw-bad"></span> Out: <b id="cBad">0</b></span>
-        <span class="litem"><span class="swatch sw-unk"></span> Unknown: <b id="cUnk">0</b></span>
-        <span class="litem">Total: <b id="cTot">0</b></span>
+        <span><span class="sw sw-ok"></span> In Stock: <b id="cOk">0</b></span>
+        <span><span class="sw sw-bad"></span> Out: <b id="cBad">0</b></span>
+        <span><span class="sw sw-unk"></span> Unknown: <b id="cUnk">0</b></span>
+        <span>Total: <b id="cTot">0</b></span>
       </div>
     </div>
 
     <div class="table-wrap">
-    <table class="table" id="t">
-      <thead>
-        <tr>
-          <th data-col="available">Status</th>
-          <th data-col="domain">Domain</th>
-          <th data-col="name">Product</th>
-          <th data-col="price">Price</th>
-          <th data-col="billing_cycles">Cycles</th>
-          <th data-col="last_seen">Last Seen</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="tb"></tbody>
-    </table>
+      <table id="t">
+        <thead>
+          <tr>
+            <th data-col="available">Status</th>
+            <th data-col="domain">Domain</th>
+            <th data-col="name">Product</th>
+            <th data-col="price">Price</th>
+            <th data-col="billing_cycles">Cycles</th>
+            <th data-col="last_seen">Last Seen</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="tb"></tbody>
+      </table>
     </div>
   </div>
 
@@ -472,6 +375,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     }} catch (_err) {{
       DATA = {{ products: [] }};
     }}
+
     const tb = document.getElementById("tb");
     const q = document.getElementById("q");
     const site = document.getElementById("site");
@@ -499,7 +403,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         const rank = (v) => (v === true ? 0 : (v === false ? 1 : 2));
         return (rank(av) - rank(bv)) * sortDir;
       }}
-      return String(av ?? "").localeCompare(String(bv ?? ""), undefined, {{numeric:true, sensitivity:"base"}}) * sortDir;
+      return String(av ?? "").localeCompare(String(bv ?? ""), undefined, {{ numeric: true, sensitivity: "base" }}) * sortDir;
     }}
 
     function updatePie(items) {{
@@ -507,22 +411,26 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       const ok = items.filter(p => p.available === true).length;
       const bad = items.filter(p => p.available === false).length;
       const unk = total - ok - bad;
-
       if (cOk) cOk.textContent = String(ok);
       if (cBad) cBad.textContent = String(bad);
       if (cUnk) cUnk.textContent = String(unk);
       if (cTot) cTot.textContent = String(total);
-
       if (!pie) return;
       if (total === 0) {{
-        pie.style.background = "rgba(255,255,255,.18)";
+        pie.style.background = "rgba(255,255,255,.16)";
         return;
       }}
-      const okPct = (ok / total) * 100;
-      const badPct = (bad / total) * 100;
-      const a = okPct;
-      const b = okPct + badPct;
-      pie.style.background = `conic-gradient(var(--lime) 0% ${{a}}%, var(--red) ${{a}}% ${{b}}%, rgba(255,255,255,.18) ${{b}}% 100%)`;
+      const a = (ok / total) * 100;
+      const b = a + (bad / total) * 100;
+      pie.style.background = `conic-gradient(var(--ok) 0% ${{a}}%, var(--bad) ${{a}}% ${{b}}%, rgba(255,255,255,.16) ${{b}}% 100%)`;
+    }}
+
+    function escapeHtml(s) {{
+      return String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     }}
 
     function render() {{
@@ -537,7 +445,8 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
           if (stockNeedle === "unknown" && p.available !== null) return false;
           if (!needle) return true;
           const specText = Object.entries(p.specs || {{}}).map(([k,v]) => `${{k}}:${{v}}`).join(" ");
-          const blob = `${{p.domain}} ${{p.name}} ${{p.price}} ${{p.description || ""}} ${{specText}} ${{p.url}} ${{p.billing_cycles || ""}} ${{p.option || ""}}`.toLowerCase();
+          const cpText = Object.entries(p.cycle_prices || {{}}).map(([k,v]) => `${{k}}:${{v}}`).join(" ");
+          const blob = `${{p.domain}} ${{p.name}} ${{p.price}} ${{p.description || ""}} ${{specText}} ${{p.url}} ${{p.billing_cycles || ""}} ${{p.location || ""}} ${{cpText}}`.toLowerCase();
           return blob.includes(needle);
         }})
         .slice()
@@ -545,7 +454,6 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
 
       updatePie(items);
 
-      // Update sort indicator
       table.querySelectorAll("thead th[data-col]").forEach(th => {{
         th.classList.toggle("sorted", th.getAttribute("data-col") === sortCol);
         th.textContent = th.textContent.replace(/ [▲▼]$/, "");
@@ -562,36 +470,31 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         const desc = p.description
           ? `<details class="desc-wrap"><summary>Description</summary><div class="desc-box">${{escapeHtml(p.description)}}</div></details>`
           : "";
-        const optionTag = p.option ? `<span class="option-tag">${{escapeHtml(p.option)}}</span>` : "";
+        const locationTag = p.location ? `<span class="location-tag">${{escapeHtml(p.location)}}</span>` : "";
+        const specialTag = p.is_special ? `<span class="special-tag">Special</span>` : "";
         const variantInfo = p.variant_of ? `<div class="muted" style="font-size:11px;margin-top:2px">Plan: ${{escapeHtml(p.variant_of)}}</div>` : "";
         const cyclesCell = p.billing_cycles ? escapeHtml(p.billing_cycles) : '<span class="muted">—</span>';
+        const cyclePrices = Object.entries(p.cycle_prices || {{}}).map(([k,v]) => `<div><span class="muted">${{escapeHtml(k)}}:</span> ${{escapeHtml(v)}}</div>`).join("");
+        const priceCell = p.price
+          ? `<div>${{escapeHtml(p.price)}}</div>${{cyclePrices ? `<div class="muted" style="font-size:11px; margin-top:4px">${{cyclePrices}}</div>` : ""}}`
+          : `<span class="muted">—</span>`;
 
         tr.innerHTML = `
-          <td data-k="Status">
-            <span class="badge"><span class="dot ${{meta.cls}}"></span> ${{meta.label}}</span>
-          </td>
+          <td data-k="Status"><span class="badge"><span class="dot ${{meta.cls}}"></span> ${{meta.label}}</span></td>
           <td data-k="Domain"><span class="muted">${{escapeHtml(p.domain)}}</span></td>
           <td data-k="Product">
-            <div><a class="plink" href="${{escapeHtml(p.url)}}" target="_blank" rel="noreferrer noopener"><b>${{escapeHtml(p.name)}}</b></a>${{optionTag}}</div>
+            <div><a class="plink" href="${{escapeHtml(p.url)}}" target="_blank" rel="noreferrer noopener"><b>${{escapeHtml(p.name)}}</b></a>${{locationTag}}${{specialTag}}</div>
             ${{variantInfo}}
             ${{desc}}
-            <div class="specs">${{specs}}</div>
+            <div>${{specs}}</div>
           </td>
-          <td data-k="Price">${{escapeHtml(p.price || "")}}</td>
+          <td data-k="Price">${{priceCell}}</td>
           <td data-k="Cycles">${{cyclesCell}}</td>
           <td data-k="Last Seen"><span class="muted">${{escapeHtml(p.last_seen || "")}}</span></td>
           <td data-k="Action"><a class="btn" href="${{escapeHtml(p.url)}}" target="_blank" rel="noreferrer noopener">Buy Now</a></td>
         `;
         tb.appendChild(tr);
       }}
-    }}
-
-    function escapeHtml(s) {{
-      return String(s ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
     }}
 
     q.addEventListener("input", () => render());
@@ -608,11 +511,10 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       }});
     }});
 
-    // Populate site/category filter.
     if (site) {{
-      const domains = Array.from(new Set((DATA.products || []).map(p => String(p.domain || \"\")).filter(Boolean))).sort();
+      const domains = Array.from(new Set((DATA.products || []).map(p => String(p.domain || "")).filter(Boolean))).sort();
       for (const d of domains) {{
-        const opt = document.createElement(\"option\");
+        const opt = document.createElement("option");
         opt.value = d;
         opt.textContent = d;
         site.appendChild(opt);

@@ -85,7 +85,7 @@ class TestHttpClientRetries(unittest.TestCase):
         self.assertEqual(client._session().post.call_count, 2)
         self.assertEqual(res.status_code, 200)
 
-    def test_flaresolverr_payload_sets_english_headers(self) -> None:
+    def test_flaresolverr_payload_is_v2_compatible(self) -> None:
         client = HttpClient(timeout_seconds=1.0, flaresolverr_url="http://127.0.0.1:8191", max_retries=1)
 
         resp_403 = Mock()
@@ -110,7 +110,9 @@ class TestHttpClientRetries(unittest.TestCase):
         self.assertTrue(res.ok)
 
         payload = json.loads(client._session().post.call_args.kwargs["data"])
-        self.assertEqual(payload.get("headers", {}).get("Accept-Language"), "en-US,en;q=0.9")
+        self.assertEqual(payload.get("cmd"), "request.get")
+        self.assertEqual(payload.get("url"), "https://example.test/")
+        self.assertNotIn("headers", payload)
 
     def test_can_skip_flaresolverr_fallback(self) -> None:
         client = HttpClient(timeout_seconds=1.0, flaresolverr_url="http://127.0.0.1:8191", max_retries=1)

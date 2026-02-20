@@ -137,17 +137,32 @@ _AVAIL_COUNT_RE = re.compile(
     r"(?P<count>\d+)\s*(?:available|left|in\s*stock|\u5e93\u5b58|\u5eab\u5b58|\u53ef\u7528)\b",
     re.IGNORECASE,
 )
+_AVAIL_KV_RE = re.compile(
+    r"(?:stock|inventory|available|left|\u5e93\u5b58|\u5eab\u5b58|\u53ef\u7528)\s*[:\uff1a]?\s*(?P<count>-?\d+)\b",
+    re.IGNORECASE,
+)
 
 
 def extract_availability(text: str) -> bool | None:
     t = compact_ws(text).lower()
-    m = _AVAIL_COUNT_RE.search(t)
-    if m:
+    counts: list[int] = []
+    for m in _AVAIL_KV_RE.finditer(t):
         try:
-            count = int(m.group("count"))
-            return count > 0
+            counts.append(int(m.group("count")))
         except Exception:
             pass
+    for m in _AVAIL_COUNT_RE.finditer(t):
+        try:
+            counts.append(int(m.group("count")))
+        except Exception:
+            pass
+    if counts:
+        has_pos = any(c > 0 for c in counts)
+        has_zero_or_neg = any(c <= 0 for c in counts)
+        if has_pos and not has_zero_or_neg:
+            return True
+        if has_zero_or_neg and not has_pos:
+            return False
 
     has_oos = any(w in t for w in OOS_WORDS)
     has_in = any(w in t for w in IN_STOCK_WORDS)
@@ -281,6 +296,206 @@ def extract_billing_cycles(html: str) -> list[str] | None:
             cycles.append(c)
 
     return cycles or None
+
+
+def extract_cycle_prices(html: str) -> dict[str, str] | None:
+    raw = html or ""
+    if not raw:
+        return None
+
+    try:
+        soup = BeautifulSoup(raw, "lxml")
+    except Exception:
+        return None
+
+    out: dict[str, str] = {}
+
+    def add(raw_cycle: str | None, raw_text: str | None) -> None:
+        cycle = _normalize_cycle_label(raw_cycle or "")
+        if not cycle and raw_text:
+            cycle = _normalize_cycle_label(raw_text)
+        if not cycle:
+            return
+        price, _currency = extract_price(raw_text or "")
+        if not price:
+            return
+        out.setdefault(cycle, price)
+
+    for sel in soup.select("select[name='billingcycle'], select[name*='billingcycle'], select[name='cycle'], select[name*='cycle']"):
+        for opt in sel.find_all("option"):
+            add(str(opt.get("value") or ""), opt.get_text(" ", strip=True))
+
+    for span in soup.select(".product-price[class*='cycle-']"):
+        classes = " ".join(span.get("class", []))
+        code = None
+        m = re.search(r"\bcycle-([a-z0-9]+)\b", classes, flags=re.IGNORECASE)
+        if m:
+            code = m.group(1)
+        add(code, span.get_text(" ", strip=True))
+
+    return out or None
+
+
+_LOCATION_LABEL_HINTS = (
+    "location",
+    "datacenter",
+    "data center",
+    "zone",
+    "region",
+    "node",
+    "pop",
+    "facility",
+    "dc",
+    "\u6a5f\u623f",
+    "\u673a\u623f",
+    "\u8cc7\u6599\u4e2d\u5fc3",
+    "\u6570\u636e\u4e2d\u5fc3",
+    "\u5730\u533a",
+    "\u5730\u5340",
+)
+_LOCATION_LABEL_BLOCKLIST = (
+    "os",
+    "template",
+    "hostname",
+    "ssh",
+    "password",
+    "backup",
+    "billing",
+    "cycle",
+    "period",
+    "ipv4",
+    "ipv6",
+    "bandwidth",
+    "traffic",
+    "transfer",
+    "license",
+    "control panel",
+    "kernel",
+    "rescue",
+)
+_VALUE_BLOCKLIST = {
+    "",
+    "none",
+    "n/a",
+    "no",
+    "no thanks",
+    "default",
+    "please choose",
+    "select",
+    "--",
+}
+
+
+def _looks_like_location_label(label: str) -> bool:
+    l = compact_ws(label).lower()
+    if not l:
+        return False
+    if any(x in l for x in _LOCATION_LABEL_BLOCKLIST):
+        return False
+    return any(x in l for x in _LOCATION_LABEL_HINTS)
+
+
+def _clean_location_value(raw_value: str) -> str:
+    v = compact_ws(raw_value)
+    if not v:
+        return ""
+    v = re.sub(r"\(\s*test\s*ip[^)]*\)", "", v, flags=re.IGNORECASE)
+    v = re.sub(r"\s*-\s*(?:in\s*stock|out\s*of\s*stock|sold\s*out)\s*$", "", v, flags=re.IGNORECASE)
+    v = re.sub(r"\s+", " ", v).strip(" -")
+    return v
+
+
+def _iter_location_variants_from_group(group) -> list[tuple[str, bool | None]]:
+    out: list[tuple[str, bool | None]] = []
+    for sel in group.select("select option"):
+        label = compact_ws(sel.get_text(" ", strip=True))
+        if not label:
+            continue
+        avail = extract_availability(label)
+        cleaned = _clean_location_value(label)
+        if cleaned and cleaned.lower() not in _VALUE_BLOCKLIST:
+            out.append((cleaned, avail))
+
+    for inp in group.select("input[type='radio'], input[type='checkbox']"):
+        text_parts: list[str] = []
+        sib = inp.next_sibling
+        while sib is not None:
+            if getattr(sib, "name", None) in {"br", "input", "script"}:
+                break
+            piece = compact_ws(getattr(sib, "get_text", lambda *a, **k: str(sib))(" ", strip=True))
+            if piece:
+                text_parts.append(piece)
+            sib = getattr(sib, "next_sibling", None)
+        if not text_parts:
+            value_attr = inp.get("value")
+            if isinstance(value_attr, str):
+                text_parts.append(value_attr)
+        raw_label = compact_ws(" ".join(text_parts))
+        if not raw_label:
+            continue
+        avail = extract_availability(raw_label)
+        cleaned = _clean_location_value(raw_label)
+        if cleaned and cleaned.lower() not in _VALUE_BLOCKLIST:
+            out.append((cleaned, avail))
+    return out
+
+
+def extract_location_variants(html: str) -> list[tuple[str, bool | None]]:
+    raw = html or ""
+    if not raw:
+        return []
+
+    try:
+        soup = BeautifulSoup(raw, "lxml")
+    except Exception:
+        return []
+
+    variants: list[tuple[str, bool | None]] = []
+    seen: set[str] = set()
+
+    groups = soup.select(
+        "div.form-group, div.cart-item, div.option-val, fieldset, .configoptions, .product-config, .order-config"
+    )
+    for g in groups:
+        labels: list[str] = []
+        for lbl in g.select("label, h3, h4, .control-label, .font-weight-bold"):
+            txt = compact_ws(lbl.get_text(" ", strip=True))
+            if txt:
+                labels.append(txt)
+        group_label = compact_ws(" ".join(labels))
+        if not _looks_like_location_label(group_label):
+            continue
+
+        for value, avail in _iter_location_variants_from_group(g):
+            key = value.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            variants.append((value, avail))
+
+    return variants
+
+
+def extract_locations(html: str) -> list[str]:
+    return [name for name, _avail in extract_location_variants(html)]
+
+
+def looks_like_special_offer(*, name: str | None, url: str | None, description: str | None = None) -> bool:
+    blob = " ".join([name or "", url or "", description or ""]).lower()
+    if not blob:
+        return False
+    hints = (
+        "special",
+        "specials",
+        "promo",
+        "promotion",
+        "deal",
+        "flash sale",
+        "black friday",
+        "cyber monday",
+        "limited offer",
+    )
+    return any(h in blob for h in hints)
 
 
 SPEC_PATTERNS: list[tuple[str, re.Pattern[str]]] = [

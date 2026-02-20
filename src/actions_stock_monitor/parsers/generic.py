@@ -14,8 +14,10 @@ from .common import (
     extract_availability,
     extract_billing_cycles,
     extract_billing_cycles_from_text,
+    extract_cycle_prices,
     extract_price,
     extract_specs,
+    looks_like_special_offer,
     normalize_url_for_id,
 )
 
@@ -85,12 +87,19 @@ class GenericDomainParser:
                 pass
 
             name = self._extract_name(card) or self._name_from_text(text) or self.domain
+            url_name = self._name_from_url(url)
             if self._looks_like_action_label(name):
-                name = self._name_from_url(url) or name
+                name = url_name or name
             if self._looks_like_non_name(name):
-                name = self._name_from_url(url) or name
+                name = url_name or name
             if compact_ws(name).lower() in {self.domain.lower(), urlparse(url).netloc.lower()}:
-                name = self._name_from_url(url) or name
+                name = url_name or name
+            # Some plans are dotted codes like TYO.AS3.Pro.TINY while card headers only show
+            # the trailing token (e.g. "TINY"). Prefer the full URL-derived code when it matches.
+            if url_name and "." in url_name and name:
+                trailing = compact_ws(url_name.split(".")[-1]).lower()
+                if trailing and compact_ws(name).lower() == trailing:
+                    name = url_name
             price, currency = extract_price(text)
             if not price:
                 price, currency = self._price_from_cycle_options(card)
@@ -99,11 +108,13 @@ class GenericDomainParser:
                 available = self._infer_availability(card, url=url)
             specs = self._extract_specs(card) or self._extract_specs_from_text(text) or extract_specs(text)
             billing_cycles = self._extract_billing_cycles(card, text=text)
+            cycle_prices = self._extract_cycle_prices(card)
             if specs and billing_cycles and "Cycles" not in specs:
                 specs = dict(specs)
                 specs["Cycles"] = ", ".join(billing_cycles)
             description = self._extract_description(card, name=name) or (text[:1200] if text else None)
-            variant_of, option = self._infer_variant_and_option(url=url, name=name, specs=specs)
+            variant_of, location = self._infer_variant_and_location(url=url, name=name, specs=specs)
+            is_special = looks_like_special_offer(name=name, url=url, description=description)
 
             norm = normalize_url_for_id(url)
             pid = f"{self.domain}::{norm}"
@@ -123,8 +134,10 @@ class GenericDomainParser:
                     available=available,
                     raw=None,
                     variant_of=variant_of,
-                    option=option,
+                    location=location,
                     billing_cycles=billing_cycles,
+                    cycle_prices=cycle_prices,
+                    is_special=is_special,
                 )
             )
         return products
@@ -557,6 +570,10 @@ class GenericDomainParser:
         if isinstance(rp, str) and rp.startswith("/store/"):
             parts = [x for x in rp.strip("/").split("/") if x]
             if len(parts) >= 3:
+                prev = parts[-2]
+                last = parts[-1]
+                if "." in prev and "." not in last and len(last) <= 12:
+                    return f"{prev}.{last}"
                 return parts[-1]
         if p.path.lower().endswith("/cart.php"):
             product = (qs.get("product") or [None])[0]
@@ -586,6 +603,10 @@ class GenericDomainParser:
         if "/products/" in p.path.lower():
             parts = [x for x in p.path.split("/") if x]
             if len(parts) >= 3:
+                prev = parts[-2]
+                last = parts[-1]
+                if "." in prev and "." not in last and len(last) <= 12:
+                    return f"{prev}.{last}"
                 return parts[-1]
 
         path_parts = [x for x in p.path.split("/") if x]
@@ -703,7 +724,7 @@ class GenericDomainParser:
     def _infer_availability(tag, *, url: str) -> bool | None:
         # Disabled "order" buttons are a strong OOS signal.
         try:
-            for el in tag.select("a,button,input,span"):
+            for el in tag.select("a,button,input,span,.stock,.availability,[class*='stock'],[class*='avail']"):
                 cls = " ".join(el.get("class", [])) if hasattr(el, "get") else ""
                 cls_l = cls.lower()
                 if any(k in cls_l for k in ("sold", "soldout", "out-of-stock", "outofstock", "unavailable")):
@@ -715,15 +736,21 @@ class GenericDomainParser:
         except Exception:
             pass
 
-        u = (url or "").lower()
-        if "cart.php" in u and ("a=add" in u or ("pid=" in u and "a=view" not in u)):
-            return True
-        if "action=add" in u and ("id=" in u or "pid=" in u):
-            return True
-        if "/checkout" in u:
-            return True
-        if ("rp=/store/" in u or "/store/" in u) and not GenericDomainParser._is_non_product_url(url):
-            return True
+        # Only mark In Stock when there is an explicit positive signal in actionable controls.
+        try:
+            for el in tag.select("a,button,input[type='submit'],input[type='button']"):
+                cls = " ".join(el.get("class", [])) if hasattr(el, "get") else ""
+                cls_l = cls.lower()
+                if "disabled" in cls_l or getattr(el, "has_attr", lambda *_: False)("disabled"):
+                    continue
+                label = compact_ws(getattr(el, "get_text", lambda *a, **k: "")(" ", strip=True))
+                if not label and hasattr(el, "get"):
+                    label = compact_ws(str(el.get("value") or ""))
+                if extract_availability(label) is True:
+                    return True
+        except Exception:
+            pass
+
         return None
 
     @staticmethod
@@ -898,24 +925,28 @@ class GenericDomainParser:
                 cycles.append(c)
         return cycles or None
 
-    def _infer_variant_and_option(self, *, url: str, name: str, specs: dict[str, str] | None) -> tuple[str | None, str | None]:
-        option = None
+    @staticmethod
+    def _extract_cycle_prices(tag) -> dict[str, str] | None:
+        return extract_cycle_prices(str(tag))
+
+    def _infer_variant_and_location(self, *, url: str, name: str, specs: dict[str, str] | None) -> tuple[str | None, str | None]:
+        location = None
         if specs:
-            for key in ("Location", "Node", "Region"):
+            for key in ("Location", "Data Center", "Datacenter", "Zone", "Region", "Node"):
                 if key in specs and specs.get(key):
-                    option = specs.get(key)
+                    location = specs.get(key)
                     break
 
         category = self._category_label_from_url(url)
-        if not option and category:
-            option = self._location_from_category(category)
+        if not location and category:
+            location = self._location_from_category(category)
         variant_of = None
         if category:
             cl = category.lower()
             if name and cl not in name.lower():
                 variant_of = category
 
-        return variant_of, option
+        return variant_of, location
 
     @staticmethod
     def _category_label_from_url(url: str) -> str | None:

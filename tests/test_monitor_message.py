@@ -20,23 +20,18 @@ class TestMonitorMessage(unittest.TestCase):
             available=True,
         )
 
-        msg = _format_message("RESTOCK ALERT", "🔥", p, "2026-02-18T00:00:00+00:00")
+        msg = _format_message("RESTOCK ALERT", "RESTOCK", p, "2026-02-18T00:00:00+00:00")
         self.assertIn("RESTOCK ALERT", msg)
         self.assertIn("Example Plan", msg)
         self.assertIn("9.99 USD", msg)
-        self.assertIn("Order Now", msg)
+        self.assertIn("Open Product Page", msg)
         self.assertIn("https://example.test/buy", msg)
-        self.assertIn("🕒", msg)
+        self.assertIn("In Stock", msg)
+        self.assertIn("#example", msg)
         self.assertTrue(msg.startswith("<b>"))
         self.assertLessEqual(len(msg), 3900)
-        # Verify the new hashtag domain format
-        self.assertIn("#exampletest", msg)
-        # Verify emoji-based formatting
-        self.assertIn("💰", msg)
-        self.assertIn("👉", msg)
-        self.assertIn("✅", msg)
 
-    def test_format_message_with_option(self) -> None:
+    def test_format_message_with_location(self) -> None:
         p = Product(
             id="d::u",
             domain="greencloudvps.com",
@@ -48,13 +43,36 @@ class TestMonitorMessage(unittest.TestCase):
             specs={"RAM": "2GB", "CPU": "2 vCPU", "Disk": "40GB", "Location": "Dallas"},
             available=True,
             variant_of="Budget KVM VPS",
-            option="Dallas",
+            location="Dallas",
         )
 
-        msg = _format_message("NEW OPTION", "✨", p, "2026-02-18T00:00:00+00:00")
-        self.assertIn("Budget KVM VPS", msg)
-        self.assertIn("Dallas", msg)
+        msg = _format_message("NEW LOCATION", "LOCATION", p, "2026-02-18T00:00:00+00:00")
+        self.assertIn("Budget KVM VPS - Dallas", msg)
+        self.assertIn("<b>Location:</b> Dallas", msg)
         self.assertIn("25.00 USD", msg)
+
+    def test_format_message_with_cycle_prices_and_special(self) -> None:
+        p = Product(
+            id="d::u",
+            domain="cloud.colocrossing.com",
+            url="https://cloud.colocrossing.com/index.php?rp=/store/specials",
+            name="Special Plan",
+            price="$3.00/mo",
+            currency="USD",
+            description=None,
+            specs=None,
+            available=True,
+            cycle_prices={"Monthly": "$3.00", "Quarterly": "$8.00"},
+            billing_cycles=["Monthly", "Quarterly"],
+            is_special=True,
+        )
+
+        msg = _format_message("NEW PRODUCT", "NEW", p, "2026-02-18T00:00:00+00:00")
+        self.assertIn("#colocrossing", msg)
+        self.assertIn("[SPECIAL] Special Plan", msg)
+        self.assertIn("Cycle Prices", msg)
+        self.assertIn("Monthly: $3.00", msg)
+        self.assertIn("Tag:</b> Special/Promo", msg)
 
     def test_format_message_oos(self) -> None:
         p = Product(
@@ -69,9 +87,8 @@ class TestMonitorMessage(unittest.TestCase):
             available=False,
         )
 
-        msg = _format_message("RESTOCK ALERT", "🔥", p, "2026-02-18T00:00:00+00:00")
+        msg = _format_message("RESTOCK ALERT", "RESTOCK", p, "2026-02-18T00:00:00+00:00")
         self.assertIn("Out of Stock", msg)
-        self.assertIn("❌", msg)
 
 
 if __name__ == "__main__":
