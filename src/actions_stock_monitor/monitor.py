@@ -353,6 +353,11 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
     started = time.perf_counter()
 
     fetch = _fetch_text(client, target, allow_flaresolverr=True)
+    if (not fetch.ok or not fetch.text) and ("flaresolverr" in (fetch.error or "").lower() or "timed out" in (fetch.error or "").lower()):
+        # If the solver is temporarily overloaded, retry once with direct fetch only.
+        retry = _fetch_text(client, target, allow_flaresolverr=False)
+        if retry.ok and retry.text:
+            fetch = retry
     if not fetch.ok or not fetch.text:
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=False, error=fetch.error or "fetch failed", duration_ms=duration_ms, products=[])
