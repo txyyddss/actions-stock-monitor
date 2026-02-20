@@ -132,6 +132,24 @@ class TestHttpClientRetries(unittest.TestCase):
         self.assertFalse(res.ok)
         self.assertEqual(client._session().post.call_count, 0)
 
+    def test_does_not_use_flaresolverr_for_plain_403_without_cloudflare_signals(self) -> None:
+        client = HttpClient(timeout_seconds=1.0, flaresolverr_url="http://127.0.0.1:8191", max_retries=1)
+
+        resp_403 = Mock()
+        resp_403.status_code = 403
+        resp_403.url = "https://example.test/"
+        resp_403.text = "<html>Access denied</html>"
+        resp_403.headers = {"server": "nginx"}
+
+        client._session().get = Mock(return_value=resp_403)
+        client._session().post = Mock()
+
+        res = client.fetch_text("https://example.test/")
+
+        self.assertFalse(res.ok)
+        self.assertEqual(res.error, "HTTP 403")
+        self.assertEqual(client._session().post.call_count, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

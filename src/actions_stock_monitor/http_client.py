@@ -230,14 +230,17 @@ class HttpClient:
                     continue
                 elapsed_ms = int((time.perf_counter() - started) * 1000)
                 ok = 200 <= resp.status_code < 400
-                blocked = self._looks_like_cloudflare_challenge(resp.status_code, resp.text or "")
+                blocked = self._looks_like_cloudflare_challenge(resp.status_code, resp.text or "", headers=resp.headers)
                 if blocked:
                     ok = False
+                body_for_diagnostics: str | None = None
+                if ok or blocked or resp.status_code in (401, 403, 429, 503, 520, 521, 522, 523, 525, 526):
+                    body_for_diagnostics = resp.text
                 return FetchResult(
                     url=str(resp.url),
                     status_code=resp.status_code,
                     ok=ok,
-                    text=resp.text if (ok or blocked) else None,
+                    text=body_for_diagnostics,
                     error=None if ok else ("Blocked (Cloudflare)" if blocked else f"HTTP {resp.status_code}"),
                     elapsed_ms=elapsed_ms,
                 )
@@ -260,15 +263,33 @@ class HttpClient:
 
     @staticmethod
     def _is_likely_blocked(res: FetchResult) -> bool:
-        # Heuristics: Cloudflare/browser-challenge pages are often 403/503 and contain known markers.
+        err = (res.error or "").lower()
+        if "blocked (cloudflare)" in err:
+            return True
+        if res.status_code in (520, 521, 522, 523, 525, 526):
+            # Cloudflare edge/origin status codes.
+            return True
         if not res.text:
-            return res.status_code in (401, 403, 429, 502, 503, 520, 521, 522, 523, 525, 526)
+            return False
         return HttpClient._looks_like_cloudflare_challenge(res.status_code, res.text)
 
     @staticmethod
-    def _looks_like_cloudflare_challenge(status_code: int | None, body: str) -> bool:
-        if status_code in (403, 503):
+    def _looks_like_cloudflare_challenge(
+        status_code: int | None, body: str, *, headers: dict[str, Any] | None = None
+    ) -> bool:
+        if status_code in (520, 521, 522, 523, 525, 526):
             return True
+        headers_l: dict[str, str] = {}
+        try:
+            for k, v in (headers or {}).items():
+                headers_l[str(k).lower()] = str(v).lower()
+        except Exception:
+            headers_l = {}
+        has_cf_header = bool(
+            headers_l.get("cf-ray")
+            or headers_l.get("cf-cache-status")
+            or "cloudflare" in headers_l.get("server", "")
+        )
         t = (body or "").lower()
         # Avoid false positives: many normal pages include Cloudflare analytics beacons.
         if "/cdn-cgi/" in t:
@@ -282,9 +303,14 @@ class HttpClient:
             )
             if any(m in t for m in strong):
                 return True
+        # Common Cloudflare interstitial text variants.
+        if "just a moment" in t and "cloudflare" in t:
+            return True
         if "just a moment" in t and "checking your browser" in t:
             return True
         if "attention required" in t and "cloudflare" in t:
+            return True
+        if status_code in (403, 429, 503) and has_cf_header:
             return True
         return False
 

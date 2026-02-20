@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 import sys
@@ -128,7 +129,9 @@ def _is_blocked_fetch(fetch_res) -> bool:
     if "blocked" in err or "cloudflare" in err or "challenge" in err:
         return True
     status = getattr(fetch_res, "status_code", None)
-    return status in {401, 403, 429, 503, 520, 521, 522, 523, 525, 526}
+    # Only treat Cloudflare/edge statuses as blocked by default; generic 403/503
+    # without challenge markers should not force a FlareSolverr retry.
+    return status in {429, 520, 521, 522, 523, 525, 526}
 
 
 _NON_PRODUCT_URL_FRAGMENTS = (
@@ -487,7 +490,9 @@ def run_monitor(
             run = fut.result()
             raw_runs.append(run)
 
-    runs = _merge_runs_by_domain(raw_runs) if mode == "lite" else raw_runs
+    # Normalize per-domain runs before updating state. This prevents mode-dependent
+    # behavior when multiple targets map to the same domain.
+    runs = _merge_runs_by_domain(raw_runs)
     if log_enabled:
         print(f"[monitor] mode={mode} targets={len(effective_targets)} domains={len(runs)}", flush=True)
         for run in runs:
@@ -1308,6 +1313,23 @@ def _extract_pid_numbers(html: str) -> set[int]:
     return out
 
 
+def _stable_page_signature(url: str, html: str) -> str:
+    try:
+        p = urlparse(url)
+        path = (p.path or "/").rstrip("/") or "/"
+        url_key = f"{p.scheme}://{p.netloc}{path}".lower()
+    except Exception:
+        url_key = compact_ws(url).lower()
+    body = compact_ws(html or "").lower()
+    if not body:
+        return url_key
+    # Remove obviously volatile token-like chunks so default page fingerprints stay stable.
+    body = re.sub(r"[a-f0-9]{24,}", "x", body)
+    body = re.sub(r"\b\d{4,}\b", "n", body)
+    digest = hashlib.sha1(body.encode("utf-8", errors="ignore")).hexdigest()[:20]
+    return f"{url_key}::{digest}"
+
+
 _PID_HIDDEN_INPUT_RE = re.compile(r"""name=['"]pid['"][^>]*value=['"](\d+)['"]""", re.IGNORECASE)
 
 
@@ -1412,16 +1434,21 @@ def _scan_whmcs_hidden_products(
 ) -> list[Product]:
     """
     Brute-force WHMCS cart.php?a=add&pid=N and cart.php?gid=N pages.
-    Stop scanning only when 10 consecutive IDs have no product/stock evidence OR are duplicates.
+    - gid scan stops after N consecutive ids return the same page signature.
+    - pid scan stops after N consecutive ids have no product/stock evidence.
     Only return products that are currently in stock.
     """
-    stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "10"))
+    legacy_stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "10"))
+    pid_stop_after_no_info = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO", str(legacy_stop_after_miss)))
+    gid_stop_after_same_page = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE", "5"))
     min_probe_before_stop = int(os.getenv("WHMCS_HIDDEN_MIN_PROBE", "0"))
     batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "8"))
     workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "6"))
     hard_max_pid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_PID", "2000"))
     hard_max_gid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_GID", "2000"))
     candidate_pid_limit = int(os.getenv("WHMCS_HIDDEN_PID_CANDIDATES_MAX", "200"))
+    pid_stop_after_no_info = max(0, pid_stop_after_no_info)
+    gid_stop_after_same_page = max(0, gid_stop_after_same_page)
 
     pid_endpoints = _pid_cart_endpoints(base_url)
     gid_endpoints = _gid_cart_endpoints(base_url)
@@ -1464,20 +1491,25 @@ def _scan_whmcs_hidden_products(
         if not endpoints:
             return
 
-        miss_streak = 0
         cur = 1
-        found_any = False
+        pid_no_info_streak = 0
+        gid_same_page_streak = 0
+        last_gid_signature: str | None = None
 
-        def probe_one(cur_id: int) -> tuple[int, bool, bool, list[Product], set[int]]:
+        def probe_one(cur_id: int) -> tuple[int, bool, bool, list[Product], set[int], str | None]:
             """
-            Returns: (id, has_evidence, is_duplicate, parsed_products, extra_pids)
+            Returns: (id, has_evidence, is_duplicate, parsed_products, extra_pids, page_signature)
             """
+            fallback_signature: str | None = None
             for tmpl in endpoints:
                 url = tmpl.format(**{kind: cur_id})
                 fetch = _fetch_text(client, url, allow_flaresolverr=True)
                 if not fetch.ok or not fetch.text:
                     continue
                 html = fetch.text
+                page_signature = _stable_page_signature(fetch.url, html) if kind == "gid" else None
+                if kind == "gid" and fallback_signature is None and page_signature:
+                    fallback_signature = page_signature
                 pid_mentioned = _html_mentions_pid(html, cur_id) if kind == "pid" else True
 
                 # Many WHMCS installs redirect invalid ids back to cart.php or the homepage.
@@ -1514,16 +1546,16 @@ def _scan_whmcs_hidden_products(
 
                 if normalized:
                     is_dup = all(p.id in seen_ids for p in normalized)
-                    return cur_id, True, is_dup, normalized, extra_pids
+                    return cur_id, True, is_dup, normalized, extra_pids, page_signature
 
                 # Some WHMCS themes require JS rendering or hide details; fall back to heuristics.
                 if evidence:
                     is_dup = False
                     if kind == "gid" and extra_pids:
                         is_dup = not any((cid not in seen_ids) for pid in extra_pids for cid in _pid_id_candidates(pid))
-                    return cur_id, True, is_dup, [], extra_pids
+                    return cur_id, True, is_dup, [], extra_pids, page_signature
 
-            return cur_id, False, False, [], set()
+            return cur_id, False, False, [], set(), fallback_signature
 
         max_workers = max(1, min(max(1, workers), 16))
         with ThreadPoolExecutor(max_workers=max_workers) as ex:
@@ -1540,12 +1572,11 @@ def _scan_whmcs_hidden_products(
                     futs = {ex.submit(probe_one, cid): cid for cid in batch}
                     batch_results = [f.result() for f in as_completed(futs)]
                     batch_results.sort(key=lambda x: x[0])
-                    for _id, has_evidence, is_dup, products, extra_pids in batch_results:
+                    for _id, has_evidence, is_dup, products, extra_pids, _page_sig in batch_results:
                         if kind == "gid" and extra_pids:
                             pid_candidates.update(extra_pids)
                         if not has_evidence or is_dup:
                             continue
-                        found_any = True
                         for p in products:
                             if p.id in seen_ids:
                                 continue
@@ -1557,20 +1588,26 @@ def _scan_whmcs_hidden_products(
                 return
 
             while cur <= hard_max:
-                if miss_streak >= stop_after_miss and (found_any or cur > min_probe_before_stop):
-                    break
+                if kind == "pid":
+                    if (
+                        pid_stop_after_no_info > 0
+                        and pid_no_info_streak >= pid_stop_after_no_info
+                        and cur > min_probe_before_stop
+                    ):
+                        break
+                else:
+                    if (
+                        gid_stop_after_same_page > 0
+                        and gid_same_page_streak >= gid_stop_after_same_page
+                        and cur > min_probe_before_stop
+                    ):
+                        break
 
                 batch = list(range(cur, min(hard_max, cur + batch_size - 1) + 1))
                 cur = batch[-1] + 1
                 if kind == "pid" and probed_pids:
-                    # Avoid re-fetching candidate pids we already probed (count as duplicates for stop logic).
-                    kept: list[int] = []
-                    for cid in batch:
-                        if cid in probed_pids:
-                            miss_streak += 1
-                        else:
-                            kept.append(cid)
-                    batch = kept
+                    # Avoid re-fetching candidate pids we already probed via explicit candidate probing.
+                    batch = [cid for cid in batch if cid not in probed_pids]
                     if not batch:
                         continue
 
@@ -1578,19 +1615,30 @@ def _scan_whmcs_hidden_products(
                 batch_results = [f.result() for f in as_completed(futs)]
                 batch_results.sort(key=lambda x: x[0])
 
-                for _id, has_evidence, is_dup, products, extra_pids in batch_results:
+                for _id, has_evidence, is_dup, products, extra_pids, page_sig in batch_results:
                     if kind == "gid" and extra_pids:
                         pid_candidates.update(extra_pids)
 
+                    if kind == "pid":
+                        if has_evidence:
+                            pid_no_info_streak = 0
+                        else:
+                            pid_no_info_streak += 1
+                    else:
+                        if page_sig and page_sig == last_gid_signature:
+                            gid_same_page_streak += 1
+                        elif page_sig:
+                            last_gid_signature = page_sig
+                            gid_same_page_streak = 1
+                        else:
+                            last_gid_signature = None
+                            gid_same_page_streak = 0
+
                     if not has_evidence:
-                        miss_streak += 1
                         continue
                     if is_dup:
-                        miss_streak += 1
                         continue
 
-                    found_any = True
-                    miss_streak = 0
                     for p in products:
                         if p.id in seen_ids:
                             continue

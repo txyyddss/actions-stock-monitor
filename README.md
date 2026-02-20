@@ -88,7 +88,9 @@ Cloudflare/FlareSolverr:
 
 Hidden WHMCS scanning (pid/gid brute scan):
 
-- `WHMCS_HIDDEN_STOP_AFTER_MISS` (default: `10`)
+- `WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO` (default: `10`; falls back to `WHMCS_HIDDEN_STOP_AFTER_MISS` if unset)
+- `WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE` (default: `5`)
+- `WHMCS_HIDDEN_STOP_AFTER_MISS` (legacy fallback for pid stop threshold)
 - `WHMCS_HIDDEN_MIN_PROBE` (default: `0`)
 - `WHMCS_HIDDEN_BATCH` (default: `8`)
 - `WHMCS_HIDDEN_WORKERS` (default: `6`)
