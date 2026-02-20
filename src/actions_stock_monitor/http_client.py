@@ -72,9 +72,9 @@ class HttpClient:
         self._local.session = s
         return s
 
-    def fetch_text(self, url: str) -> FetchResult:
+    def fetch_text(self, url: str, *, allow_flaresolverr: bool = True) -> FetchResult:
         direct = self._fetch_direct(url)
-        if direct.ok or not self._flaresolverr_url:
+        if direct.ok or not self._flaresolverr_url or not allow_flaresolverr:
             return direct
         if not self._is_likely_blocked(direct):
             return direct
@@ -236,10 +236,15 @@ class HttpClient:
 
     def _fetch_via_flaresolverr(self, url: str) -> FetchResult:
         started = time.perf_counter()
+        netloc = self._netloc(url)
+        ctx = self._get_cookie_context(netloc)
+        user_agent = ctx.user_agent if ctx else None
         payload: dict[str, Any] = {
             "cmd": "request.get",
             "url": url,
             "maxTimeout": int(self._timeout_seconds * 1000),
+            # Keep locale deterministic so parsed fields stay English.
+            "headers": self._headers(user_agent=user_agent),
         }
         if self._proxy_url and self._proxy_url.startswith(("http://", "https://")):
             payload["proxy"] = {"url": self._proxy_url}

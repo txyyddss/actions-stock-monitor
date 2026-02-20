@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from unittest.mock import Mock, patch
 
@@ -83,6 +84,50 @@ class TestHttpClientRetries(unittest.TestCase):
         self.assertTrue(res.ok)
         self.assertEqual(client._session().post.call_count, 2)
         self.assertEqual(res.status_code, 200)
+
+    def test_flaresolverr_payload_sets_english_headers(self) -> None:
+        client = HttpClient(timeout_seconds=1.0, flaresolverr_url="http://127.0.0.1:8191", max_retries=1)
+
+        resp_403 = Mock()
+        resp_403.status_code = 403
+        resp_403.url = "https://example.test/"
+        resp_403.text = "<html>Just a moment... cloudflare</html>"
+        resp_403.headers = {}
+
+        resp_200 = Mock()
+        resp_200.status_code = 200
+        resp_200.headers = {}
+        resp_200.json = Mock(
+            return_value={
+                "solution": {"status": 200, "url": "https://example.test/", "response": "<html>ok</html>"}
+            }
+        )
+
+        client._session().get = Mock(return_value=resp_403)
+        client._session().post = Mock(return_value=resp_200)
+
+        res = client.fetch_text("https://example.test/")
+        self.assertTrue(res.ok)
+
+        payload = json.loads(client._session().post.call_args.kwargs["data"])
+        self.assertEqual(payload.get("headers", {}).get("Accept-Language"), "en-US,en;q=0.9")
+
+    def test_can_skip_flaresolverr_fallback(self) -> None:
+        client = HttpClient(timeout_seconds=1.0, flaresolverr_url="http://127.0.0.1:8191", max_retries=1)
+
+        resp_403 = Mock()
+        resp_403.status_code = 403
+        resp_403.url = "https://example.test/"
+        resp_403.text = "<html>Just a moment... cloudflare</html>"
+        resp_403.headers = {}
+
+        client._session().get = Mock(return_value=resp_403)
+        client._session().post = Mock()
+
+        res = client.fetch_text("https://example.test/", allow_flaresolverr=False)
+
+        self.assertFalse(res.ok)
+        self.assertEqual(client._session().post.call_count, 0)
 
 
 if __name__ == "__main__":

@@ -90,6 +90,13 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     domains_error = sum(1 for d in domains.values() if isinstance(d, dict) and d.get("last_status") == "error")
 
     data_json = json.dumps({"products": products}, ensure_ascii=False)
+    data_json_safe = (
+        data_json.replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
+    )
 
     run_started = _format_ts_short(run_summary.get("started_at"))
     run_finished = _format_ts_short(run_summary.get("finished_at"))
@@ -458,8 +465,15 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     </div>
   </div>
 
+  <script id="dashboard-data" type="application/json">{data_json_safe}</script>
   <script>
-    const DATA = {data_json};
+    let DATA = {{ products: [] }};
+    try {{
+      const dataNode = document.getElementById("dashboard-data");
+      DATA = JSON.parse((dataNode && dataNode.textContent) ? dataNode.textContent : '{{"products":[]}}');
+    }} catch (_err) {{
+      DATA = {{ products: [] }};
+    }}
     const tb = document.getElementById("tb");
     const q = document.getElementById("q");
     const site = document.getElementById("site");
@@ -574,7 +588,11 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     }}
 
     function escapeHtml(s) {{
-      return String(s ?? "").replace(/[&<>"]/g, (c) => ({{"&":"&amp;","<":"&lt;",">":"&gt;","\\\\"":"&quot;"}}[c]));
+      return String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     }}
 
     q.addEventListener("input", () => render());

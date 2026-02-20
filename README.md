@@ -20,7 +20,9 @@ Targets are base URLs (one per provider) defined in `src/actions_stock_monitor/t
 - **Direct fetch first** using `requests`
 - **Cloudflare challenge detection**
 - **Fallback to FlareSolverr** (if `FLARESOLVERR_URL` is set)
+- **English-biased fetch headers** (`Accept-Language: en-US,en;q=0.9`) for both direct and FlareSolverr requests
 - **Temporary cookie + UA reuse** per domain, extracted from FlareSolverr solutions, to reduce repeated challenge solving across multiple pages in the same run
+- **Fast secondary crawl behavior**: discovery/detail sub-pages avoid FlareSolverr fallback unless they are primary listing pages
 
 ### 3) Parsing
 
@@ -68,9 +70,10 @@ Common settings:
 
 Discovery tuning:
 
-- `DISCOVERY_MAX_PAGES_PER_DOMAIN` (default: `10`)
-- `DISCOVERY_MAX_PRODUCTS_PER_DOMAIN` (default: `250`)
-- `DISCOVERY_STOP_AFTER_NO_NEW_PAGES` (default: `3`)
+- `DISCOVERY_MAX_PAGES_PER_DOMAIN` (default: `16`; bumped to `24` for WHMCS, `40` for GreenCloud unless overridden)
+- `DISCOVERY_MAX_PRODUCTS_PER_DOMAIN` (default: `500`)
+- `DISCOVERY_STOP_AFTER_NO_NEW_PAGES` (default: `4`; `6` for WHMCS)
+- `DISCOVERY_STOP_AFTER_FETCH_ERRORS` (default: `4`)
 - `DISCOVERY_FORCE_IF_PRODUCTS_LEQ` (default: `6`)
 - `DISCOVERY_FORCE_IF_PRIMARY_LISTING_PRODUCTS_LEQ` (default: `40`)
 

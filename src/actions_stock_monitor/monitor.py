@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 
 from .http_client import HttpClient
 from .models import DomainRun, Product, RunSummary
-from .parsers.common import extract_availability, extract_billing_cycles
+from .parsers.common import extract_availability, extract_billing_cycles, normalize_url_for_id
 from .parsers.registry import get_parser_for_domain
 from .targets import DEFAULT_TARGETS
 from .telegram import h, load_telegram_config, send_telegram_html
@@ -22,6 +22,16 @@ from .timeutil import utc_now_iso
 def _domain_from_url(url: str) -> str:
     netloc = urlparse(url).netloc.lower()
     return netloc
+
+
+def _fetch_text(client: HttpClient, url: str, *, allow_flaresolverr: bool = True):
+    try:
+        return client.fetch_text(url, allow_flaresolverr=allow_flaresolverr)
+    except TypeError as exc:
+        # Keep compatibility with simple test doubles that only expose fetch_text(url).
+        if "allow_flaresolverr" not in str(exc):
+            raise
+        return client.fetch_text(url)
 
 
 _NON_PRODUCT_URL_FRAGMENTS = (
@@ -336,7 +346,7 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
     domain = _domain_from_url(target)
     started = time.perf_counter()
 
-    fetch = client.fetch_text(target)
+    fetch = _fetch_text(client, target, allow_flaresolverr=True)
     if not fetch.ok or not fetch.text:
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=False, error=fetch.error or "fetch failed", duration_ms=duration_ms, products=[])
@@ -348,13 +358,13 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
 
         if _needs_discovery(products, base_url=fetch.url) or _should_force_discovery(fetch.text, base_url=fetch.url, domain=domain, product_count=len(deduped)):
             raw_page_limit = os.environ.get("DISCOVERY_MAX_PAGES_PER_DOMAIN")
-            max_pages_limit = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 20
+            max_pages_limit = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 16
             # Only apply higher defaults when the user hasn't explicitly configured a limit.
             if raw_page_limit is None:
                 if domain == "greencloudvps.com":
-                    max_pages_limit = max(max_pages_limit, 60)
+                    max_pages_limit = max(max_pages_limit, 40)
                 if _is_whmcs_domain(domain, fetch.text):
-                    max_pages_limit = max(max_pages_limit, 30)
+                    max_pages_limit = max(max_pages_limit, 24)
 
             discovered = []
             # Try domain-specific extra pages (including SPA API endpoints) first so we don't
@@ -372,7 +382,7 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             # entire product groups.
             default_stop = "6" if _is_whmcs_domain(domain, fetch.text) else "4"
             stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", default_stop))
-            stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "6"))
+            stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "4"))
             no_new_streak = 0
             fetch_error_streak = 0
             pages_visited = 0
@@ -381,7 +391,8 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                 if max_pages_limit > 0 and pages_visited >= max_pages_limit:
                     break
                 pages_visited += 1
-                page_fetch = client.fetch_text(page_url)
+                # Secondary pages are fetched directly to avoid expensive challenge-solving loops.
+                page_fetch = _fetch_text(client, page_url, allow_flaresolverr=_is_primary_listing_page(page_url))
                 if not page_fetch.ok or not page_fetch.text:
                     fetch_error_streak += 1
                     if stop_after_fetch_errors > 0 and fetch_error_streak >= stop_after_fetch_errors and _is_primary_listing_page(page_url):
@@ -438,9 +449,17 @@ def _dedupe_keep_order(urls: list[str]) -> list[str]:
     seen: set[str] = set()
     out: list[str] = []
     for u in urls:
-        if not u or u in seen:
+        if not u:
             continue
-        seen.add(u)
+        key = u
+        if u.startswith(("http://", "https://")):
+            try:
+                key = normalize_url_for_id(u)
+            except Exception:
+                key = u
+        if key in seen:
+            continue
+        seen.add(key)
         out.append(u)
     return out
 
@@ -519,7 +538,7 @@ def _enrich_availability_via_product_pages(
     max_workers = max(1, min(max_workers, len(candidates)))
 
     def fetch_one(p: Product) -> tuple[bool | None, list[str] | None]:
-        fetch = client.fetch_text(p.url)
+        fetch = _fetch_text(client, p.url, allow_flaresolverr=False)
         if not fetch.ok or not fetch.text:
             return None, None
         html = fetch.text
@@ -661,14 +680,14 @@ def _domain_extra_pages(domain: str) -> list[str]:
 
 def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[str]:
     raw_page_limit = os.environ.get("DISCOVERY_MAX_PAGES_PER_DOMAIN")
-    max_pages = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 20
+    max_pages = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 16
     # Only apply higher defaults when the user hasn't explicitly configured a limit.
     if raw_page_limit is None:
         if domain == "greencloudvps.com":
             # GreenCloud uses many non-WHMCS *.php listing pages; allow more crawl depth.
-            max_pages = max(max_pages, 60)
+            max_pages = max(max_pages, 40)
         if _is_whmcs_domain(domain, html):
-            max_pages = max(max_pages, 30)
+            max_pages = max(max_pages, 24)
     soup = BeautifulSoup(html, "lxml")
     base_netloc = urlparse(base_url).netloc.lower()
 
