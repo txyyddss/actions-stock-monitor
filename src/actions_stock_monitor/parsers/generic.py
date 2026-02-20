@@ -13,8 +13,10 @@ from .common import (
     compact_ws,
     extract_availability,
     extract_billing_cycles,
+    extract_billing_cycles_from_tag,
     extract_billing_cycles_from_text,
     extract_cycle_prices,
+    extract_cycle_prices_from_tag,
     extract_price,
     extract_specs,
     looks_like_purchase_action,
@@ -921,7 +923,7 @@ class GenericDomainParser:
     @staticmethod
     def _extract_billing_cycles(tag, *, text: str) -> list[str] | None:
         cycles: list[str] = []
-        for c in extract_billing_cycles(str(tag)) or []:
+        for c in extract_billing_cycles_from_tag(tag) or []:
             if c not in cycles:
                 cycles.append(c)
         for c in extract_billing_cycles_from_text(text) or []:
@@ -931,7 +933,7 @@ class GenericDomainParser:
 
     @staticmethod
     def _extract_cycle_prices(tag) -> dict[str, str] | None:
-        return extract_cycle_prices(str(tag))
+        return extract_cycle_prices_from_tag(tag)
 
     def _infer_variant_and_location(self, *, url: str, name: str, specs: dict[str, str] | None) -> tuple[str | None, str | None]:
         location = None

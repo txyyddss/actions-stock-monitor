@@ -109,7 +109,7 @@ class TestHttpClientRetries(unittest.TestCase):
         res = client.fetch_text("https://example.test/")
         self.assertTrue(res.ok)
 
-        payload = json.loads(client._session().post.call_args.kwargs["data"])
+        payload = client._session().post.call_args.kwargs["json"]
         self.assertEqual(payload.get("cmd"), "request.get")
         self.assertEqual(payload.get("url"), "https://example.test/")
         self.assertNotIn("headers", payload)

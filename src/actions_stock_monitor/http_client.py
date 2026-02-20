@@ -76,7 +76,7 @@ class HttpClient:
         if isinstance(sess, requests.Session):
             return sess
         s = requests.Session()
-        adapter = HTTPAdapter(pool_connections=32, pool_maxsize=32)
+        adapter = HTTPAdapter(pool_connections=64, pool_maxsize=64)
         s.mount("http://", adapter)
         s.mount("https://", adapter)
         self._local.session = s
@@ -90,7 +90,7 @@ class HttpClient:
 
         direct = self._fetch_direct(url)
         final = direct
-        if not (direct.ok or not self._flaresolverr_url or not allow_flaresolverr):
+        if not direct.ok and self._flaresolverr_url and allow_flaresolverr:
             if self._is_likely_blocked(direct):
                 final = self._fetch_via_flaresolverr(url)
 
@@ -150,8 +150,8 @@ class HttpClient:
             "User-Agent": ua,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
-            "Cache-Control": "no-cache",
-            "Pragma": "no-cache",
+            "Accept-Encoding": "gzip, deflate",
+            "Connection": "keep-alive",
         }
 
     @staticmethod
@@ -321,7 +321,7 @@ class HttpClient:
         payload: dict[str, Any] = {
             "cmd": "request.get",
             "url": url,
-            "maxTimeout": int(self._timeout_seconds * 1000),
+            "maxTimeout": int(max(5000, (self._timeout_seconds - 2.0) * 1000)),
         }
         # FlareSolverr v2 removed the "userAgent" request parameter; do not send it.
         if self._proxy_url and self._proxy_url.startswith(("http://", "https://")):
@@ -332,9 +332,8 @@ class HttpClient:
             try:
                 resp = self._session().post(
                     f"{self._flaresolverr_url}/v1",
-                    headers={"Content-Type": "application/json"},
-                    data=json.dumps(payload),
-                    timeout=(self._timeout_seconds, self._timeout_seconds),
+                    json=payload,
+                    timeout=(self._timeout_seconds + 5.0, self._timeout_seconds + 15.0),
                 )
                 if self._should_retry_status(resp.status_code) and attempt < self._max_retries:
                     last_error = f"HTTP {resp.status_code}"

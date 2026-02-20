@@ -1,0 +1,260 @@
+[
+  {
+    "target": "https://fachost.cloud/",
+    "domain": "fachost.cloud",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 62323
+  },
+  {
+    "target": "https://my.rfchost.com/",
+    "domain": "my.rfchost.com",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 4,
+    "page_fetch_errors": 1,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 61529
+  },
+  {
+    "target": "https://app.vmiss.com/",
+    "domain": "app.vmiss.com",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 11,
+    "page_fetch_errors": 0,
+    "origin_candidates": 16,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 16,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [
+      {
+        "url": "https://app.vmiss.com/store/dedicated-server",
+        "label": "Exclusive Dedicated Server",
+        "source": "https://app.vmiss.com/"
+      },
+      {
+        "url": "https://app.vmiss.com/store/cn-hong-kong-bgp",
+        "label": "CN - HongKong - BGP",
+        "source": "https://app.vmiss.com/"
+      },
+      {
+        "url": "https://app.vmiss.com/store/cn-hk-bgp-v2",
+        "label": "CN - HongKong - BGP #DC2",
+        "source": "https://app.vmiss.com/"
+      },
+      {
+        "url": "https://app.vmiss.com/store/cn-hk-bgp-v3",
+        "label": "CN - HongKong - BGP #DC3",
+        "source": "https://app.vmiss.com/"
+      },
+      {
+        "url": "https://app.vmiss.com/store/cn-hong-kong-intl",
+        "label": "CN - HongKong - INTL",
+        "source": "https://app.vmiss.com/"
+      },
+      {
+        "url": "https://app.vmiss.com/store/jp-osaka-iij",
+        "label": "JP - Osaka - IIJ",
+        "source": "https://app.vmiss.com/"
+      },
+      {
+        "url": "https://app.vmiss.com/store/jp-tokyo-bgp",
+        "label": "JP - Tokyo - BGP",
+        "source": "https://app.vmiss.com/"
+      },
+      {
+        "url": "https://app.vmiss.com/store/jp-tokyo-iij",
+        "label": "JP - Tokyo - IIJ",
+        "source": "https://app.vmiss.com/"
+      }
+    ],
+    "monitor_preview": [],
+    "elapsed_ms": 86296
+  },
+  {
+    "target": "https://acck.io/",
+    "domain": "acck.io",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 2363
+  },
+  {
+    "target": "https://console.po0.com/",
+    "domain": "console.po0.com",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 4,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 8363
+  },
+  {
+    "target": "https://akile.io/",
+    "domain": "akile.io",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 157,
+    "in_stock": 121,
+    "out_of_stock": 36,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 157,
+    "origin_preview": [],
+    "monitor_preview": [
+      {
+        "name": "MOLite-One",
+        "price": "9.99 CNY",
+        "available": true,
+        "url": "https://akile.io/shop/server?areaId=14&nodeId=38&planId=1016"
+      },
+      {
+        "name": "MOLite-Mini",
+        "price": "24.99 CNY",
+        "available": true,
+        "url": "https://akile.io/shop/server?areaId=14&nodeId=38&planId=1012"
+      },
+      {
+        "name": "MOLite-Starter",
+        "price": "43.74 CNY",
+        "available": true,
+        "url": "https://akile.io/shop/server?areaId=14&nodeId=38&planId=1013"
+      },
+      {
+        "name": "MOLite-Standard",
+        "price": "99.99 CNY",
+        "available": true,
+        "url": "https://akile.io/shop/server?areaId=14&nodeId=38&planId=1014"
+      },
+      {
+        "name": "MOLite-Pro",
+        "price": "237.49 CNY",
+        "available": true,
+        "url": "https://akile.io/shop/server?areaId=14&nodeId=38&planId=1015"
+      },
+      {
+        "name": "JPIIJ-One",
+        "price": "10.00 CNY",
+        "available": true,
+        "url": "https://akile.io/shop/server?areaId=5&nodeId=9&planId=825"
+      },
+      {
+        "name": "JPIIJ-Lite",
+        "price": "24.99 CNY",
+        "available": true,
+        "url": "https://akile.io/shop/server?areaId=5&nodeId=9&planId=826"
+      },
+      {
+        "name": "JPIIJ-300M独享",
+        "price": "1899.99 CNY",
+        "available": true,
+        "url": "https://akile.io/shop/server?areaId=5&nodeId=9&planId=903"
+      }
+    ],
+    "elapsed_ms": 25014
+  },
+  {
+    "target": "https://greencloudvps.com/",
+    "domain": "greencloudvps.com",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 3413
+  },
+  {
+    "target": "https://app.kaze.network/",
+    "domain": "app.kaze.network",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 5996
+  }
+]

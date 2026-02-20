@@ -1,0 +1,301 @@
+[
+  {
+    "target": "https://bgp.gd/",
+    "domain": "bgp.gd",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 30316
+  },
+  {
+    "target": "https://nmcloud.cc/",
+    "domain": "nmcloud.cc",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 55167
+  },
+  {
+    "target": "https://my.frantech.ca/",
+    "domain": "my.frantech.ca",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 11,
+    "page_fetch_errors": 0,
+    "origin_candidates": 109,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 105,
+    "in_stock": 47,
+    "out_of_stock": 58,
+    "unknown": 0,
+    "overlap_urls": 96,
+    "origin_not_in_monitor": 13,
+    "monitor_not_in_origin": 9,
+    "origin_preview": [
+      {
+        "url": "https://my.frantech.ca/cart.php?gid=37",
+        "label": "Las Vegas - AMD RYZEN KVM",
+        "source": "https://my.frantech.ca/"
+      },
+      {
+        "url": "https://my.frantech.ca/cart.php?gid=38",
+        "label": "New York - AMD RYZEN KVM",
+        "source": "https://my.frantech.ca/"
+      },
+      {
+        "url": "https://my.frantech.ca/cart.php?gid=48",
+        "label": "Miami - AMD RYZEN KVM",
+        "source": "https://my.frantech.ca/"
+      },
+      {
+        "url": "https://my.frantech.ca/cart.php?gid=39",
+        "label": "Switzerland - AMD RYZEN KVM",
+        "source": "https://my.frantech.ca/"
+      },
+      {
+        "url": "https://my.frantech.ca/cart.php?gid=42",
+        "label": "Las Vegas - Block Storage Slabs",
+        "source": "https://my.frantech.ca/"
+      },
+      {
+        "url": "https://my.frantech.ca/cart.php?gid=45",
+        "label": "New York - Block Storage Slabs",
+        "source": "https://my.frantech.ca/"
+      },
+      {
+        "url": "https://my.frantech.ca/cart.php?gid=49",
+        "label": "Miami - Block Storage Slabs",
+        "source": "https://my.frantech.ca/"
+      },
+      {
+        "url": "https://my.frantech.ca/cart.php?gid=46",
+        "label": "Switzerland - Block Storage Slabs",
+        "source": "https://my.frantech.ca/"
+      }
+    ],
+    "monitor_preview": [
+      {
+        "name": "LV RYZEN KVM 512MB",
+        "price": "2.00 USD",
+        "available": false,
+        "url": "https://my.frantech.ca/cart.php?a=add&pid=1439"
+      },
+      {
+        "name": "LV RYZEN KVM 1GB",
+        "price": "3.50 USD",
+        "available": false,
+        "url": "https://my.frantech.ca/cart.php?a=add&pid=1411"
+      },
+      {
+        "name": "LV RYZEN KVM 2GB",
+        "price": "7.00 USD",
+        "available": true,
+        "url": "https://my.frantech.ca/cart.php?a=add&pid=1402"
+      },
+      {
+        "name": "LV RYZEN KVM 4GB",
+        "price": "15.00 USD",
+        "available": true,
+        "url": "https://my.frantech.ca/cart.php?a=add&pid=1403"
+      },
+      {
+        "name": "LV RYZEN KVM 8GB",
+        "price": "30.00 USD",
+        "available": true,
+        "url": "https://my.frantech.ca/cart.php?a=add&pid=1404"
+      },
+      {
+        "name": "LV RYZEN KVM 12GB",
+        "price": "45.00 USD",
+        "available": true,
+        "url": "https://my.frantech.ca/cart.php?a=add&pid=1405"
+      },
+      {
+        "name": "LV RYZEN KVM 16GB",
+        "price": "60.00 USD",
+        "available": true,
+        "url": "https://my.frantech.ca/cart.php?a=add&pid=1406"
+      },
+      {
+        "name": "LV RYZEN KVM 20GB",
+        "price": "75.00 USD",
+        "available": true,
+        "url": "https://my.frantech.ca/cart.php?a=add&pid=1407"
+      }
+    ],
+    "elapsed_ms": 135541
+  },
+  {
+    "target": "https://wawo.wiki/",
+    "domain": "wawo.wiki",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 19010
+  },
+  {
+    "target": "https://backwaves.net/",
+    "domain": "backwaves.net",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 40811
+  },
+  {
+    "target": "https://cloud.ggvision.net/",
+    "domain": "cloud.ggvision.net",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 11,
+    "page_fetch_errors": 0,
+    "origin_candidates": 14,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 14,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [
+      {
+        "url": "https://cloud.ggvision.net/index.php?rp=/store/hk-lite-plus",
+        "label": "HKBGP Lite Plus",
+        "source": "https://cloud.ggvision.net/"
+      },
+      {
+        "url": "https://cloud.ggvision.net/index.php?rp=/store/hkbgp-eco-plus",
+        "label": "HKBGP Eco Plus",
+        "source": "https://cloud.ggvision.net/"
+      },
+      {
+        "url": "https://cloud.ggvision.net/index.php?rp=/store/hkbgp-standard",
+        "label": "HKBGP Standard",
+        "source": "https://cloud.ggvision.net/"
+      },
+      {
+        "url": "https://cloud.ggvision.net/index.php?rp=/store/hkbgp-lite",
+        "label": "HKBGP Lite",
+        "source": "https://cloud.ggvision.net/"
+      },
+      {
+        "url": "https://cloud.ggvision.net/index.php?rp=/store/sg-lite-plus",
+        "label": "SG Lite Plus (Singapore)",
+        "source": "https://cloud.ggvision.net/"
+      },
+      {
+        "url": "https://cloud.ggvision.net/index.php?rp=/store/sg-standard-singapore",
+        "label": "SG Standard (Singapore)",
+        "source": "https://cloud.ggvision.net/"
+      },
+      {
+        "url": "https://cloud.ggvision.net/index.php?rp=/store/jp-standard",
+        "label": "JP Standard (Tokyo)",
+        "source": "https://cloud.ggvision.net/"
+      },
+      {
+        "url": "https://cloud.ggvision.net/index.php?rp=/store/japan-lite",
+        "label": "JP Lite (Tokyo)",
+        "source": "https://cloud.ggvision.net/"
+      }
+    ],
+    "monitor_preview": [],
+    "elapsed_ms": 75390
+  },
+  {
+    "target": "https://wap.ac/",
+    "domain": "wap.ac",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 46232
+  },
+  {
+    "target": "https://www.bagevm.com/",
+    "domain": "www.bagevm.com",
+    "root_ok": true,
+    "root_error": null,
+    "crawled_pages": 1,
+    "page_fetch_errors": 0,
+    "origin_candidates": 0,
+    "monitor_ok": true,
+    "monitor_error": null,
+    "monitor_products": 0,
+    "in_stock": 0,
+    "out_of_stock": 0,
+    "unknown": 0,
+    "overlap_urls": 0,
+    "origin_not_in_monitor": 0,
+    "monitor_not_in_origin": 0,
+    "origin_preview": [],
+    "monitor_preview": [],
+    "elapsed_ms": 21223
+  }
+]

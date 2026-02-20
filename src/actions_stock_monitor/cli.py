@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--max-workers",
         type=int,
-        default=int(os.getenv("MAX_WORKERS", "8")),
+        default=int(os.getenv("MAX_WORKERS", "4")),
     )
     parser.add_argument(
         "--mode",

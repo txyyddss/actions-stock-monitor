@@ -66,9 +66,10 @@ Add these repository secrets:
 Common settings:
 
 - `TIMEOUT_SECONDS` (default: `25`)
-- `MAX_WORKERS` (default: `8`)
+- `MAX_WORKERS` (default: `4`)
 - `MONITOR_LOG` (default: `1`; set to `0` to silence per-domain logs)
 - `MONITOR_MODE` (`full` or `lite`; default: `full`)
+- `TARGET_MAX_DURATION_SECONDS` (default: `210`; per-target soft deadline for expansion/discovery)
 
 Discovery tuning:
 
@@ -90,10 +91,12 @@ Hidden WHMCS scanning (pid/gid brute scan):
 
 - `WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO` (default: `10`; falls back to `WHMCS_HIDDEN_STOP_AFTER_MISS` if unset)
 - `WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE` (default: `5`)
+- `WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS` (default: `120`)
+- `WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS` (default: `120`)
 - `WHMCS_HIDDEN_STOP_AFTER_MISS` (legacy fallback for pid stop threshold)
 - `WHMCS_HIDDEN_MIN_PROBE` (default: `0`)
-- `WHMCS_HIDDEN_BATCH` (default: `8`)
-- `WHMCS_HIDDEN_WORKERS` (default: `6`)
+- `WHMCS_HIDDEN_BATCH` (default: `3`)
+- `WHMCS_HIDDEN_WORKERS` (default: `2`)
 - `WHMCS_HIDDEN_HARD_MAX_PID` (default: `2000`)
 - `WHMCS_HIDDEN_HARD_MAX_GID` (default: `2000`)
 - `WHMCS_HIDDEN_PID_CANDIDATES_MAX` (default: `200`)

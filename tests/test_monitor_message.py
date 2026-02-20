@@ -28,7 +28,8 @@ class TestMonitorMessage(unittest.TestCase):
         self.assertIn("https://example.test/buy", msg)
         self.assertIn("In Stock", msg)
         self.assertIn("#example", msg)
-        self.assertTrue(msg.startswith("<b>"))
+        # New format uses emoji prefix: 🔄 <b>RESTOCK ALERT</b>
+        self.assertIn("🔄", msg)
         self.assertLessEqual(len(msg), 3900)
 
     def test_format_message_with_location(self) -> None:
@@ -47,8 +48,9 @@ class TestMonitorMessage(unittest.TestCase):
         )
 
         msg = _format_message("NEW LOCATION", "LOCATION", p, "2026-02-18T00:00:00+00:00")
-        self.assertIn("Budget KVM VPS - Dallas", msg)
-        self.assertIn("<b>Location:</b> Dallas", msg)
+        self.assertIn("Budget KVM VPS", msg)
+        self.assertIn("Dallas", msg)
+        self.assertIn("📍", msg)
         self.assertIn("25.00 USD", msg)
 
     def test_format_message_with_cycle_prices_and_special(self) -> None:
@@ -69,10 +71,10 @@ class TestMonitorMessage(unittest.TestCase):
 
         msg = _format_message("NEW PRODUCT", "NEW", p, "2026-02-18T00:00:00+00:00")
         self.assertIn("#colocrossing", msg)
-        self.assertIn("[SPECIAL] Special Plan", msg)
-        self.assertIn("Cycle Prices", msg)
+        self.assertIn("⭐", msg)
+        self.assertIn("Special Plan", msg)
         self.assertIn("Monthly: $3.00", msg)
-        self.assertIn("Tag:</b> Special/Promo", msg)
+        self.assertIn("🆕", msg)
 
     def test_format_message_oos(self) -> None:
         p = Product(
@@ -89,6 +91,7 @@ class TestMonitorMessage(unittest.TestCase):
 
         msg = _format_message("RESTOCK ALERT", "RESTOCK", p, "2026-02-18T00:00:00+00:00")
         self.assertIn("Out of Stock", msg)
+        self.assertIn("🔴", msg)
 
 
 if __name__ == "__main__":

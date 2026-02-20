@@ -5,6 +5,7 @@ import unittest
 from unittest import mock
 from dataclasses import dataclass
 from urllib.parse import parse_qs, urlparse
+import time
 
 from actions_stock_monitor.models import Product
 from actions_stock_monitor.monitor import _scan_whmcs_hidden_products
@@ -76,6 +77,32 @@ class _FakeParser:
                 )
             ]
         return []
+
+
+class _NoopParser:
+    def parse(self, html: str, *, base_url: str) -> list[Product]:
+        return []
+
+
+class _DynamicGidClient(_FakeClient):
+    def __init__(self, domain: str) -> None:
+        super().__init__(pages={})
+        self._domain = domain
+        self._counter = 0
+
+    def fetch_text(self, url: str, *, allow_flaresolverr: bool = True) -> _Fetch:
+        self.calls.append(url)
+        qs = parse_qs(urlparse(url).query)
+        gid = (qs.get("gid") or [None])[0]
+        if isinstance(gid, str) and gid.isdigit():
+            # Same logical content with a changing nonce to defeat simple page-signature streak checks.
+            self._counter += 1
+            html = (
+                f"<html><a href='/cart.php?a=add&pid=11'>Add to cart</a>"
+                f"<div data-nonce='{self._counter}'></div></html>"
+            )
+            return _Fetch(url=url, ok=True, text=html)
+        return super().fetch_text(url, allow_flaresolverr=allow_flaresolverr)
 
 
 class TestWhmcsHiddenScanner(unittest.TestCase):
@@ -188,6 +215,57 @@ class TestWhmcsHiddenScanner(unittest.TestCase):
 
         pid11 = f"https://{domain}/cart.php?a=add&pid=11"
         self.assertTrue(any(p.url == pid11 for p in out))
+
+    def test_gid_scan_stops_after_no_progress_even_when_signatures_change(self) -> None:
+        domain = "example.test"
+        base_url = f"https://{domain}/"
+
+        client = _DynamicGidClient(domain=domain)
+        parser = _NoopParser()
+
+        env = {
+            "WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE": "0",
+            "WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS": "6",
+            "WHMCS_HIDDEN_BATCH": "1",
+            "WHMCS_HIDDEN_WORKERS": "1",
+            "WHMCS_HIDDEN_HARD_MAX_GID": "200",
+            "WHMCS_HIDDEN_HARD_MAX_PID": "0",
+            "WHMCS_HIDDEN_PID_CANDIDATES_MAX": "0",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            _scan_whmcs_hidden_products(client, parser, base_url=base_url, existing_ids=set())
+
+        gid_calls = 0
+        for url in client.calls:
+            qs = parse_qs(urlparse(url).query)
+            if (qs.get("gid") or [None])[0] is not None:
+                gid_calls += 1
+        # One initial discovery hit + six consecutive no-progress ids.
+        self.assertEqual(gid_calls, 7)
+
+    def test_scan_respects_deadline(self) -> None:
+        domain = "example.test"
+        base_url = f"https://{domain}/"
+
+        client = _DynamicGidClient(domain=domain)
+        parser = _NoopParser()
+
+        env = {
+            "WHMCS_HIDDEN_BATCH": "1",
+            "WHMCS_HIDDEN_WORKERS": "1",
+            "WHMCS_HIDDEN_HARD_MAX_GID": "200",
+            "WHMCS_HIDDEN_HARD_MAX_PID": "200",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            _scan_whmcs_hidden_products(
+                client,
+                parser,
+                base_url=base_url,
+                existing_ids=set(),
+                deadline=time.perf_counter() - 0.001,
+            )
+
+        self.assertEqual(client.calls, [])
 
 
 if __name__ == "__main__":

@@ -278,16 +278,8 @@ def extract_billing_cycles_from_text(text: str) -> list[str] | None:
     return cycles or None
 
 
-def extract_billing_cycles(html: str) -> list[str] | None:
-    raw = html or ""
-    if not raw:
-        return None
-
-    try:
-        soup = BeautifulSoup(raw, "lxml")
-    except Exception:
-        return None
-
+def _extract_billing_cycles_from_tag_or_soup(tag_or_soup, raw: str) -> list[str] | None:
+    """Core implementation that works on an already-parsed BS4 tag or soup."""
     cycles: list[str] = []
 
     def add_cycle(raw_value: str) -> None:
@@ -295,13 +287,13 @@ def extract_billing_cycles(html: str) -> list[str] | None:
         if label and label not in cycles:
             cycles.append(label)
 
-    for sel in soup.select("select[name='billingcycle'], select[name*='billingcycle'], select[name='cycle'], select[name*='cycle']"):
+    for sel in tag_or_soup.select("select[name='billingcycle'], select[name*='billingcycle'], select[name='cycle'], select[name*='cycle']"):
         for opt in sel.find_all("option"):
             val = opt.get("value") or ""
             add_cycle(str(val))
             add_cycle(opt.get_text(" ", strip=True) or "")
 
-    for inp in soup.select("input[name='billingcycle'], input[name*='billingcycle'], input[name='cycle'], input[name*='cycle']"):
+    for inp in tag_or_soup.select("input[name='billingcycle'], input[name*='billingcycle'], input[name='cycle'], input[name*='cycle']"):
         val = inp.get("value")
         if isinstance(val, str):
             add_cycle(val)
@@ -316,7 +308,7 @@ def extract_billing_cycles(html: str) -> list[str] | None:
     return cycles or None
 
 
-def extract_cycle_prices(html: str) -> dict[str, str] | None:
+def extract_billing_cycles(html: str) -> list[str] | None:
     raw = html or ""
     if not raw:
         return None
@@ -326,6 +318,19 @@ def extract_cycle_prices(html: str) -> dict[str, str] | None:
     except Exception:
         return None
 
+    return _extract_billing_cycles_from_tag_or_soup(soup, raw)
+
+
+def extract_billing_cycles_from_tag(tag) -> list[str] | None:
+    """Like extract_billing_cycles but accepts a BS4 tag, avoiding str→re-parse overhead."""
+    if tag is None:
+        return None
+    raw = tag.decode_contents() if hasattr(tag, "decode_contents") else str(tag)
+    return _extract_billing_cycles_from_tag_or_soup(tag, raw)
+
+
+def _extract_cycle_prices_from_tag_or_soup(tag_or_soup) -> dict[str, str] | None:
+    """Core implementation that works on an already-parsed BS4 tag or soup."""
     out: dict[str, str] = {}
 
     def add(raw_cycle: str | None, raw_text: str | None) -> None:
@@ -339,11 +344,11 @@ def extract_cycle_prices(html: str) -> dict[str, str] | None:
             return
         out.setdefault(cycle, price)
 
-    for sel in soup.select("select[name='billingcycle'], select[name*='billingcycle'], select[name='cycle'], select[name*='cycle']"):
+    for sel in tag_or_soup.select("select[name='billingcycle'], select[name*='billingcycle'], select[name='cycle'], select[name*='cycle']"):
         for opt in sel.find_all("option"):
             add(str(opt.get("value") or ""), opt.get_text(" ", strip=True))
 
-    for span in soup.select(".product-price[class*='cycle-']"):
+    for span in tag_or_soup.select(".product-price[class*='cycle-']"):
         classes = " ".join(span.get("class", []))
         code = None
         m = re.search(r"\bcycle-([a-z0-9]+)\b", classes, flags=re.IGNORECASE)
@@ -352,6 +357,26 @@ def extract_cycle_prices(html: str) -> dict[str, str] | None:
         add(code, span.get_text(" ", strip=True))
 
     return out or None
+
+
+def extract_cycle_prices(html: str) -> dict[str, str] | None:
+    raw = html or ""
+    if not raw:
+        return None
+
+    try:
+        soup = BeautifulSoup(raw, "lxml")
+    except Exception:
+        return None
+
+    return _extract_cycle_prices_from_tag_or_soup(soup)
+
+
+def extract_cycle_prices_from_tag(tag) -> dict[str, str] | None:
+    """Like extract_cycle_prices but accepts a BS4 tag, avoiding str→re-parse overhead."""
+    if tag is None:
+        return None
+    return _extract_cycle_prices_from_tag_or_soup(tag)
 
 
 _LOCATION_LABEL_HINTS = (
