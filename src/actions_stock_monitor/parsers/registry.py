@@ -36,8 +36,8 @@ _KNOWN_DOMAINS = [
     "www.lycheen.com",
     "cloud.tizz.yt",
     "bestvm.cloud",
-    "www.mkcloud.net",
-    "alphavps.com",
+
+
 ]
 
 _PARSERS = {d: GenericDomainParser(GenericParserConfig(domain=d)) for d in _KNOWN_DOMAINS}
