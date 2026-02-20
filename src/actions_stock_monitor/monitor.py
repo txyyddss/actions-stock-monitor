@@ -347,11 +347,24 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
         deduped: dict[str, Product] = {p.id: p for p in products}
 
         if _needs_discovery(products, base_url=fetch.url) or _should_force_discovery(fetch.text, base_url=fetch.url, domain=domain, product_count=len(deduped)):
+            raw_page_limit = os.environ.get("DISCOVERY_MAX_PAGES_PER_DOMAIN")
+            max_pages_limit = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 20
+            # Only apply higher defaults when the user hasn't explicitly configured a limit.
+            if raw_page_limit is None:
+                if domain == "greencloudvps.com":
+                    max_pages_limit = max(max_pages_limit, 60)
+                if _is_whmcs_domain(domain, fetch.text):
+                    max_pages_limit = max(max_pages_limit, 30)
+
             discovered = []
+            # Try domain-specific extra pages (including SPA API endpoints) first so we don't
+            # abort discovery after a streak of 404/blocked default entry points.
+            discovered.extend(_domain_extra_pages(domain))
             discovered.extend(_discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain))
             discovered.extend(_default_entrypoint_pages(fetch.url))
-            discovered.extend(_domain_extra_pages(domain))
             discovered = _dedupe_keep_order([u for u in discovered if u and u != fetch.url])
+            if max_pages_limit > 0:
+                discovered = discovered[:max_pages_limit]
 
             max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "500"))
             # Use a higher no-new threshold for WHMCS sites where each gid= page has
@@ -362,8 +375,12 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "6"))
             no_new_streak = 0
             fetch_error_streak = 0
+            pages_visited = 0
 
             for page_url in discovered:
+                if max_pages_limit > 0 and pages_visited >= max_pages_limit:
+                    break
+                pages_visited += 1
                 page_fetch = client.fetch_text(page_url)
                 if not page_fetch.ok or not page_fetch.text:
                     fetch_error_streak += 1
@@ -382,6 +399,8 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                 # Also discover more pages from this page's links.
                 more_pages = _discover_candidate_pages(page_fetch.text, base_url=page_fetch.url, domain=domain)
                 for mp in more_pages:
+                    if max_pages_limit > 0 and len(discovered) >= max_pages_limit:
+                        break
                     if mp and mp not in discovered and mp != fetch.url:
                         discovered.append(mp)
 
@@ -641,12 +660,15 @@ def _domain_extra_pages(domain: str) -> list[str]:
 
 
 def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[str]:
-    max_pages = int(os.getenv("DISCOVERY_MAX_PAGES_PER_DOMAIN", "20"))
-    if domain == "greencloudvps.com":
-        # GreenCloud uses many non-WHMCS *.php listing pages; allow more crawl depth.
-        max_pages = max(max_pages, 60)
-    if _is_whmcs_domain(domain, html):
-        max_pages = max(max_pages, 30)
+    raw_page_limit = os.environ.get("DISCOVERY_MAX_PAGES_PER_DOMAIN")
+    max_pages = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 20
+    # Only apply higher defaults when the user hasn't explicitly configured a limit.
+    if raw_page_limit is None:
+        if domain == "greencloudvps.com":
+            # GreenCloud uses many non-WHMCS *.php listing pages; allow more crawl depth.
+            max_pages = max(max_pages, 60)
+        if _is_whmcs_domain(domain, html):
+            max_pages = max(max_pages, 30)
     soup = BeautifulSoup(html, "lxml")
     base_netloc = urlparse(base_url).netloc.lower()
 

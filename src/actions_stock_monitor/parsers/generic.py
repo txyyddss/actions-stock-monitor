@@ -29,7 +29,20 @@ class GenericDomainParser:
 
     def parse(self, html: str, *, base_url: str) -> list[Product]:
         soup = BeautifulSoup(html, "lxml")
-        cards = list(self._iter_cards(soup))
+        # Some storefront pages (notably certain WHMCS cart pages) can be very large.
+        # Avoid worst-case selector scans by capping candidates and skipping expensive fallbacks.
+        is_large = len(html or "") >= 600_000
+        max_cards = 400 if is_large else 900
+        cards = []
+        seen_cards: set[int] = set()
+        for tag in self._iter_cards(soup, fast_only=is_large):
+            tid = id(tag)
+            if tid in seen_cards:
+                continue
+            seen_cards.add(tid)
+            cards.append(tag)
+            if len(cards) >= max_cards:
+                break
         products: list[Product] = []
         seen: set[str] = set()
         # Some templates (notably WHMCS store themes) use nested "package-*" elements.
@@ -98,11 +111,14 @@ class GenericDomainParser:
             )
         return products
 
-    def _iter_cards(self, soup: BeautifulSoup) -> Iterable:
+    def _iter_cards(self, soup: BeautifulSoup, *, fast_only: bool = False) -> Iterable:
         # High-signal "card" selectors used by common hosting storefronts.
         for sel in [".package", ".product", ".plan", ".pricing", ".card", ".tt-single-product"]:
             for tag in soup.select(sel):
                 yield tag
+
+        if fast_only:
+            return
 
         # Generic class-substring fallback for unknown templates.
         for hint in self._cfg.card_class_hints:
