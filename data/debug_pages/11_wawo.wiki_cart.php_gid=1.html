@@ -1,0 +1,874 @@
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>購物車 - 哇沃主機</title>
+    <!-- Styling -->
+<link href="/templates/hostim/img/favicon.png" rel="shortcut icon">
+<link href="/templates/hostim/css/all.min.css?v=271de1" rel="stylesheet">
+<link href="/templates/hostim/css/theme.min.css?v=271de1" rel="stylesheet">
+<link href="/assets/css/fontawesome-all.min.css" rel="stylesheet">
+<link href="/templates/hostim/css/swiper-bundle.min.css?v=271de1" rel="stylesheet">
+<link href="/templates/hostim/includes/tt/hostim/css/hostim.css" rel="stylesheet">
+
+<link href="/templates/hostim/css/custom.css" rel="stylesheet">
+
+<script>
+    var csrfToken = '487ddc183cd3887bc081d5097f0e4030f17c7e91',
+        markdownGuide = 'Markdown 使用教程',
+        locale = 'en',
+        saved = '已保存',
+        saving = '自動保存',
+        whmcsBaseUrl = "",
+        requiredText = '必填',
+        recaptchaSiteKey = "";
+</script>
+<script src="/templates/hostim/js/scripts.min.js?v=271de1"></script>
+
+    
+</head>
+<body class="tt-body-wrapper ">
+
+
+
+<!--for single navbar include this "tt-single-navbar.tpl" file
+and for double navbar then include this "tt-double-navbar.tpl" file-->
+<header id="header" class="header tt-header">
+    <div class="overlay"></div>
+    <div class="navbar navbar-light">
+        <div class="container">
+
+               
+<a class="navbar-brand mr-3" href="/index.php">
+    <img src="https://wawo.wiki/logo.svg" alt="哇沃主機" class="logo-img">
+</a>
+
+            <div class="navbar navbar-expand-xl main-navbar-wrapper tt-main-header offcanvas-collapse">
+                <div class="" id="mainNavbar">
+                    <form method="post" action="/index.php?rp=/knowledgebase/search" class="d-xl-none">
+<input type="hidden" name="token" value="487ddc183cd3887bc081d5097f0e4030f17c7e91">
+                        <div class="input-group search w-100 mb-2">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-default" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <input class="form-control prepended-form-control" type="text" name="search" placeholder="搜索我們的幫助文檔...">
+                        </div>
+                    </form>
+                    <ul id="nav" class="navbar-nav mr-auto">
+                            <li menuitemname="Home" class="d-block no-collapse" id="Primary_Navbar-Home">
+        <a class="pr-4" href="/index.php">
+                        用戶中心
+                    </a>
+            </li>
+    <li menuitemname="Store" class="d-block dropdown no-collapse" id="Primary_Navbar-Store">
+        <a class="pr-4 dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">
+                        在線購買
+                    </a>
+                    <ul class="dropdown-menu">
+                                                <li menuitemname="Browse Products Services" class="dropdown-item" id="Primary_Navbar-Store-Browse_Products_Services">
+                        <a href="/index.php?rp=/store" class="dropdown-item px-2 py-0">
+                                                        瀏覽全部
+                                                    </a>
+                    </li>
+                                                                <div class="dropdown-divider"></div>
+                                                                <li menuitemname="HkPis-Kvm-A組" class="dropdown-item" id="Primary_Navbar-Store-HkPis-Kvm-A組">
+                        <a href="/index.php?rp=/store/hkpis-vps-ipv4" class="dropdown-item px-2 py-0">
+                                                        HkPis-Kvm-A組
+                                                    </a>
+                    </li>
+                                                                <li menuitemname="Hkone-Kvm-B組" class="dropdown-item" id="Primary_Navbar-Store-Hkone-Kvm-B組">
+                        <a href="/index.php?rp=/store/hkone" class="dropdown-item px-2 py-0">
+                                                        Hkone-Kvm-B組
+                                                    </a>
+                    </li>
+                                                                <li menuitemname="商業寬頻-Kvm-E組" class="dropdown-item" id="Primary_Navbar-Store-商業寬頻-Kvm-E組">
+                        <a href="/index.php?rp=/store/ip-vps-bbi" class="dropdown-item px-2 py-0">
+                                                        商業寬頻-Kvm-E組
+                                                    </a>
+                    </li>
+                                                                <li menuitemname="專用伺服器" class="dropdown-item" id="Primary_Navbar-Store-專用伺服器">
+                        <a href="/index.php?rp=/store/zhuan-yong-si-fu-qi" class="dropdown-item px-2 py-0">
+                                                        專用伺服器
+                                                    </a>
+                    </li>
+                                        </ul>
+            </li>
+    <li menuitemname="Announcements" class="d-block" id="Primary_Navbar-Announcements">
+        <a class="pr-4" href="/index.php?rp=/announcements">
+                        最新公告
+                    </a>
+            </li>
+    <li menuitemname="Knowledgebase" class="d-block" id="Primary_Navbar-Knowledgebase">
+        <a class="pr-4" href="/index.php?rp=/knowledgebase">
+                        幫助中心
+                    </a>
+            </li>
+    <li menuitemname="Affiliates" class="d-block" id="Primary_Navbar-Affiliates">
+        <a class="pr-4" href="/affiliates.php">
+                        用戶推廣
+                    </a>
+            </li>
+    <li menuitemname="Contact Us" class="d-block" id="Primary_Navbar-Contact_Us">
+        <a class="pr-4" href="/contact.php">
+                        聯系我們
+                    </a>
+            </li>
+    <li class="d-none dropdown collapsable-dropdown">
+        <a class="dropdown-toggle" href="#" id="navbarDropdownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            更多
+        </a>
+        <ul class="collapsable-dropdown-menu dropdown-menu" aria-labelledby="navbarDropdownMenu">
+        </ul>
+    </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="tt-main-header tt-toolbar-wrap">
+                <ul class="navbar-nav toolbar tt-toolbar-wrap tt-secondary-list">
+
+                    <li class="nav-item dropdown d-none d-lg-none d-xl-block">
+                        <a href="javascript:void(0)" id="dropdownMenuButton" class="position-relative mr-2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fal fa-search fa-fw"></i>
+                        </a>
+                        <form method="post" action="/index.php?rp=/knowledgebase/search" class="position-absolute form-inline dropdown-menu dropdown-menu-right p-4 bg-gray-light border-0" aria-labelledby="dropdownMenuButton">
+<input type="hidden" name="token" value="487ddc183cd3887bc081d5097f0e4030f17c7e91">
+                            <div class="input-group search d-none d-xl-flex">
+                                <div class="input-group-prepend">
+                                    <button class="btn-default border-0" type="submit">
+                                        <i class="fal fa-search"></i>
+                                    </button>
+                                </div>
+                                <input class="form-control appended-form-control font-weight-light" type="text" name="search" placeholder="搜索我們的幫助文檔...">
+                            </div>
+                        </form>
+                    </li>
+
+                                                                        <li class="nav-item">
+                                <a href="/register.php" class="btn-sm"><i class="fal fa-user"></i> <span class="tt-hide-sm ml-1"> 註冊賬戶</span></a>
+                            </li>
+                                                <li class="nav-item">
+                            <a href="/clientarea.php" class="btn-sm"><i class="fal fa-sign-in"></i> <span class="tt-hide-sm ml-1"> 用戶登錄</span></a>
+                        </li>
+                                        <li class="nav-item">
+                        <a class="btn nav-link cart-btn" href="/cart.php?a=view">
+                            <i class="fal fa-shopping-bag fa-fw"></i>
+                            <span id="cartItemCount" class="tt-cart-badge rounded-circle">0</span>
+                            <span class="sr-only">購物車</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ml-2 d-xl-none">
+                        <button class="btn nav-link" type="button" data-toggle="offcanvas">
+                            <span class="far fa-bars fa-fw"></span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <section class="tt-page-header py-5 bg-gradient">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="tt-page-header-info">
+                        <h1 class="text-white mb-0 h3">
+                                                            購物車
+                                                    </h1>
+                        
+                                                <div class="tt-breadcrumb">
+                            <span class="tt-triangle-right"></span>
+                            <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page">
+                        購物車
+                    </li>
+    </ol>
+                        </div>
+                                            </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+
+
+<script disable-devtool-auto="" src="https://cdn.jsdelivr.net/npm/disable-devtool"></script>
+<section id="main-body" class=" ">
+    <div class="container">
+                            <div class=" primary-content">
+                
+
+<link rel="stylesheet" type="text/css" href="/templates/orderforms/themetags_cart/css/all.min.css?v=271de1">
+<link rel="stylesheet" type="text/css" href="/templates/orderforms/themetags_cart/css/custom.css?v=271de1">
+<script type="text/javascript" src="/templates/orderforms/themetags_cart/js/scripts.min.js?v=271de1"></script>
+<div id="order-standard_cart">
+    <div class="row">
+        <div class="cart-sidebar sidebar">
+                <div menuitemname="Categories" class="panel card card-sidebar mb-3 panel-sidebar">
+        <div class="panel-heading card-header">
+            <h3 class="panel-title">
+                                    <i class="fas fa-shopping-cart"></i>&nbsp;
+                
+                分類
+
+                
+                <i class="fas fa-chevron-up card-minimise panel-minimise pull-right float-right"></i>
+            </h3>
+        </div>
+
+        
+                    <div class="list-group collapsable-card-body">
+                                                            <a menuitemname="HkPis-Kvm-A組" href="/index.php?rp=/store/hkpis-vps-ipv4" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-HkPis-Kvm-A組">
+                            
+                            HkPis-Kvm-A組
+
+                                                    </a>
+                                                                                <a menuitemname="Hkone-Kvm-B組" href="/index.php?rp=/store/hkone" class="list-group-item list-group-item-action active" id="Secondary_Sidebar-Categories-Hkone-Kvm-B組">
+                            
+                            Hkone-Kvm-B組
+
+                                                    </a>
+                                                                                <a menuitemname="商業寬頻-Kvm-E組" href="/index.php?rp=/store/ip-vps-bbi" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-商業寬頻-Kvm-E組">
+                            
+                            商業寬頻-Kvm-E組
+
+                                                    </a>
+                                                                                <a menuitemname="專用伺服器" href="/index.php?rp=/store/zhuan-yong-si-fu-qi" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-專用伺服器">
+                            
+                            專用伺服器
+
+                                                    </a>
+                                                </div>
+        
+            </div>
+
+        <div menuitemname="Actions" class="panel card card-sidebar mb-3 panel-sidebar">
+        <div class="panel-heading card-header">
+            <h3 class="panel-title">
+                                    <i class="fas fa-plus"></i>&nbsp;
+                
+                操作
+
+                
+                <i class="fas fa-chevron-up card-minimise panel-minimise pull-right float-right"></i>
+            </h3>
+        </div>
+
+        
+                    <div class="list-group collapsable-card-body">
+                                                            <a menuitemname="View Cart" href="/cart.php?a=view" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Actions-View_Cart">
+                                                            <i class="fas fa-shopping-cart fa-fw"></i>&nbsp;
+                            
+                            查看購物車
+
+                                                    </a>
+                                                </div>
+        
+            </div>
+
+            </div>
+        <div class="cart-body">
+            <div class="header-lined">
+                <h2 class="font-size-22">
+                                            Hkone-Kvm-B組
+                                    </h2>
+                                    <p>線路:通過GSL/CO/PCCWG/EIE/HKIX/CMI/HGC/HKBN到達全球網絡</p>
+                            </div>
+            
+            <div class="sidebar-collapsed">
+
+            <div class="panel card panel-default">
+                <div class="m-0 panel-heading card-header">
+        <h3 class="panel-title">
+                            <i class="fas fa-shopping-cart"></i>&nbsp;
+            
+            分類
+
+                    </h3>
+    </div>
+
+    <div class="panel-body card-body">
+        <form role="form">
+            <select class="form-control custom-select" onchange="selectChangeNavigate(this)">
+                                                    <option menuitemname="HkPis-Kvm-A組" value="/index.php?rp=/store/hkpis-vps-ipv4" class="list-group-item">
+                        HkPis-Kvm-A組
+
+                                            </option>
+                                                        <option menuitemname="Hkone-Kvm-B組" value="/index.php?rp=/store/hkone" class="list-group-item" selected="selected">
+                        Hkone-Kvm-B組
+
+                                            </option>
+                                                                                                    <option menuitemname="商業寬頻-Kvm-E組" value="/index.php?rp=/store/ip-vps-bbi" class="list-group-item">
+                        商業寬頻-Kvm-E組
+
+                                            </option>
+                                                        <option menuitemname="專用伺服器" value="/index.php?rp=/store/zhuan-yong-si-fu-qi" class="list-group-item">
+                        專用伺服器
+
+                                            </option>
+                                                                </select>
+        </form>
+    </div>
+
+            </div>
+            <div class="panel card panel-default">
+                <div class="m-0 panel-heading card-header">
+        <h3 class="panel-title">
+                            <i class="fas fa-plus"></i>&nbsp;
+            
+            操作
+
+                    </h3>
+    </div>
+
+    <div class="panel-body card-body">
+        <form role="form">
+            <select class="form-control custom-select" onchange="selectChangeNavigate(this)">
+                                                    <option menuitemname="View Cart" value="/cart.php?a=view" class="list-group-item">
+                        查看購物車
+
+                                            </option>
+                                                                        <option value="" class="list-group-item" selected="">- 選擇其它分類 -</option>
+                            </select>
+        </form>
+    </div>
+
+            </div>
+    
+    
+</div>
+
+            <div class="products" id="products">
+                <div class="row row-eq-height">
+                                                                <div class="col-md-6 col-lg-4">
+                        <div class="tt-single-product text-center px-3 py-5 my-3 tt-custom-radius clearfix" id="product42">
+                                                        <div class="tt-product-name">
+                                <h5 id="product42-name">Hk-One-1G-27-F</h5>
+                            </div>
+                            <div class="product-pricing tt-product-price mt-3" id="product42-price">
+                                <span class="tt-cycle d-block text-muted">
+                                                                                                        </span>
+                                    <span class="price">¥65.00CNY</span>
+                                    <br>
+                                    <span class="text-muted mb-0 tt-cycle">
+                                                                                                                                    每月
+                                                                                                                        </span>
+                                    <br>
+                                                                                                </div>
+                            <div>
+                                                                    <span class="qty text-muted small">
+                                        17 可用
+                                    </span>
+                                                            </div>
+                            <div class="product-desc py-3 tt-product-desc">
+                                                                    <div id="product42-description">
+                                        處理器 1vcpu|E5<br>
+記憶體 1024M<br>
+磁盤 10G SSD|NVME<br>
+流量 1000GB |雙向<br>
+峰值 500Mbps<br>
+IP地址 ipv4*1（廣播 IP）<br>
+IP地址 ipv6*1（香港 IP）<br>
+購買前請仔細閱讀TOS<br>
+1.ip被墻，請在二十四小時內發工單。<br>
+2.禁止禁止mtp 公共代理 挖矿 ss/ssr 等<br>
+
+                                    </div>
+                                                                <ul class="mb-0">
+                                                                    </ul>
+                            </div>
+                            <a href="/index.php?rp=/store/hkone/hk-one-1g-27-f" class="btn btn-primary btn-order-now" id="product42-order-button">
+                                立即訂購
+                            </a>
+                        </div>
+                    </div>
+                                                                                    <div class="col-md-6 col-lg-4">
+                        <div class="tt-single-product text-center px-3 py-5 my-3 tt-custom-radius clearfix" id="product79">
+                                                        <div class="tt-product-name">
+                                <h5 id="product79-name">Hk-One-2G-28-K</h5>
+                            </div>
+                            <div class="product-pricing tt-product-price mt-3" id="product79-price">
+                                <span class="tt-cycle d-block text-muted">
+                                                                                                        </span>
+                                    <span class="price">¥80.00CNY</span>
+                                    <br>
+                                    <span class="text-muted mb-0 tt-cycle">
+                                                                                                                                    每月
+                                                                                                                        </span>
+                                    <br>
+                                                                                                </div>
+                            <div>
+                                                                    <span class="qty text-muted small">
+                                        17 可用
+                                    </span>
+                                                            </div>
+                            <div class="product-desc py-3 tt-product-desc">
+                                                                    <div id="product79-description">
+                                        處理器 2vcpu<br>
+記憶體 2048M<br>
+磁盤 30G SSD|NVME<br>
+流量 1000GB |雙向<br>
+峰值 500Mbps<br>
+IP地址 ipv4*1（廣播 IP）<br>
+IP地址 ipv6*1（香港 IP）<br>
+購買前請仔細閱讀TOS<br>
+1.ip被墻，請在二十四小時內發工單。<br>
+2.禁止禁止mtp 公共代理 挖矿 ss/ssr 等<br>
+
+                                    </div>
+                                                                <ul class="mb-0">
+                                                                    </ul>
+                            </div>
+                            <a href="/index.php?rp=/store/hkone/hkbgp-one-2g-45-k" class="btn btn-primary btn-order-now" id="product79-order-button">
+                                立即訂購
+                            </a>
+                        </div>
+                    </div>
+                                                                                    <div class="col-md-6 col-lg-4">
+                        <div class="tt-single-product text-center px-3 py-5 my-3 tt-custom-radius clearfix" id="product54">
+                                                        <div class="tt-product-name">
+                                <h5 id="product54-name">Hk-One-4G-29-K</h5>
+                            </div>
+                            <div class="product-pricing tt-product-price mt-3" id="product54-price">
+                                <span class="tt-cycle d-block text-muted">
+                                                                                                        </span>
+                                    <span class="price">¥129.00CNY</span>
+                                    <br>
+                                    <span class="text-muted mb-0 tt-cycle">
+                                                                                                                                    每月
+                                                                                                                        </span>
+                                    <br>
+                                                                                                </div>
+                            <div>
+                                                                    <span class="qty text-muted small">
+                                        7 可用
+                                    </span>
+                                                            </div>
+                            <div class="product-desc py-3 tt-product-desc">
+                                                                    <div id="product54-description">
+                                        處理器 2vcpu|E5<br>
+記憶體 4096M<br>
+磁盤 15G SSD|NVME<br>
+流量 2500GB |雙向<br>
+峰值 500Mbps<br>
+IP地址 ipv4*1（廣播 IP）<br>
+IP地址 ipv6*1（香港 IP）<br>
+購買前請仔細閱讀TOS<br>
+1.ip被墻，請在二十四小時內發工單。<br>
+2.禁止禁止mtp 公共代理 挖矿 ss/ssr 等<br>
+
+                                    </div>
+                                                                <ul class="mb-0">
+                                                                    </ul>
+                            </div>
+                            <a href="/index.php?rp=/store/hkone/hk-one-4g-29-k" class="btn btn-primary btn-order-now" id="product54-order-button">
+                                立即訂購
+                            </a>
+                        </div>
+                    </div>
+                                    </div>
+                <div class="row row-eq-height">
+                                                        </div>
+            </div>
+
+                                    
+            
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="recommendationsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="float-left pull-left">
+                                            已加入購物車
+                                    </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <div class="clearfix"></div>
+            </div>
+            <div class="modal-body">
+                <div class="product-recommendations-container">
+    <div class="product-recommendations">
+                    <p>基於此產品，我們推薦：</p>
+                    </div>
+</div>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-primary" href="#" id="btnContinueRecommendationsModal" data-dismiss="modal" role="button">
+                    <span class="w-hidden hidden"><i class="fas fa-spinner fa-spin"></i>&nbsp;</span>繼續
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="product-recommendation clonable w-hidden hidden">
+        <div class="header">
+            <div class="cta">
+                <div class="price">
+                    <span class="w-hidden hidden">免費！</span>
+                    <span class="breakdown-price"></span>
+                    <span class="setup-fee"><small>&nbsp;初裝費</small></span>
+                </div>
+                <button type="button" class="btn btn-sm btn-add">
+                    <span class="text">添加到購物車</span>
+                    <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+                </button>
+            </div>
+            <div class="expander">
+                <i class="fas fa-chevron-right rotate" data-toggle="tooltip" data-placement="right" title="點擊了解更多。"></i>
+            </div>
+            <div class="content">
+                <div class="headline truncate"></div>
+                <div class="tagline truncate">
+                    該產品沒有描述（標語）。
+                </div>
+            </div>
+        </div>
+        <div class="body clearfix"><p></p></div>
+    </div>
+</div>
+
+
+        </div>
+
+                        </div>
+                                            <div class="clearfix"></div>
+                
+            
+        </section>
+
+    
+
+    <footer id="footer" class="footer py-0 bg-dark tt-footer">
+        <div class="tt-footer-top ptb-60">
+            <div class="container">
+               <div class="row">
+                   <div class="col-lg-3 col-md-6">
+                       <div class="tt-footer-widget">
+                           <h6 class="text-white">Our Address</h6>
+                           <address class="mt-3">
+                               49 Flinstone Avenue Oakland, <br>
+                               Nebraska, United States,<br>
+                               <abbr title="Phone">P: (08) 8204 2898</abbr>
+                           </address>
+                           <ul class="list-inline mb-0">
+                                                          </ul>
+                       </div>
+                   </div>
+                   <div class="col-lg-3 col-md-6">
+                       <div class="tt-footer-widget">
+                           <h6 class="text-white">Our Products</h6>
+                            <ul class="list-unstyled tt-footer-menu mt-3">
+                                <li>
+                                    <a href="/contact.php">
+                                        聯系我們
+                                    </a>
+                                </li>
+                                                                    <li>
+                                        <a href="https://wawo.wiki/index.php?rp=/knowledgebase/1/%E6%9C%8D%E5%8A%A1%E5%8D%8F%E8%AE%AE-Terms-Of-Service.html" target="_blank">服務條款</a>
+                                    </li>
+                                                            </ul>
+                       </div>
+                   </div>
+                   <div class="col-lg-3 col-md-6">
+                       <div class="tt-footer-widget">
+                           <h6 class="text-white">帮助中心</h6>
+                           <ul class="list-unstyled tt-footer-menu mt-3">
+                               <li><a href="https://wawo.wiki/index.php?rp=/knowledgebase/2/VPS%E8%BD%89%E5%8D%80%E6%9C%8D%E5%8B%99%E5%8D%94%E5%AE%9A.html">VPS轉區服務協定</a></li>
+                               <li><a href="https://wawo.wiki/index.php?rp=/knowledgebase/1/%E6%9C%8D%E5%8A%A1%E5%8D%8F%E8%AE%AE-Terms-Of-Service.html">服务协议 (Terms Of Service)</a></li>
+                               <li><a href="https://wawo.wiki/index.php?rp=/knowledgebase/3/%E6%9C%8D%E5%8B%99push%E9%81%8E%E6%88%B6%E5%8D%94%E8%AD%B0.html">服務（push）過戶協議</a></li>
+                           </ul>
+                       </div>
+                   </div>
+                   <div class="col-lg-3 col-md-6">
+                       <div class="tt-footer-widget">
+                           <h6 class="text-white">We Accepted</h6>
+                           <img src="/templates/hostim/img/icon-payments.png" class="img-fluid mt-3" alt="support image">
+                       </div>
+                   </div>
+               </div>
+            </div>
+        </div>
+        <div class="tt-footer-bottom py-3">
+            <div class="container">
+                <div class="row align-items-center justify-content-lg-between">
+                    <div class="col-lg-7">
+                        <p class="copyright text-left mb-0 mt-0">
+                            Copyright © 2026 哇沃主機. All Rights Reserved.
+                        </p>
+                    </div>
+                    <div class="col-lg-4">
+                        <ul class="list-inline mb-0 float-lg-right">
+                                                            <li class="list-inline-item">
+                                    <button type="button" class="btn" data-toggle="modal" data-target="#modalChooseLanguage">
+                                        <div class="d-inline-block align-middle">
+                                            <div class="iti-flag cn"></div>
+                                        </div>
+                                        中文
+                                        /
+                                        ¥
+                                        CNY
+                                    </button>
+                                </li>
+                                                    </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div id="fullpage-overlay" class="w-hidden" style="display: none;">
+        <div class="outer-wrapper">
+            <div class="inner-wrapper">
+                <img src="/assets/img/overlay-spinner.svg" alt="">
+                <br>
+                <span class="msg"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal system-modal fade" id="modalAjax" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">×</span>
+                        <span class="sr-only">關閉</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    加載中…
+                </div>
+                <div class="modal-footer">
+                    <div class="float-left loader">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        加載中…
+                    </div>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        關閉
+                    </button>
+                    <button type="button" class="btn btn-primary modal-submit">
+                        提交
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="get" action="/index.php?rp=%2Fstore%2Fhkone&amp;">
+        <div class="modal modal-localisation" id="modalChooseLanguage" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-body p-4">
+                        <div class="d-flex align-items-center justify-content-between pb-3">
+                            <h5>選擇語言</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                            </button>
+                        </div>
+
+                        
+                            <div class="row item-selector">
+                            <input type="hidden" name="language" value="chinese">
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="arabic">
+                                            العربية
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="azerbaijani">
+                                            Azerbaijani
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="catalan">
+                                            Català
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item active" data-value="chinese">
+                                            中文
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="croatian">
+                                            Hrvatski
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="czech">
+                                            Čeština
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="danish">
+                                            Dansk
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="dutch">
+                                            Nederlands
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="english">
+                                            English
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="estonian">
+                                            Estonian
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="farsi">
+                                            Persian
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="french">
+                                            Français
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="german">
+                                            Deutsch
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="hebrew">
+                                            עברית
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="hungarian">
+                                            Magyar
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="italian">
+                                            Italiano
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="macedonian">
+                                            Macedonian
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="norwegian">
+                                            Norwegian
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="portuguese-br">
+                                            Português
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="portuguese-pt">
+                                            Português
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="romanian">
+                                            Română
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="russian">
+                                            Русский
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="spanish">
+                                            Español
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="swedish">
+                                            Svenska
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="turkish">
+                                            Türkçe
+                                        </a>
+                                    </div>
+                                                                    <div class="col-6 col-lg-3">
+                                        <a href="#" class="item" data-value="ukranian">
+                                            Українська
+                                        </a>
+                                    </div>
+                                                            </div>
+                                                
+                        <button type="submit" class="btn btn-primary mt-4">Apply Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    
+    <form action="#" id="frmGeneratePassword">
+    <div class="modal fade" id="modalGeneratePassword">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-gray-light text-white">
+                    <h5 class="modal-title">
+                        生成密碼
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger w-hidden" id="generatePwLengthError">
+                        請為密碼長度輸入一個介於8和64之間的數字
+                    </div>
+                    <div class="form-group">
+                        <label for="generatePwLength" class="col-form-label">密碼長度</label>
+                        <input type="number" min="8" max="64" value="12" step="1" class="form-control input-inline" id="inputGeneratePasswordLength">
+                    </div>
+                    <div class="form-group">
+                        <label for="generatePwOutput" class="col-form-label">生成的密碼</label>
+                        <input type="text" class="form-control" id="inputGeneratePasswordOutput">
+
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-default btn-sm">
+                                <i class="fad fa-key fa-fw"></i>
+                                生成新密碼
+                            </button>
+                            <button type="button" class="btn btn-default btn-sm copy-to-clipboard" data-clipboard-target="#inputGeneratePasswordOutput">
+                                <i class="fad fa-copy mr-2"></i>
+                                復製
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        關閉
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnGeneratePasswordInsert" data-clipboard-target="#inputGeneratePasswordOutput">
+                        復製到剪貼板並插入
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+    
+    <script src="/templates/hostim/js/swiper-bundle.min.js"></script>
+    <script src="/templates/hostim/js/jquery.easing.min.js"></script>
+    <script src="/templates/hostim/js/custom.js?v=271de1"></script>
+<script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;e88274078e1c4a09a5fd04b8f042b349&quot;,&quot;r&quot;:1,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9d0b06a33d6ea9bb',t:'MTc3MTU1OTI4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;"></iframe>
+
+<div id="lightboxOverlay" class="lightboxOverlay" style="display: none;"></div><div id="lightbox" class="lightbox" style="display: none;"><div class="lb-outerContainer"><div class="lb-container"><img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="><div class="lb-nav"><a class="lb-prev" href=""></a><a class="lb-next" href=""></a></div><div class="lb-loader"><a class="lb-cancel"></a></div></div></div><div class="lb-dataContainer"><div class="lb-data"><div class="lb-details"><span class="lb-caption"></span><span class="lb-number"></span></div><div class="lb-closeContainer"><a class="lb-close"></a></div></div></div></div></body></html>

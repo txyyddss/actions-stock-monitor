@@ -1,0 +1,4235 @@
+{
+  "domains": {
+    "clientarea.gigsgigscloud.com": {
+      "last_duration_ms": 126353,
+      "last_error": null,
+      "last_ok": "2026-02-20T04:47:47+00:00",
+      "last_status": "ok"
+    },
+    "clients.zgovps.com": {
+      "last_duration_ms": 53529,
+      "last_error": null,
+      "last_ok": "2026-02-20T04:47:47+00:00",
+      "last_status": "ok"
+    },
+    "vps.hosting": {
+      "last_duration_ms": 64911,
+      "last_error": null,
+      "last_ok": "2026-02-20T04:47:47+00:00",
+      "last_status": "ok"
+    }
+  },
+  "last_run": {
+    "finished_at": "2026-02-20T04:47:47+00:00",
+    "started_at": "2026-02-20T04:45:40+00:00"
+  },
+  "products": {
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/cdn-dns?action=add&id=230": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Semiannual",
+        "Yearly"
+      ],
+      "currency": null,
+      "description": "Continue",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "cdn-dns",
+      "option": "Cdn Dns",
+      "price": null,
+      "specs": {
+        "Cycles": "Monthly, Semiannual, Yearly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/cdn-dns/?action=add&id=230",
+      "variant_of": "Cdn Dns"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/cdn-dns?action=add&id=247": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Semiannual",
+        "Yearly"
+      ],
+      "currency": null,
+      "description": "Continue",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "cdn-dns",
+      "option": "Cdn Dns",
+      "price": null,
+      "specs": {
+        "Cycles": "Monthly, Semiannual, Yearly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/cdn-dns/?action=add&id=247",
+      "variant_of": "Cdn Dns"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/cdn-dns?action=add&id=279": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Semiannual",
+        "Yearly"
+      ],
+      "currency": null,
+      "description": "Continue",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "cdn-dns",
+      "option": "Cdn Dns",
+      "price": null,
+      "specs": {
+        "Cycles": "Monthly, Semiannual, Yearly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/cdn-dns/?action=add&id=279",
+      "variant_of": "Cdn Dns"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--global-route?action=add&id=339": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: GLOBAL - K01 $5.00 USD $13.00 USD $50.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 20G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 1TB Port Speed (Peak) 1Gbps VM Snapshot Optional Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: GLOBAL - K01",
+      "option": "Hk",
+      "price": "5.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "GLOBAL - K01 $5.00 USD $13.00 USD $50.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--global-route/?action=add&id=339",
+      "variant_of": "Hk Global Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--global-route?action=add&id=340": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: GLOBAL - K02 $10.00 USD $28.00 USD $100.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 2G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 2TB Port Speed (Peak) 1Gbps VM Snapshot 2x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: GLOBAL - K02",
+      "option": "Hk",
+      "price": "10.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "GLOBAL - K02 $10.00 USD $28.00 USD $100.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--global-route/?action=add&id=340",
+      "variant_of": "Hk Global Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--global-route?action=add&id=341": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: GLOBAL - K03 $20.00 USD $55.00 USD $200.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 4G OS Disk (SSD) 50G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 3TB Port Speed (Peak) 1Gbps VM Snapshot 5x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: GLOBAL - K03",
+      "option": "Hk",
+      "price": "20.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "GLOBAL - K03 $20.00 USD $55.00 USD $200.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--global-route/?action=add&id=341",
+      "variant_of": "Hk Global Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--global-route?action=add&id=426": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: GLOBAL - K04 $40.00 USD $120.00 USD $400.00 USD / Bulanan Triwulan Tahunan CPU 4x vCore RAM 8G OS Disk (SSD) 100G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 4TB Port Speed (Peak) 1Gbps VM Snapshot 5x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: GLOBAL - K04",
+      "option": "Hk",
+      "price": "40.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "GLOBAL - K04 $40.00 USD $120.00 USD $400.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--global-route/?action=add&id=426",
+      "variant_of": "Hk Global Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--global-route?action=add&id=427": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: GLOBAL - K05 $80.00 USD $240.00 USD $800.00 USD / Bulanan Triwulan Tahunan CPU 6x vCore RAM 16G OS Disk (SSD) 200G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 5TB Port Speed (Peak) 1Gbps VM Snapshot 5x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: GLOBAL - K05",
+      "option": "Hk",
+      "price": "80.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "GLOBAL - K05 $80.00 USD $240.00 USD $800.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--global-route/?action=add&id=427",
+      "variant_of": "Hk Global Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--premium-china-route?action=add&id=342": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Premium - V1 $22.00 USD $66.00 USD $242.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 20G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 100G Port Speed (Peak) 10Mbps VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Premium - V1",
+      "option": "Hk Premium China Route",
+      "price": "22.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Premium - V1 $22.00 USD $66.00 USD $242.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--premium-china-route/?action=add&id=342",
+      "variant_of": "Hk Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--premium-china-route?action=add&id=343": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Premium - V2 $44.00 USD $132.00 USD $484.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 2G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 180G Port Speed (Peak) 15Mbps VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Premium - V2",
+      "option": "Hk Premium China Route",
+      "price": "44.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Premium - V2 $44.00 USD $132.00 USD $484.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--premium-china-route/?action=add&id=343",
+      "variant_of": "Hk Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--premium-china-route?action=add&id=344": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Premium - V3 $88.00 USD $264.00 USD $968.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 4G OS Disk (SSD) 50G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 250G Port Speed (Peak) 30Mbps VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Premium - V3",
+      "option": "Hk Premium China Route",
+      "price": "88.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Premium - V3 $88.00 USD $264.00 USD $968.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--premium-china-route/?action=add&id=344",
+      "variant_of": "Hk Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--premium-china-route?action=add&id=423": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Premium - V4 $138.00 USD $414.00 USD $1,380.00 USD / Bulanan Triwulan Tahunan CPU 4 vCore RAM 8G OS Disk (SSD) 50G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 500G Port Speed (Peak) 30Mbps VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Premium - V4",
+      "option": "Hk Premium China Route",
+      "price": "138.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Premium - V4 $138.00 USD $414.00 USD $1,380.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--premium-china-route/?action=add&id=423",
+      "variant_of": "Hk Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--premium-china-route?action=add&id=424": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Premium - V5 $199.00 USD $597.00 USD $1,990.00 USD / Bulanan Triwulan Tahunan CPU 6 vCore RAM 12G OS Disk (SSD) 100G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 800G Port Speed (Peak) 50Mbps VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Premium - V5",
+      "option": "Hk Premium China Route",
+      "price": "199.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Premium - V5 $199.00 USD $597.00 USD $1,990.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--premium-china-route/?action=add&id=424",
+      "variant_of": "Hk Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route?action=add&id=333": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Standard - K01.MINI $10.00 USD $30.00 USD $100.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 10G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 300G Port Speed (Peak) 30Mbps VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Standard - K01.MINI",
+      "option": "Hk Standard China Route",
+      "price": "10.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Standard - K01.MINI $10.00 USD $30.00 USD $100.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route/?action=add&id=333",
+      "variant_of": "Hk Standard China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route?action=add&id=334": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Standard - K02.MINI $20.00 USD $60.00 USD $200.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 2G OS Disk (SSD) 20G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 600G Port Speed (Peak) 50Mbps VM Snapshot 2x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Standard - K02.MINI",
+      "option": "Hk Standard China Route",
+      "price": "20.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Standard - K02.MINI $20.00 USD $60.00 USD $200.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route/?action=add&id=334",
+      "variant_of": "Hk Standard China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route?action=add&id=335": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Standard - K03.MINI $30.00 USD $90.00 USD $300.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 4G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 800G Port Speed (Peak) 50Mbps VM Snapshot 5x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Standard - K03.MINI",
+      "option": "Hk Standard China Route",
+      "price": "30.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Standard - K03.MINI $30.00 USD $90.00 USD $300.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route/?action=add&id=335",
+      "variant_of": "Hk Standard China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route?action=add&id=336": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Standard - K01.MEGA $10.00 USD $30.00 USD $100.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 20G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 120G Port Speed (Peak) 1Gbps VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Standard - K01.MEGA",
+      "option": "Hk Standard China Route",
+      "price": "10.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Standard - K01.MEGA $10.00 USD $30.00 USD $100.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route/?action=add&id=336",
+      "variant_of": "Hk Standard China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route?action=add&id=337": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Standard - K02.MEGA $20.00 USD $60.00 USD $200.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 2G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 220G Port Speed (Peak) 1Gbps VM Snapshot 2x Disl Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Standard - K02.MEGA",
+      "option": "Hk Standard China Route",
+      "price": "20.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Standard - K02.MEGA $20.00 USD $60.00 USD $200.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route/?action=add&id=337",
+      "variant_of": "Hk Standard China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route?action=add&id=338": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "HKG: CN Standard - K03.MEGA $30.00 USD $90.00 USD $300.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 4G OS Disk (SSD) 50G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 330G Port Speed (Peak) 1Gbps VM Snapshot 5x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG: CN Standard - K03.MEGA",
+      "option": "Hk Standard China Route",
+      "price": "30.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "HKG": "CN Standard - K03.MEGA $30.00 USD $90.00 USD $300.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk--standard-china-route/?action=add&id=338",
+      "variant_of": "Hk Standard China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=106": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Semiannual",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E3 + $139.00 USD $389.00 USD $699.00 USD $1,230.00 USD / Bulanan Triwulan Semester Tahunan CPU Intel Xeon E3 Processor RAM 16GB ECC Storage 1TB SATA Network 1Gbps Port Bandwidth 100Mbps PCCW Shared Data Transfer 6TB IP address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E3 +",
+      "option": "Hk",
+      "price": "139.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Semiannual, Yearly",
+        "Port": "1Gbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=106",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=168": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Intel ATOM Dual Core CPU $69.00 USD $180.00 USD $600.00 USD / Bulanan Triwulan Tahunan Dedicated Server Speficatations RAM",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel ATOM Dual Core CPU",
+      "option": "Hk",
+      "price": "69.00 USD",
+      "specs": {
+        "1": "Dedicated Server Speficatations",
+        "Cycles": "Monthly, Quarterly, Yearly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=168",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=261": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Semiannual",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E3 ( CN2 AntiDDOS) $269.00 USD $769.00 USD $1,469.00 USD $2,769.00 USD / Bulanan Triwulan Semester Tahunan CPU E3-1230V2 RAM 16G ECC Disk 1TB SATA / 256G SSD Network 10Mbps CN2 Data Transfer Unmetered IP Address 2 DDOS Protection 10G CN2, 10G Asia , 1TB Global Voxility",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E3 ( CN2 AntiDDOS)",
+      "option": "Hk",
+      "price": "269.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Semiannual, Yearly",
+        "Port": "10Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=261",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=262": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "1x Intel Xeon E5 CPU (CN2 AntiDDOS) $339.00 USD / Bulanan CPU Intel Xeon E5 Processor RAM 32GB ECC Storage SSD or. SATA Bandwidth 10Mbps CN2 GIA DDOS Protection 10G China, 10G Asia, 1TB Global (US,EU) IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "1x Intel Xeon E5 CPU (CN2 AntiDDOS)",
+      "option": "Hk",
+      "price": "339.00 USD",
+      "specs": {
+        "Cycles": "Monthly",
+        "Port": "10Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=262",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=263": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Dual Intel Xeon E5 CPU (CN2 AntiDDOS) $439.00 USD / Bulanan CPU Dual Intel Xeon E5 Processor RAM 32GB ECC Storage SSD or. SATA Bandwidth 10Mbps CN2 GIA DDOS Protection 10G China, 10G Asia, 1TB Global (US,EU) IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Dual Intel Xeon E5 CPU (CN2 AntiDDOS)",
+      "option": "Hk",
+      "price": "439.00 USD",
+      "specs": {
+        "Cycles": "Monthly",
+        "Port": "10Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=263",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=31": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Semiannual",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "1x Intel Xeon L5630 CPU $99.00 USD $250.00 USD $470.00 USD $830.00 USD / Bulanan Triwulan Semester Tahunan CPU Intel Single Xeon Processor RAM 16GB ECC Storage 1TB Bandwidth 100Mbps PCCW Shared Data Transfer 6TB IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "1x Intel Xeon L5630 CPU",
+      "option": "Hk",
+      "price": "99.00 USD",
+      "specs": {
+        "Bandwidth": "1TB Bandwidth",
+        "Cycles": "Monthly, Quarterly, Semiannual, Yearly",
+        "Port": "100Mbps",
+        "Traffic": "1TB Bandwidth"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=31",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=314": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E3+ (CN2 GIA) $239.00 USD $717.00 USD / Bulanan Triwulan CPU Intel Xeon E3 Processor RAM 16GB ECC Storage 1TB SATA / 256G SSD Network 1Gbps Port Bandwidth 10Mbps CN2 Data Transfer Unmeter IP address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E3+ (CN2 GIA)",
+      "option": "Hk",
+      "price": "239.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly",
+        "Port": "1Gbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=314",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=363": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Dual Intel Xeon E5, 32Core (CN2 GIA) $580.00 USD / Bulanan CPU Dual Intel Xeon 16 Core E5 Processor RAM 64GB ECC Storage 1 x 500G SSD Bandwidth 10Mbps CN2 GIA Data Transfer No limit IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Dual Intel Xeon E5, 32Core (CN2 GIA)",
+      "option": "Hk",
+      "price": "580.00 USD",
+      "specs": {
+        "CPU": "32Core",
+        "Cycles": "Monthly",
+        "Port": "10Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=363",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=37": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Single/Dual Intel Xeon E5 CPU $199.00 USD / Bulanan CPU Intel Xeon Six Core E5 Processor RAM 24GB ECC Storage 1 x 1TB or 500G SSD Bandwidth 100Mbps Shared PCCW Data Transfer 10TB IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Single/Dual Intel Xeon E5 CPU",
+      "option": "Hk",
+      "price": "199.00 USD",
+      "specs": {
+        "Cycles": "Monthly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=37",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=531": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "CloudDedi 01- E3 - PreInstall Proxmox $139.00 USD $1,390.00 USD / Bulanan Tahunan CPU Intel Xeon E3 Processor RAM 16GB ECC Storage 256G SSD / 1TB SATA Bandwidth 30Mbps Standard China Data Transfer 6TB IPv4 address 2x IPv6 address /64 Cloud System Proxmox Preinstall BGP Support -Contact-",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "CloudDedi 01- E3 - PreInstall Proxmox",
+      "option": "Hk",
+      "price": "139.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Yearly",
+        "Port": "30Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=531",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server?action=add&id=6": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Dual Intel Xeon L5630 CPU $239.00 USD / Bulanan CPU Intel Dual Xeon Quad Core Processor RAM 16GB ECC Storage 1TB Bandwidth 10Mbps PCCW Shared DataTransfer 6TB IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Dual Intel Xeon L5630 CPU",
+      "option": "Hk",
+      "price": "239.00 USD",
+      "specs": {
+        "Bandwidth": "1TB Bandwidth",
+        "Cycles": "Monthly",
+        "Port": "10Mbps",
+        "Traffic": "1TB Bandwidth"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/hk-dedicated-server/?action=add&id=6",
+      "variant_of": "Hk Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-premium-china-route?action=add&id=465": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Premium V01 $12.00 USD $120.00 USD / Bulanan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 20G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 200G Port Speed (Peak) 50Mbps VM Snapshot 1x Disk Snapshot Optional OS Support Linux, FreebSD",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Premium V01",
+      "option": "Jp Premium China Route",
+      "price": "12.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Yearly",
+        "TYO": "CN Premium V01 $12.00 USD $120.00 USD / Bulanan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-premium-china-route/?action=add&id=465",
+      "variant_of": "Jp Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-premium-china-route?action=add&id=466": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Premium V02 $24.00 USD $240.00 USD / Bulanan Tahunan CPU 1x vCore RAM 2G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 400G Port Speed (Peak) 100Mbps VM Snapshot 1x Disk Snapshot Optional OS Support Linux, FreebSD",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Premium V02",
+      "option": "Jp Premium China Route",
+      "price": "24.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Yearly",
+        "TYO": "CN Premium V02 $24.00 USD $240.00 USD / Bulanan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-premium-china-route/?action=add&id=466",
+      "variant_of": "Jp Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-premium-china-route?action=add&id=467": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Premium V03 $42.00 USD $420.00 USD / Bulanan Tahunan CPU 2x vCore RAM 2G OS Disk (SSD) 40G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 600G Port Speed (Peak) 100Mbps VM Snapshot 1x Disk Snapshot Optional OS Support Linux, FreebSD",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Premium V03",
+      "option": "Jp Premium China Route",
+      "price": "42.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Yearly",
+        "TYO": "CN Premium V03 $42.00 USD $420.00 USD / Bulanan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-premium-china-route/?action=add&id=467",
+      "variant_of": "Jp Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-premium-china-route?action=add&id=468": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Premium V04 $88.00 USD $880.00 USD / Bulanan Tahunan CPU 3x vCore RAM 4G OS Disk (SSD) 60G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 800G Port Speed (Peak) 200Mbps VM Snapshot 1x Disk Snapshot Optional OS Support Linux, FreebSD, Windows",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Premium V04",
+      "option": "Jp Premium China Route",
+      "price": "88.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Yearly",
+        "TYO": "CN Premium V04 $88.00 USD $880.00 USD / Bulanan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-premium-china-route/?action=add&id=468",
+      "variant_of": "Jp Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-softbank-route?action=add&id=430": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Standard - K01 $9.80 USD $29.40 USD $98.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 10G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 500G Port Speed (Peak) 100Mbps VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Standard - K01",
+      "option": "Jp Softbank Route",
+      "price": "9.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "TYO": "CN Standard - K01 $9.80 USD $29.40 USD $98.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-softbank-route/?action=add&id=430",
+      "variant_of": "Jp Softbank Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-softbank-route?action=add&id=431": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Standard - K02 $19.80 USD $59.40 USD $198.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 1G OS Disk (SSD) 20G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 1TB Port Speed (Peak) 10G VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Standard - K02",
+      "option": "Jp Softbank Route",
+      "price": "19.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "TYO": "CN Standard - K02 $19.80 USD $59.40 USD $198.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-softbank-route/?action=add&id=431",
+      "variant_of": "Jp Softbank Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-softbank-route?action=add&id=432": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Standard - K03 $29.80 USD $89.40 USD $298.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 2G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 2TB Port Speed (Peak) 10G VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Standard - K03",
+      "option": "Jp Softbank Route",
+      "price": "29.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "TYO": "CN Standard - K03 $29.80 USD $89.40 USD $298.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-softbank-route/?action=add&id=432",
+      "variant_of": "Jp Softbank Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-softbank-route?action=add&id=433": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Standard - K04 $59.80 USD $179.40 USD $598.00 USD / Bulanan Triwulan Tahunan CPU 4x vCore RAM 4G OS Disk (SSD) 60G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 4TB Port Speed (Peak) 10G VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Standard - K04",
+      "option": "Jp Softbank Route",
+      "price": "59.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "TYO": "CN Standard - K04 $59.80 USD $179.40 USD $598.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-softbank-route/?action=add&id=433",
+      "variant_of": "Jp Softbank Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-softbank-route?action=add&id=434": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Standard - K05 $98.80 USD $296.40 USD $988.00 USD / Bulanan Triwulan Tahunan CPU 6x vCore RAM 8G OS Disk (SSD) 120G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 6TB Port Speed (Peak) 10G VM Snapshot 5x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Standard - K05",
+      "option": "Jp Softbank Route",
+      "price": "98.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "TYO": "CN Standard - K05 $98.80 USD $296.40 USD $988.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-softbank-route/?action=add&id=434",
+      "variant_of": "Jp Softbank Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-softbank-route?action=add&id=435": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Standard - K06 $158.80 USD $476.40 USD $1,588.00 USD / Bulanan Triwulan Tahunan CPU 8x vCore RAM 16G OS Disk (SSD) 180G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 8TB Port Speed (Peak) 10G VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Standard - K06",
+      "option": "Jp Softbank Route",
+      "price": "158.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "TYO": "CN Standard - K06 $158.80 USD $476.40 USD $1,588.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-softbank-route/?action=add&id=435",
+      "variant_of": "Jp Softbank Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-softbank-route?action=add&id=436": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Standard - K07 $288.80 USD $866.40 USD $2,888.00 USD / Bulanan Triwulan Tahunan CPU 10x vCore RAM 32G OS Disk (SSD) 220G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 10TB Port Speed (Peak) 10G VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Standard - K07",
+      "option": "Jp Softbank Route",
+      "price": "288.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "TYO": "CN Standard - K07 $288.80 USD $866.40 USD $2,888.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-softbank-route/?action=add&id=436",
+      "variant_of": "Jp Softbank Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-softbank-route?action=add&id=437": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Standard - K08 $588.80 USD $1,766.40 USD $5,888.00 USD / Bulanan Triwulan Tahunan CPU 16x vCore RAM 64G OS Disk (SSD) 500G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 15TB Port Speed (Peak) 10G VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Standard - K08",
+      "option": "Jp Softbank Route",
+      "price": "588.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "TYO": "CN Standard - K08 $588.80 USD $1,766.40 USD $5,888.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-softbank-route/?action=add&id=437",
+      "variant_of": "Jp Softbank Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-softbank-route?action=add&id=438": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Standard - K09 $888.80 USD $2,666.40 USD $8,888.00 USD / Bulanan Triwulan Tahunan CPU 24x vCore RAM 96G OS Disk (SSD) 1500G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 18TB Port Speed (Peak) 10G VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Standard - K09",
+      "option": "Jp Softbank Route",
+      "price": "888.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "TYO": "CN Standard - K09 $888.80 USD $2,666.40 USD $8,888.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-softbank-route/?action=add&id=438",
+      "variant_of": "Jp Softbank Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/jp-softbank-route?action=add&id=439": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "TYO: CN Standard - K10 $1,888.80 USD $5,666.40 USD $18,888.00 USD / Bulanan Triwulan Tahunan CPU 48x vCore RAM 192G OS Disk (SSD) 2000G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 28TB Port Speed (Peak) 10G VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "TYO: CN Standard - K10",
+      "option": "Jp Softbank Route",
+      "price": "1888.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "TYO": "CN Standard - K10 $1,888.80 USD $5,666.40 USD $18,888.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/jp-softbank-route/?action=add&id=439",
+      "variant_of": "Jp Softbank Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/los-angeles-dedicated-server?action=add&id=171": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Semiannual",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E3-v5 ( Premium CN AntiDDOS) $169.00 USD $429.00 USD $849.00 USD $1,679.00 USD / Bulanan Triwulan Semester Tahunan CPU Intel Xeon E3-1230v5 RAM 32GB ECC Storage 2x500G SAS, RAID1 Raid Card Yes Network Speed 100Mbps Port, with Guarantee 50M CN2 DDOS Protection from China CERA 50G max DDOS Protection from Global Voxility - 1Tbps max Data Transfer UnMetered IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E3-v5 ( Premium CN AntiDDOS)",
+      "option": "Los Angeles",
+      "price": "169.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Semiannual, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/los-angeles-dedicated-server/?action=add&id=171",
+      "variant_of": "Los Angeles Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/los-angeles-dedicated-server?action=add&id=280": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E3-v2 (Premium CN AntiDDOS) $139.00 USD / Bulanan CPU Intel Xeon E3-1230v2 RAM 16GB or 32GB ECC Storage 500G SSD or 1TB SATA Raid Card Yes Network Speed 100Mbps Port, with Guarantee 30M CN2 DDOS Protection from China CERA 50G max DDOS Protection from Global Voxility - 1Tbps max Data Transfer UnMetered IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E3-v2 (Premium CN AntiDDOS)",
+      "option": "Los Angeles",
+      "price": "139.00 USD",
+      "specs": {
+        "Cycles": "Monthly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/los-angeles-dedicated-server/?action=add&id=280",
+      "variant_of": "Los Angeles Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/los-angeles-dedicated-server?action=add&id=282": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Semiannual",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E3-v6 (Premium CN AntiDDOS) $169.00 USD $429.00 USD $849.00 USD $1,679.00 USD / Bulanan Triwulan Semester Tahunan CPU Intel Xeon E3-1230v6 RAM 32GB ECC Storage 500G SSD Raid Card Yes Network Speed 100Mbps Port, with Guarantee 50M CN2 DDOS Protection from China CERA 50G max DDOS Protection from Global Voxility - 1Tbps max Data Transfer UnMetered IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E3-v6 (Premium CN AntiDDOS)",
+      "option": "Los Angeles",
+      "price": "169.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Semiannual, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/los-angeles-dedicated-server/?action=add&id=282",
+      "variant_of": "Los Angeles Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/los-angeles-dedicated-server?action=add&id=367": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Semiannual",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Dual Intel Xeon E5 (Premium CN AntiDDOS) $439.00 USD $1,317.00 USD $2,195.00 USD $4,390.00 USD / Bulanan Triwulan Semester Tahunan CPU Dual Intel Xeon E5 CPU or Equivalent RAM 64GB ECC Storage 500G SSD Raid Card Yes Network Speed 100Mbps Port, with Guarantee 50M CN2 DDOS Protection from China CERA 50G max DDOS Protection from Global Voxility - 1Tbps max Data Transfer UnMetered IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Dual Intel Xeon E5 (Premium CN AntiDDOS)",
+      "option": "Los Angeles",
+      "price": "439.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Semiannual, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/los-angeles-dedicated-server/?action=add&id=367",
+      "variant_of": "Los Angeles Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/los-angeles-dedicated-server?action=add&id=376": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Semiannual",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Single Intel Xeon E5 ( Premium CN AntiDDOS) $299.00 USD $888.00 USD $1,788.00 USD $2,990.00 USD / Bulanan Triwulan Semester Tahunan CPU Intel Xeon E5 CPU RAM 64GB ECC Storage 500G SSD Raid Card Yes Network Speed 100Mbps Port, with Guarantee 50M CN2 DDOS Protection from China CERA 50G max DDOS Protection from Global Voxility - 1Tbps max Data Transfer UnMetered IP Address 2 Dedicated IPKVM Yes",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Single Intel Xeon E5 ( Premium CN AntiDDOS)",
+      "option": "Los Angeles",
+      "price": "299.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Semiannual, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/los-angeles-dedicated-server/?action=add&id=376",
+      "variant_of": "Los Angeles Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/my--kl-simplecloud?action=add&id=419": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "MY: CN Standard - K01.MINI $6.80 USD $20.00 USD $73.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 500M OS Disk (SSD) 15G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 400G Port Speed (Peak) 30Mbps VM Snapshot Optional Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "MY: CN Standard - K01.MINI",
+      "option": "My Kl",
+      "price": "6.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "MY": "CN Standard - K01.MINI $6.80 USD $20.00 USD $73.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/my--kl-simplecloud/?action=add&id=419",
+      "variant_of": "My Kl Simplecloud"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/my--kl-simplecloud?action=add&id=420": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "MY: CN Standard - K02.MINI $10.80 USD $30.00 USD $116.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 1G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 700G Port Speed (Peak) 50Mbps VM Snapshot Optional Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "MY: CN Standard - K02.MINI",
+      "option": "My Kl",
+      "price": "10.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "MY": "CN Standard - K02.MINI $10.80 USD $30.00 USD $116.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/my--kl-simplecloud/?action=add&id=420",
+      "variant_of": "My Kl Simplecloud"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/my--kl-simplecloud?action=add&id=421": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "MY: CN Standard - K03.MINI $17.80 USD $53.00 USD $190.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 2G OS Disk (SSD) 60G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 1000G Port Speed (Peak) 50Mbps VM Snapshot Optional Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "MY: CN Standard - K03.MINI",
+      "option": "My Kl",
+      "price": "17.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "MY": "CN Standard - K03.MINI $17.80 USD $53.00 USD $190.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/my--kl-simplecloud/?action=add&id=421",
+      "variant_of": "My Kl Simplecloud"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/my--kl-simplecloud?action=add&id=529": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "MY: Cloud Dedicated - 01 $139.00 USD $417.00 USD $1,390.00 USD / Bulanan Triwulan Tahunan CPU 8x vCore RAM 16G OS Disk (SSD) 300G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer No Limit Port Speed (Peak) 100Mbps VM Snapshot Optional Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "MY: Cloud Dedicated - 01",
+      "option": "My Kl",
+      "price": "139.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "MY": "Cloud Dedicated - 01 $139.00 USD $417.00 USD $1,390.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/my--kl-simplecloud/?action=add&id=529",
+      "variant_of": "My Kl Simplecloud"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/philippines-manila-simplecloud?action=add&id=510": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "PH: Manila Standard - K01 $9.80 USD $29.40 USD $98.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 10G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 500G Port Speed (Peak) 1Gbps VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "PH: Manila Standard - K01",
+      "option": "Philippines Manila",
+      "price": "9.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "PH": "Manila Standard - K01 $9.80 USD $29.40 USD $98.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/philippines-manila-simplecloud/?action=add&id=510",
+      "variant_of": "Philippines Manila Simplecloud"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/philippines-manila-simplecloud?action=add&id=511": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "PH: Manila Standard - K02 $19.80 USD $59.40 USD $198.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 1G OS Disk (SSD) 20G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 1TB Port Speed (Peak) 1G VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "PH: Manila Standard - K02",
+      "option": "Philippines Manila",
+      "price": "19.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "PH": "Manila Standard - K02 $19.80 USD $59.40 USD $198.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/philippines-manila-simplecloud/?action=add&id=511",
+      "variant_of": "Philippines Manila Simplecloud"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/philippines-manila-simplecloud?action=add&id=512": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "PH: Manila Standard - K03 $29.80 USD $89.40 USD $298.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 2G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 2TB Port Speed (Peak) 1G VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "PH: Manila Standard - K03",
+      "option": "Philippines Manila",
+      "price": "29.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "PH": "Manila Standard - K03 $29.80 USD $89.40 USD $298.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/philippines-manila-simplecloud/?action=add&id=512",
+      "variant_of": "Philippines Manila Simplecloud"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/philippines-manila-simplecloud?action=add&id=513": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "PH: Manila Standard - K04 $59.80 USD $179.40 USD $598.00 USD / Bulanan Triwulan Tahunan CPU 4x vCore RAM 4G OS Disk (SSD) 60G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 4TB Port Speed (Peak) 1G VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "PH: Manila Standard - K04",
+      "option": "Philippines Manila",
+      "price": "59.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "PH": "Manila Standard - K04 $59.80 USD $179.40 USD $598.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/philippines-manila-simplecloud/?action=add&id=513",
+      "variant_of": "Philippines Manila Simplecloud"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/philippines-manila-simplecloud?action=add&id=514": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "PH: Manila Standard - K05 $98.80 USD $296.40 USD $988.00 USD / Bulanan Triwulan Tahunan CPU 6x vCore RAM 8G OS Disk (SSD) 120G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 6TB Port Speed (Peak) 1G VM Snapshot 5x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "PH: Manila Standard - K05",
+      "option": "Philippines Manila",
+      "price": "98.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "PH": "Manila Standard - K05 $98.80 USD $296.40 USD $988.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/philippines-manila-simplecloud/?action=add&id=514",
+      "variant_of": "Philippines Manila Simplecloud"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/reseller?action=add&id=275": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": null,
+      "description": "Continue",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "reseller",
+      "option": null,
+      "price": null,
+      "specs": {
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/reseller/?action=add&id=275",
+      "variant_of": null
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=139": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Hong Kong China Direct Route Direct China Access by PCCW or Other Hong Kong ISP on CN1, CU and CM Network Auto Blackhole Servies upon DDOS attack Allow BGP Connection or Static Route Allow 2x Burstable Bandwidth (95percentile Billing)",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HK Standard China IP Transit - 10Mbps",
+      "option": null,
+      "price": "250.00 USD",
+      "specs": {
+        "1": "Hong Kong China Direct Route",
+        "2": "Direct China Access by PCCW or Other Hong Kong ISP on CN1, CU and CM Network",
+        "3": "Auto Blackhole Servies upon DDOS attack",
+        "4": "Allow BGP Connection or Static Route",
+        "5": "Allow 2x Burstable Bandwidth (95percentile Billing)",
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=139&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=189": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Hong Kong Data Center , DC3 Location : Sino Favour, Chaiwan Size : 1RU Server 1x 13A Power Socket 1x 100Mbps Network Port Optional Shared 100M Bandwidth , or 10M Dedicated bandwidth Up to 5x IPv4 Address 100w Power Comsumptions ** Additional Bandwidth can be purchased ** Customer can subscribe direct from any ISP from MEGA-I",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG COLO, Single Server , 1U",
+      "option": "Sino Favour, Chaiwan",
+      "price": "90.00 USD",
+      "specs": {
+        "1": "Hong Kong Data Center , DC3",
+        "2": "1x 13A Power Socket",
+        "3": "1x 100Mbps Network Port",
+        "4": "Optional Shared 100M Bandwidth , or 10M Dedicated bandwidth",
+        "5": "Up to 5x IPv4 Address",
+        "6": "100w Power Comsumptions",
+        "7": "** Additional Bandwidth can be purchased",
+        "8": "** Customer can subscribe direct from any ISP from MEGA-I",
+        "Cycles": "Monthly",
+        "Location": "Sino Favour, Chaiwan",
+        "Size": "1RU Server"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=189&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=193": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "Hong Kong Data Center , DC4 Location : TGT DC, TKO Size : 2RU Server 1x 13A Power Socket 1x 1000Mbps Network Port Optional CN2 or 1G Global Up to 2x IPv4 Address 100w Power Comsumptions ** Additional Bandwidth can be purchased ** Customer can subscribe direct from any ISP from MEGA-I",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG COLO, Single Server , 2U",
+      "option": "TGT DC, TKO",
+      "price": "160.00 USD",
+      "specs": {
+        "1": "Hong Kong Data Center , DC4",
+        "2": "1x 13A Power Socket",
+        "3": "1x 1000Mbps Network Port",
+        "4": "Optional CN2 or 1G Global",
+        "5": "Up to 2x IPv4 Address",
+        "6": "100w Power Comsumptions",
+        "7": "** Additional Bandwidth can be purchased",
+        "8": "** Customer can subscribe direct from any ISP from MEGA-I",
+        "Cycles": "Monthly, Yearly, Semiannual",
+        "Location": "TGT DC, TKO",
+        "Size": "2RU Server"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=193&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=215": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly"
+      ],
+      "currency": "USD",
+      "description": "Data Center : IPTelecom HKG DC3 Location : Sinor Favour DC Rack Power: 2KVA ( Upgradable 3KVA) Power Socket : 2x 8 13Amps Socket Redundant Power Source Rack Tray : 2x Tray Require 2months Deposit Payment 2 Years Contract",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG COLO DC3, Full Rack , 42U",
+      "option": "Sinor Favour DC",
+      "price": "750.00 USD",
+      "specs": {
+        "1": "Redundant Power Source",
+        "2": "Require 2months Deposit Payment",
+        "3": "2 Years Contract",
+        "Cycles": "Monthly, Quarterly",
+        "Data Center": "IPTelecom HKG DC3",
+        "Location": "Sinor Favour DC",
+        "Power Socket": "2x 8 13Amps Socket",
+        "Rack Power": "2KVA ( Upgradable 3KVA)",
+        "Rack Tray": "2x Tray"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=215&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=226": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Hong Kong China Direct Route Premium China Route China Telecom CN2 GIA (Inclusive) China Unicom VIP 9929 (Inclusive) China Mobile Direct (Inclusive) Auto Blackhole Servies upon DDOS attack Allow BGP Connection or Static Route",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HK Premium China - CN2 , CUG , CM",
+      "option": null,
+      "price": "95.00 USD",
+      "specs": {
+        "1": "Hong Kong China Direct Route",
+        "2": "Premium China Route",
+        "3": "China Telecom CN2 GIA (Inclusive)",
+        "4": "China Unicom VIP 9929 (Inclusive)",
+        "5": "China Mobile Direct (Inclusive)",
+        "6": "Auto Blackhole Servies upon DDOS attack",
+        "7": "Allow BGP Connection or Static Route",
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=226&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=227": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "IPLC Between HK and LAX HKG Demarcation : MEGA-I , 32F USA, LAX Demarcation : Coresite, LA2",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "IEPL: HK (MEGA-I) to Los Angeles (Coresite) - 100M",
+      "option": null,
+      "price": "300.00 USD",
+      "specs": {
+        "1": "IPLC Between HK and LAX",
+        "Cycles": "Monthly",
+        "HKG Demarcation": "MEGA-I , 32F",
+        "USA, LAX Demarcation": "Coresite, LA2"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=227&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=228": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "IPLC Between HK and SG HKG Demarcation : MEGA-I , 32F SG, SG Demarcation : Equinix SG1",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "IEPL: HK (MEGA-I) to Singapore (Equinix SG1) - 100M",
+      "option": null,
+      "price": "300.00 USD",
+      "specs": {
+        "1": "IPLC Between HK and SG",
+        "Cycles": "Monthly",
+        "HKG Demarcation": "MEGA-I , 32F",
+        "SG, SG Demarcation": "Equinix SG1"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=228&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=244": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Hong Kong Asia Route - 10Mbps Global IP Transit , Non CN Direct Auto Blackhole Servies upon DDOS attack Allow BGP Connection or Static Route Allow 2x Burstable Bandwidth (95percentile Billing)",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HK Global IP Transit-10M",
+      "option": null,
+      "price": "50.00 USD",
+      "specs": {
+        "1": "Hong Kong Asia Route - 10Mbps",
+        "2": "Global IP Transit , Non CN Direct",
+        "3": "Auto Blackhole Servies upon DDOS attack",
+        "4": "Allow BGP Connection or Static Route",
+        "5": "Allow 2x Burstable Bandwidth (95percentile Billing)",
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=244&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=245": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "HKIX Route Only - 1G",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKIX Only - 1G",
+      "option": null,
+      "price": "280.00 USD",
+      "specs": {
+        "1": "HKIX Route Only - 1G",
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=245&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=252": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Extra Rack Power, Per KVA Variable Charge, Monthly basis",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Extra Rack Power, 1KVA",
+      "option": null,
+      "price": "300.00 USD",
+      "specs": {
+        "1": "Extra Rack Power, Per KVA",
+        "2": "Variable Charge, Monthly basis",
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=252&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=253": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Yearly",
+        "Semiannual",
+        "Quarterly"
+      ],
+      "currency": "USD",
+      "description": "Sinor Favour Data Center Only Smart hand, include Plug and Unplug Cable, Replace Hard Disk, etc Price show is 30min service",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Smart Hand Services (30Minutes)",
+      "option": null,
+      "price": "50.00 USD",
+      "specs": {
+        "1": "Sinor Favour Data Center Only",
+        "2": "Smart hand, include Plug and Unplug Cable, Replace Hard Disk, etc",
+        "3": "Price show is 30min service",
+        "Cycles": "Monthly, Yearly, Semiannual, Quarterly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=253",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=290": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "HK CN2 AntiDDOS - 50G Protection",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "CN2-ANTIDDOS-50G",
+      "option": null,
+      "price": "6000.00 USD",
+      "specs": {
+        "1": "HK CN2 AntiDDOS - 50G Protection",
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=290&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=311": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "L2 Between Sinor Faour and MEGA-I 32F Available 1G or 10G",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "L2 HKG DC3 SinorFavour to MEGA-I 32F",
+      "option": null,
+      "price": "300.00 USD",
+      "specs": {
+        "1": "L2 Between Sinor Faour and MEGA-I 32F",
+        "2": "Available 1G or 10G",
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=311&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=313": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "MEGA-I In Building XC *Required 12 Months Contract",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "MEGA-I 32F Cross Connect",
+      "option": null,
+      "price": "300.00 USD",
+      "specs": {
+        "1": "MEGA-I In Building XC",
+        "2": "*Required 12 Months Contract",
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=313&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=406": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Yearly",
+        "Semiannual",
+        "Quarterly"
+      ],
+      "currency": "USD",
+      "description": "Sinor Favour Data Center Only Data Center Jobs Please contact for Price",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Smart Hand Services (Custom)",
+      "option": null,
+      "price": "2000.00 USD",
+      "specs": {
+        "1": "Sinor Favour Data Center Only",
+        "2": "Data Center Jobs",
+        "3": "Please contact for Price",
+        "Cycles": "Monthly, Yearly, Semiannual, Quarterly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=406",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=493": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly"
+      ],
+      "currency": "USD",
+      "description": "Data Center : IPTelecom TGT Location : TGT DC Rack Power: 3KVA Power Socket : 20x 13Amps Socket Redundant Power Source Rack Tray :2x Tray 1 Years Contract",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG DC4 COLO, Full Rack , TGT",
+      "option": "TGT DC",
+      "price": "800.00 USD",
+      "specs": {
+        "1": "Redundant Power Source",
+        "2": "1 Years Contract",
+        "Cycles": "Monthly, Quarterly",
+        "Data Center": "IPTelecom TGT",
+        "Location": "TGT DC",
+        "Power Socket": "20x 13Amps Socket",
+        "Rack Power": "3KVA",
+        "Rack Tray": "2x Tray"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=493&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=494": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "SoftBank IP Transit Per Mbps",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "JP Global IP Transit - SoftBank",
+      "option": null,
+      "price": "600.00 USD",
+      "specs": {
+        "1": "SoftBank IP Transit",
+        "2": "Per Mbps",
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=494&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=495": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly"
+      ],
+      "currency": "USD",
+      "description": "Data Center : IPTelecom TGT Location : TGT DC Rack Power: 1.5KVA Power Socket : 10x 13Amps Socket Redundant Power Source Rack Tray : 1x Tray 1 Years Contract",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HKG DC4 COLO, Half Rack , TGT",
+      "option": "TGT DC",
+      "price": "500.00 USD",
+      "specs": {
+        "1": "Redundant Power Source",
+        "2": "1 Years Contract",
+        "Cycles": "Monthly, Quarterly",
+        "Data Center": "IPTelecom TGT",
+        "Location": "TGT DC",
+        "Power Socket": "10x 13Amps Socket",
+        "Rack Power": "1.5KVA",
+        "Rack Tray": "1x Tray"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=495&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=504": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "IPv4 (US Prefix) Choose billing cycle: $150.00 USD Monthly US IPv4 $150.00 USD Monthly",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "IPv4 (US Prefix)",
+      "option": null,
+      "price": "150.00 USD",
+      "specs": {
+        "1": "US IPv4",
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=504&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/server-colocation?action=add&id=526": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "Philippines, Manila Data Center Location : Manila, VM2 Size : 2RU Server 1x 13A Power Socket 1x 1000Mbps Network Port Up to 2x IPv4 Address 100w Power Comsumptions ** Additional Bandwidth can be purchased ** Customer can subscribe direct from any ISP from MEGA-I ** Additional Power can be purchased",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "PH COLO, Single Server , 2U",
+      "option": "Manila, VM2",
+      "price": "180.00 USD",
+      "specs": {
+        "1": "Philippines, Manila Data Center",
+        "2": "1x 13A Power Socket",
+        "3": "1x 1000Mbps Network Port",
+        "4": "Up to 2x IPv4 Address",
+        "5": "100w Power Comsumptions",
+        "6": "** Additional Bandwidth can be purchased",
+        "7": "** Customer can subscribe direct from any ISP from MEGA-I",
+        "8": "** Additional Power can be purchased",
+        "Cycles": "Monthly, Yearly, Semiannual",
+        "Location": "Manila, VM2",
+        "Size": "2RU Server"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/server-colocation/?action=add&id=526&cycle=m",
+      "variant_of": "Server Colocation"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/sg--standard-route?action=add&id=477": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "SG: CN Standard - K01 $9.80 USD $29.40 USD $98.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 10G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 500G Port Speed (Peak) 1Gbps VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "SG: CN Standard - K01",
+      "option": "Sg Standard Route",
+      "price": "9.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "SG": "CN Standard - K01 $9.80 USD $29.40 USD $98.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/sg--standard-route/?action=add&id=477",
+      "variant_of": "Sg Standard Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/sg--standard-route?action=add&id=478": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "SG: CN Standard - K02 $19.80 USD $59.40 USD $198.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 1G OS Disk (SSD) 20G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 1TB Port Speed (Peak) 10G VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "SG: CN Standard - K02",
+      "option": "Sg Standard Route",
+      "price": "19.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "SG": "CN Standard - K02 $19.80 USD $59.40 USD $198.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/sg--standard-route/?action=add&id=478",
+      "variant_of": "Sg Standard Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/sg--standard-route?action=add&id=479": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "SG: CN Standard - K03 $29.80 USD $89.40 USD $298.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 2G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 2TB Port Speed (Peak) 10G VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "SG: CN Standard - K03",
+      "option": "Sg Standard Route",
+      "price": "29.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "SG": "CN Standard - K03 $29.80 USD $89.40 USD $298.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/sg--standard-route/?action=add&id=479",
+      "variant_of": "Sg Standard Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/sg--standard-route?action=add&id=480": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "SG: CN Standard - K04 $59.80 USD $179.40 USD $598.00 USD / Bulanan Triwulan Tahunan CPU 4x vCore RAM 4G OS Disk (SSD) 60G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 4TB Port Speed (Peak) 10G VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "SG: CN Standard - K04",
+      "option": "Sg Standard Route",
+      "price": "59.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "SG": "CN Standard - K04 $59.80 USD $179.40 USD $598.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/sg--standard-route/?action=add&id=480",
+      "variant_of": "Sg Standard Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/sg--standard-route?action=add&id=481": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "SG: CN Standard - K05 $98.80 USD $296.40 USD $988.00 USD / Bulanan Triwulan Tahunan CPU 6x vCore RAM 8G OS Disk (SSD) 120G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 6TB Port Speed (Peak) 10G VM Snapshot 5x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "SG: CN Standard - K05",
+      "option": "Sg Standard Route",
+      "price": "98.80 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "SG": "CN Standard - K05 $98.80 USD $296.40 USD $988.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/sg--standard-route/?action=add&id=481",
+      "variant_of": "Sg Standard Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/sg--standard-route?action=add&id=502": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "SG: Cloud Dedicated - 01 $139.00 USD $1,390.00 USD / Bulanan Tahunan CPU 8x vCore RAM 32G OS Disk (SSD) 240G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer No limit Port Speed (Peak) 100M VM Snapshot Optional Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "SG: Cloud Dedicated - 01",
+      "option": "Sg Standard Route",
+      "price": "139.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Yearly",
+        "SG": "Cloud Dedicated - 01 $139.00 USD $1,390.00 USD / Bulanan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/sg--standard-route/?action=add&id=502",
+      "variant_of": "Sg Standard Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/sg--standard-route?action=add&id=537": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "SG: AMD - 6H16G $80.00 USD $240.00 USD $960.00 USD / Bulanan Triwulan Tahunan CPU 6x vCore RAM 16G OS Disk (SSD) 240G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 7TB Port Speed (Peak) 1G VM Snapshot Optional Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "SG: AMD - 6H16G",
+      "option": "Sg Standard Route",
+      "price": "80.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "SG": "AMD - 6H16G $80.00 USD $240.00 USD $960.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/sg--standard-route/?action=add&id=537",
+      "variant_of": "Sg Standard Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/ssl-cert?action=add&id=43": {
+      "available": true,
+      "billing_cycles": [
+        "Biennial",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "1 Certificate Type 2 CSR 3 Contacts 4 Product Configuration 5 Payment Step 1 Choose your certificate Comodo Possitive SSL Comodo Possitive SSL Continue 2 Year/s - $36.00 USD 1 Year/s - $20.00 USD",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Choose your certificate",
+      "option": null,
+      "price": "36.00 USD",
+      "specs": {
+        "1": "Comodo Possitive SSL",
+        "Cycles": "Biennial, Yearly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/ssl-cert/?action=add&id=43",
+      "variant_of": "Ssl Cert"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server?action=add&id=291": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E3 (CN2 GIA) $169.00 USD $499.00 USD $1,699.00 USD / Bulanan Triwulan Tahunan CPU E3-1230V2 RAM 16G ECC Disk 500G SSD Network 10Mbps CN2 GIA Data Unmetered",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E3 (CN2 GIA)",
+      "option": "Tokyo Japan",
+      "price": "169.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "Port": "10Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server/?action=add&id=291",
+      "variant_of": "Tokyo Japan Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server?action=add&id=297": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E3 (SoftBank) $139.00 USD $399.00 USD $1,390.00 USD / Bulanan Triwulan Tahunan CPU E3-1230V2 RAM 16G ECC Disk 500G SSD Network 100Mbps SoftBank Shared Data 6TB Data IPv4 Addess 2x IP",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E3 (SoftBank)",
+      "option": "Tokyo Japan",
+      "price": "139.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server/?action=add&id=297",
+      "variant_of": "Tokyo Japan Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server?action=add&id=302": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E3 (100Mbps Dedicated SoftBank) $299.00 USD $799.00 USD $2,990.00 USD / Bulanan Triwulan Tahunan CPU E3-1230V2 RAM 16G ECC Disk 500G SSD Network 100Mbps SoftBank Dedicated Data Unlimited IPv4 Address 2x IP",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E3 (100Mbps Dedicated SoftBank)",
+      "option": "Tokyo Japan",
+      "price": "299.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server/?action=add&id=302",
+      "variant_of": "Tokyo Japan Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server?action=add&id=303": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E3 (1Gbps Dedicated SoftBank) $3,500.00 USD / Bulanan CPU E3-1230V2 RAM 16G ECC Disk 500G SSD Network 1Gbps SoftBank Dedicated Data Unlimited",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E3 (1Gbps Dedicated SoftBank)",
+      "option": "Tokyo Japan",
+      "price": "3500.00 USD",
+      "specs": {
+        "Cycles": "Monthly",
+        "Port": "1Gbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server/?action=add&id=303",
+      "variant_of": "Tokyo Japan Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server?action=add&id=501": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Intel Xeon E5 (1Gbps Dedicated SoftBank) $3,800.00 USD / Bulanan CPU 2x E5-2640V4 RAM 64G ECC Disk 500G SSD Network 1Gbps SoftBank Dedicated Data Unlimited",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Intel Xeon E5 (1Gbps Dedicated SoftBank)",
+      "option": "Tokyo Japan",
+      "price": "3800.00 USD",
+      "specs": {
+        "Cycles": "Monthly",
+        "Port": "1Gbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server/?action=add&id=501",
+      "variant_of": "Tokyo Japan Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server?action=add&id=530": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": "USD",
+      "description": "Dual Intel Xeon E5 - JP Premium $499.00 USD / Bulanan CPU 2x E5 CPU RAM 64G ECC Disk 1T SSD Network 100Mbps CN2 Shared Data Unlimited",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Dual Intel Xeon E5 - JP Premium",
+      "option": "Tokyo Japan",
+      "price": "499.00 USD",
+      "specs": {
+        "Cycles": "Monthly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/tokyo-japan-dedicated-server/?action=add&id=530",
+      "variant_of": "Tokyo Japan Dedicated Server"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us--premium-china-with-ddos-protection?action=add&id=354": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud XD01 $16.00 USD $48.00 USD $160.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 1000G Port Speed (Peak) 500Mbps VM Snapshot Optional Disk Snapshot Optional China Optimised DDOS Protection 50G Global DDOS. Protection 1.6 T",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud XD01",
+      "option": "Us Premium China With Ddos Protection",
+      "price": "16.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud XD01 $16.00 USD $48.00 USD $160.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us--premium-china-with-ddos-protection/?action=add&id=354",
+      "variant_of": "Us Premium China With Ddos Protection"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us--premium-china-with-ddos-protection?action=add&id=355": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud XD02 $32.00 USD $96.00 USD $320.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 2G OS Disk (SSD) 60G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 2000G Port Speed (Peak) 500Mbps VM Snapshot 10x Disk Snapshot Optional China Optimised DDOS Protection 50G Global DDOS Protection 1.6 T",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud XD02",
+      "option": "Us Premium China With Ddos Protection",
+      "price": "32.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud XD02 $32.00 USD $96.00 USD $320.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us--premium-china-with-ddos-protection/?action=add&id=355",
+      "variant_of": "Us Premium China With Ddos Protection"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us--premium-china-with-ddos-protection?action=add&id=407": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud XD03 $56.00 USD $160.00 USD $560.00 USD / Bulanan Triwulan Tahunan CPU 3x vCore RAM 3G OS Disk (SSD) 80G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 3000G Port Speed (Peak) 500Mbps VM Snapshot 10x Disk Snapshot Optional China Optimised DDOS Protection 50G Global DDOS Protection 1.6 T",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud XD03",
+      "option": "Us Premium China With Ddos Protection",
+      "price": "56.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud XD03 $56.00 USD $160.00 USD $560.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us--premium-china-with-ddos-protection/?action=add&id=407",
+      "variant_of": "Us Premium China With Ddos Protection"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us--premium-china-with-ddos-protection?action=add&id=408": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud XD04 $86.00 USD $230.00 USD $860.00 USD / Bulanan Triwulan Tahunan CPU 4x vCore RAM 4G OS Disk (SSD) 100G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 4000G Port Speed (Peak) 500Mbps VM Snapshot 10x Disk Snapshot Optional China Optimised DDOS Protection 50G Global DDOS Protection 1.6 T",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud XD04",
+      "option": "Us Premium China With Ddos Protection",
+      "price": "86.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud XD04 $86.00 USD $230.00 USD $860.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us--premium-china-with-ddos-protection/?action=add&id=408",
+      "variant_of": "Us Premium China With Ddos Protection"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us--premium-china-with-ddos-protection?action=add&id=409": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud XD05 $166.00 USD $460.00 USD $1,660.00 USD / Bulanan Triwulan Tahunan CPU 8x vCore RAM 8G OS Disk (SSD) 120G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 8000G Port Speed (Peak) 500Mbps VM Snapshot 10x Disk Snapshot Optional China Optimised DDOS Protection 50G Global DDOS Protection 1.6 T",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud XD05",
+      "option": "Us Premium China With Ddos Protection",
+      "price": "166.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud XD05 $166.00 USD $460.00 USD $1,660.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us--premium-china-with-ddos-protection/?action=add&id=409",
+      "variant_of": "Us Premium China With Ddos Protection"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us-global-route?action=add&id=411": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud Global01 $5.00 USD $15.00 USD $50.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 20G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 1TB Port Speed (Peak) 1Gbps VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud Global01",
+      "option": "Us",
+      "price": "5.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud Global01 $5.00 USD $15.00 USD $50.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us-global-route/?action=add&id=411",
+      "variant_of": "Us Global Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us-global-route?action=add&id=417": {
+      "available": true,
+      "billing_cycles": [
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud Global SE01 $26.00 USD / Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 15G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 2TB Port Speed (Peak) 1Gbps VM Snapshot 1x Disk Snapshot Optional *cpu selection apply random",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud Global SE01",
+      "option": "Us",
+      "price": "26.00 USD",
+      "specs": {
+        "Cycles": "Yearly",
+        "LAX": "SimpleCloud Global SE01 $26.00 USD / Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us-global-route/?action=add&id=417",
+      "variant_of": "Us Global Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us-global-route?action=add&id=428": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud Global02 $10.00 USD $30.00 USD $100.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 2G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 2TB Port Speed (Peak) 10Gbps VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud Global02",
+      "option": "Us",
+      "price": "10.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud Global02 $10.00 USD $30.00 USD $100.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us-global-route/?action=add&id=428",
+      "variant_of": "Us Global Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us-global-route?action=add&id=429": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud Global03 $20.00 USD $60.00 USD $200.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 4G OS Disk (SSD) 50G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 3TB Port Speed (Peak) 10Gbps VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud Global03",
+      "option": "Us",
+      "price": "20.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud Global03 $20.00 USD $60.00 USD $200.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us-global-route/?action=add&id=429",
+      "variant_of": "Us Global Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us-premium-china-route?action=add&id=351": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud V01 $12.00 USD $36.00 USD $120.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 500M OS Disk (SSD) 20G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 1000G Port Speed (Peak) 1Gbps VM Snapshot 1x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud V01",
+      "option": "Us Premium China Route",
+      "price": "12.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud V01 $12.00 USD $36.00 USD $120.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us-premium-china-route/?action=add&id=351",
+      "variant_of": "Us Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us-premium-china-route?action=add&id=352": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud V02 $22.00 USD $66.00 USD $220.00 USD / Bulanan Triwulan Tahunan CPU 1x vCore RAM 1G OS Disk (SSD) 30G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 2000G Port Speed (Peak) 1Gbps VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud V02",
+      "option": "Us Premium China Route",
+      "price": "22.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud V02 $22.00 USD $66.00 USD $220.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us-premium-china-route/?action=add&id=352",
+      "variant_of": "Us Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us-premium-china-route?action=add&id=353": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud V03 $33.00 USD $99.00 USD $330.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 2G OS Disk (SSD) 40G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 3000G Port Speed (Peak) 1Gbps VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud V03",
+      "option": "Us Premium China Route",
+      "price": "33.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud V03 $33.00 USD $99.00 USD $330.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us-premium-china-route/?action=add&id=353",
+      "variant_of": "Us Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us-premium-china-route?action=add&id=370": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud V04 $53.00 USD $159.00 USD $530.00 USD / Bulanan Triwulan Tahunan CPU 2x vCore RAM 3G OS Disk (SSD) 50G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 4000G Port Speed (Peak) 1Gbps VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud V04",
+      "option": "Us Premium China Route",
+      "price": "53.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud V04 $53.00 USD $159.00 USD $530.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us-premium-china-route/?action=add&id=370",
+      "variant_of": "Us Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us-premium-china-route?action=add&id=371": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud V05 $73.00 USD $219.00 USD $730.00 USD / Bulanan Triwulan Tahunan CPU 4x vCore RAM 4G OS Disk (SSD) 60G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 6000G Port Speed (Peak) 1Gbps VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud V05",
+      "option": "Us Premium China Route",
+      "price": "73.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud V05 $73.00 USD $219.00 USD $730.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us-premium-china-route/?action=add&id=371",
+      "variant_of": "Us Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/cart/us-premium-china-route?action=add&id=505": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly",
+        "Quarterly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "LAX: SimpleCloud V06 $99.00 USD $297.00 USD $990.00 USD / Bulanan Triwulan Tahunan CPU 6x vCore RAM 6G OS Disk (SSD) 90G Data Disk (SAS) Optional IPv4 Address 1x Data Transfer 10000G Port Speed (Peak) 1Gbps VM Snapshot 10x Disk Snapshot Optional",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "LAX: SimpleCloud V06",
+      "option": "Us Premium China Route",
+      "price": "99.00 USD",
+      "specs": {
+        "Cycles": "Monthly, Quarterly, Yearly",
+        "LAX": "SimpleCloud V06 $99.00 USD $297.00 USD $990.00 USD / Bulanan Triwulan Tahunan"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/cart/us-premium-china-route/?action=add&id=505",
+      "variant_of": "Us Premium China Route"
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/index.php?action=add&id=275": {
+      "available": true,
+      "billing_cycles": [
+        "Monthly"
+      ],
+      "currency": null,
+      "description": "Continue",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "index.php",
+      "option": null,
+      "price": null,
+      "specs": {
+        "Cycles": "Monthly"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/index.php?/cart/&action=add&id=275",
+      "variant_of": null
+    },
+    "clientarea.gigsgigscloud.com::https://clientarea.gigsgigscloud.com/products/tickets/new": {
+      "available": null,
+      "billing_cycles": null,
+      "currency": "USD",
+      "description": "Check our amazing offers",
+      "domain": "clientarea.gigsgigscloud.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "new",
+      "option": "Tickets",
+      "price": "22.00 USD",
+      "specs": {
+        "1": "shopping_cart shopping_cart Your cart is empty Lihat Produk & Layanan",
+        "10": "link Billing Alerts",
+        "11": "link Whois Lookup",
+        "12": "language Indonesian expand_more 中文 English Bahasa Indonesia",
+        "13": "English",
+        "14": "Bahasa Indonesia",
+        "15": "Home",
+        "16": "Pesanan",
+        "17": "Support",
+        "18": "Area Klien",
+        "19": "Affiliasi",
+        "2": "language Indonesian arrow_drop_down 中文 English Bahasa Indonesia",
+        "3": "person Login / Register",
+        "4": "search",
+        "5": "language 中文 English Bahasa Indonesia",
+        "6": "home Dashboard",
+        "7": "style Tiket Support",
+        "8": "near_me Telegram Channel",
+        "9": "group_add Affiliasi"
+      },
+      "url": "https://clientarea.gigsgigscloud.com/products/tickets/new/",
+      "variant_of": "Tickets"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=101": {
+      "available": true,
+      "billing_cycles": [
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "Los Angeles Ryzen9 Performance VPS - Specials - Lite 1 Core AMD Ryzen9 7950X 512Mb DDR5 RAM 15G NVMe SSD 1 IPV4 500G/Month/200Mbps, Fair Use Los Angeles, China Optimised $38.90 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Los Angeles Ryzen9 Performance VPS - Specials - Lite",
+      "option": null,
+      "price": "38.90 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Yearly, Semiannual",
+        "Port": "200Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=101&cycle=a",
+      "variant_of": "Special Offer"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=103": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Standard 4 Cores AMD EPYC 7003 Series 8 GB DDR4 RAM 150G NVMe SSD 1 IPV4 20T/Month/1Gbps Allows installation of Windows with your own license $32.00 USD Quarterly $60.00 USD Semi-Annually $112.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Standard",
+      "option": "Los Angeles",
+      "price": "32.00 USD",
+      "specs": {
+        "CPU": "4 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "1Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-amd-vds/&action=add&id=103&cycle=q",
+      "variant_of": "Los Angeles Amd Vds"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=104": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Pro 8 Cores AMD EPYC 7003 Series 16 GB DDR4 RAM 250G NVMe SSD 1 IPV4 20T/Month/2Gbps Allows installation of Windows with your own license $52.00 USD Quarterly $104.00 USD Semi-Annually $192.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Pro",
+      "option": "Los Angeles",
+      "price": "52.00 USD",
+      "specs": {
+        "CPU": "8 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "2Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-amd-vds/&action=add&id=104&cycle=q",
+      "variant_of": "Los Angeles Amd Vds"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=105": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Premium 12 Cores AMD EPYC 7003 Series 24 GB DDR4 RAM 500G NVMe SSD 1 IPV4 20T/Month/2Gbps Allows installation of Windows with your own license $76.00 USD Quarterly $152.00 USD Semi-Annually $296.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Premium",
+      "option": "Los Angeles",
+      "price": "76.00 USD",
+      "specs": {
+        "CPU": "12 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "2Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-amd-vds/&action=add&id=105&cycle=q",
+      "variant_of": "Los Angeles Amd Vds"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=106": {
+      "available": true,
+      "billing_cycles": [
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "Los Angeles AMD VDS - Specials - Standard 4 Cores AMD EPYC 7003 Series 8 GB DDR4 RAM 150G NVMe SSD 1 IPV4 International network, 20T/Month/1Gbps, Fair Use Allows installation of Windows with your own license $96.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Los Angeles AMD VDS - Specials - Standard",
+      "option": null,
+      "price": "96.00 USD",
+      "specs": {
+        "CPU": "4 Cores",
+        "Cycles": "Yearly, Semiannual",
+        "Port": "1Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=106&cycle=a",
+      "variant_of": "Special Offer"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=11": {
+      "available": false,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Starter 1 Core AMD EPYC 9354P 1GB DDR5 ECC RAM 20G PCIe 4.0 NVMe SSD 1 IPV4 & /64 IPV6 1T/Month/400Mbps $12.00 USD Quarterly $24.00 USD Semi-Annually $44.00 USD Annually Out of stock!",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Starter",
+      "option": "Osaka",
+      "price": "12.00 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "400Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/osaka-amd-performance-vps/&action=add&id=11&cycle=q",
+      "variant_of": "Osaka Amd Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=117": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Starter 1 Core AMD EPYC 7002 Series 1 GB DDR4 RAM 10G NVMe SSD 1 IPV4 500G/Month/100Mbps, Based on the Principle of Fair Use $16.00 USD Quarterly $30.00 USD Semi-Annually $58.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Starter",
+      "option": "Hongkong",
+      "price": "16.00 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/hongkong-amd-vps/&action=add&id=117&cycle=q",
+      "variant_of": "Hongkong Amd Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=118": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Standard 2 Cores AMD EPYC 7002 Series 2 GB DDR4 RAM 20G NVMe SSD 1 IPV4 1T/Month/100Mbps, Based on the Principle of Fair Use $30.00 USD Quarterly $56.00 USD Semi-Annually $106.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Standard",
+      "option": "Hongkong",
+      "price": "30.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/hongkong-amd-vps/&action=add&id=118&cycle=q",
+      "variant_of": "Hongkong Amd Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=119": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Pro 3 Cores AMD EPYC 7002 Series 3 GB DDR4 RAM 30G NVMe SSD 1 IPV4 1.5T/Month/100Mbps, Based on the Principle of Fair Use $45.00 USD Quarterly $86.00 USD Semi-Annually $156.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Pro",
+      "option": "Hongkong",
+      "price": "45.00 USD",
+      "specs": {
+        "CPU": "3 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/hongkong-amd-vps/&action=add&id=119&cycle=q",
+      "variant_of": "Hongkong Amd Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=12": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Standard 2 Cores AMD EPYC 9354P 2GB DDR5 ECC RAM 40G PCIe 4.0 NVMe SSD 1 IPV4 & /64 IPV6 1T/Month/800Mbps $17.00 USD Quarterly $34.00 USD Semi-Annually $62.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Standard",
+      "option": "Osaka",
+      "price": "17.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "800Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/osaka-amd-performance-vps/&action=add&id=12&cycle=q",
+      "variant_of": "Osaka Amd Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=120": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Premium 4 Cores AMD EPYC 7002 Series 4 GB DDR4 RAM 50G NVMe SSD 1 IPV4 2T/Month/100Mbps, Based on the Principle of Fair Use $58.00 USD Quarterly $108.00 USD Semi-Annually $198.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Premium",
+      "option": "Hongkong",
+      "price": "58.00 USD",
+      "specs": {
+        "CPU": "4 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/hongkong-amd-vps/&action=add&id=120&cycle=q",
+      "variant_of": "Hongkong Amd Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=121": {
+      "available": true,
+      "billing_cycles": [
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "HongKong AMD VPS - Specials - Starter 1 Core AMD EPYC 7002 Series 1 GB DDR4 RAM 10G NVMe SSD 1 IPV4 BGP Network, 500G/Month/100Mbps, Fair Use $45.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HongKong AMD VPS - Specials - Starter",
+      "option": null,
+      "price": "45.00 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Yearly, Semiannual",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=121&cycle=a",
+      "variant_of": "Special Offer"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=122": {
+      "available": true,
+      "billing_cycles": [
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "HongKong AMD VPS - Specials - Standard 2 Cores AMD EPYC 7002 Series 2 GB DDR4 RAM 20G NVMe SSD 1 IPV4 BGP Network, 1T/Month/100Mbps, Fair Use $88.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "HongKong AMD VPS - Specials - Standard",
+      "option": null,
+      "price": "88.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Yearly, Semiannual",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=122&cycle=a",
+      "variant_of": "Special Offer"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=124": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Starter 2 Cores AMD EPYC 7003 Series 4 GB DDR4 RAM 60G NVMe SSD 1 IPV4 10T/Month/1Gbps Allows installation of Windows with your own license $24.00 USD Quarterly $46.00 USD Semi-Annually $86.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Starter",
+      "option": "Los Angeles",
+      "price": "24.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "1Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-amd-vds/&action=add&id=124&cycle=q",
+      "variant_of": "Los Angeles Amd Vds"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=125": {
+      "available": true,
+      "billing_cycles": [
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "Los Angeles AMD VDS - Specials - Starter 2 Cores AMD EPYC 7003 Series 4 GB DDR4 RAM 60G NVMe SSD 1 IPV4 International network, 10T/Month/1Gbps, Fair Use Allows installation of Windows with your own license $66.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Los Angeles AMD VDS - Specials - Starter",
+      "option": null,
+      "price": "66.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Yearly, Semiannual",
+        "Port": "1Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=125&cycle=a",
+      "variant_of": "Special Offer"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=127": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Starter 1 Core Intel(R) Xeon(R) Gold 6248 1 GB DDR4 RAM 10G NVMe SSD 1 IPV4 500G/Month/100Mbps, Based on the Principle of Fair Use $16.00 USD Quarterly $30.00 USD Semi-Annually $58.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Starter",
+      "option": "Tokyo",
+      "price": "16.00 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/tokyo-intel-vps/&action=add&id=127&cycle=q",
+      "variant_of": "Tokyo Intel Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=128": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Standard 2 Cores Intel(R) Xeon(R) Gold 6248 2 GB DDR4 RAM 20G NVMe SSD 1 IPV4 1T/Month/100Mbps, Based on the Principle of Fair Use $30.00 USD Quarterly $56.00 USD Semi-Annually $106.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Standard",
+      "option": "Tokyo",
+      "price": "30.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/tokyo-intel-vps/&action=add&id=128&cycle=q",
+      "variant_of": "Tokyo Intel Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=129": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Pro 3 Cores Intel(R) Xeon(R) Gold 6248 3 GB DDR4 RAM 30G NVMe SSD 1 IPV4 1.5T/Month/100Mbps, Based on the Principle of Fair Use $45.00 USD Quarterly $86.00 USD Semi-Annually $156.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Pro",
+      "option": "Tokyo",
+      "price": "45.00 USD",
+      "specs": {
+        "CPU": "3 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/tokyo-intel-vps/&action=add&id=129&cycle=q",
+      "variant_of": "Tokyo Intel Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=13": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Pro 3 Cores AMD EPYC 9354P 4GB DDR5 ECC RAM 80G PCIe 4.0 NVMe SSD 1 IPV4 & /64 IPV6 1T/Month/800Mbps $24.00 USD Quarterly $48.00 USD Semi-Annually $88.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Pro",
+      "option": "Osaka",
+      "price": "24.00 USD",
+      "specs": {
+        "CPU": "3 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "800Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/osaka-amd-performance-vps/&action=add&id=13&cycle=q",
+      "variant_of": "Osaka Amd Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=130": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Premium 4 Cores Intel(R) Xeon(R) Gold 6248 4 GB DDR4 RAM 50G NVMe SSD 1 IPV4 2T/Month/100Mbps, Based on the Principle of Fair Use $58.00 USD Quarterly $108.00 USD Semi-Annually $198.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Premium",
+      "option": "Tokyo",
+      "price": "58.00 USD",
+      "specs": {
+        "CPU": "4 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/tokyo-intel-vps/&action=add&id=130&cycle=q",
+      "variant_of": "Tokyo Intel Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=132": {
+      "available": true,
+      "billing_cycles": [
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "Tokyo Intel VPS - Specials - Starter 1 Core Intel(R) Xeon(R) Gold 6248 1 GB DDR4 RAM 10G NVMe SSD 1 IPV4 China Optimised, 500G/Month/100Mbps, Fair Use $45.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Tokyo Intel VPS - Specials - Starter",
+      "option": null,
+      "price": "45.00 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Yearly, Semiannual",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=132&cycle=a",
+      "variant_of": "Special Offer"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=133": {
+      "available": true,
+      "billing_cycles": [
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "Tokyo Intel VPS - Specials - Standard 2 Cores Intel(R) Xeon(R) Gold 6248 2 GB DDR4 RAM 20G NVMe SSD 1 IPV4 China Optimised, 1T/Month/100Mbps, Fair Use $88.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Tokyo Intel VPS - Specials - Standard",
+      "option": null,
+      "price": "88.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Yearly, Semiannual",
+        "Port": "100Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=133&cycle=a",
+      "variant_of": "Special Offer"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=14": {
+      "available": false,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Premium 4 Cores AMD EPYC 9354P 6GB DDR5 ECC RAM 100G PCIe 4.0 NVMe SSD 1 IPV4 & /64 IPV6 2T/Month/800Mbps $36.00 USD Quarterly $72.00 USD Semi-Annually $132.00 USD Annually Out of stock!",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Premium",
+      "option": "Osaka",
+      "price": "36.00 USD",
+      "specs": {
+        "CPU": "4 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "800Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/osaka-amd-performance-vps/&action=add&id=14&cycle=q",
+      "variant_of": "Osaka Amd Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=15": {
+      "available": false,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Ultra 6 Cores AMD EPYC 9354P 8GB DDR5 ECC RAM 120G PCIe 4.0 NVMe SSD 1 IPV4 & /64 IPV6 2T/Month/800Mbps $48.00 USD Quarterly $96.00 USD Semi-Annually $176.00 USD Annually Out of stock!",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Ultra",
+      "option": "Osaka",
+      "price": "48.00 USD",
+      "specs": {
+        "CPU": "6 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "800Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/osaka-amd-performance-vps/&action=add&id=15&cycle=q",
+      "variant_of": "Osaka Amd Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=18": {
+      "available": false,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Starter 1 Core AMD Ryzen9 7950X 1GB DDR5 ECC RAM 20G PCIe 4.0 NVMe SSD 1 IPV4 1000GB/Month/800Mbps $15.00 USD Quarterly $30.00 USD Semi-Annually $52.00 USD Annually Out of stock!",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Starter",
+      "option": "Osaka",
+      "price": "15.00 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "800Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/osaka-amd-ryzen9-performance-vps/&action=add&id=18&cycle=q",
+      "variant_of": "Osaka Amd Ryzen9 Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=19": {
+      "available": false,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Standard 2 Core AMD Ryzen9 7950X 2GB DDR5 ECC RAM 40G PCIe 4.0 NVMe SSD 1 IPV4 2T/Month/800Mbps $25.00 USD Quarterly $50.00 USD Semi-Annually $92.00 USD Annually Out of stock!",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Standard",
+      "option": "Osaka",
+      "price": "25.00 USD",
+      "specs": {
+        "CPU": "2 Core",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "800Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/osaka-amd-ryzen9-performance-vps/&action=add&id=19&cycle=q",
+      "variant_of": "Osaka Amd Ryzen9 Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=26": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Starter 1 Core Intel® Xeon® Platinum 8452Y 1GB DDR5 ECC RAM 20G PCIe 4.0 NVMe SSD 1 IPV4 1T/Month/300Mbps, Based on the Principle of Fair Use $16.00 USD Quarterly $32.00 USD Semi-Annually $60.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Starter",
+      "option": "Los Angeles",
+      "price": "16.00 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "300Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-intel-performance-vps/&action=add&id=26&cycle=q",
+      "variant_of": "Los Angeles Intel Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=27": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Standard 2 Cores Intel® Xeon® Platinum 8452Y 2GB DDR5 ECC RAM 40G PCIe 4.0 NVMe SSD 1 IPV4 2T/Month/300Mbps, Based on the Principle of Fair Use $24.00 USD Quarterly $48.00 USD Semi-Annually $90.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Standard",
+      "option": "Los Angeles",
+      "price": "24.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "300Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-intel-performance-vps/&action=add&id=27&cycle=q",
+      "variant_of": "Los Angeles Intel Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=28": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Pro 3 Cores Intel® Xeon® Platinum 8452Y 4GB DDR5 ECC RAM 80G PCIe 4.0 NVMe SSD 1 IPV4 2T/Month/300Mbps, Based on the Principle of Fair Use $32.00 USD Quarterly $64.00 USD Semi-Annually $120.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Pro",
+      "option": "Los Angeles",
+      "price": "32.00 USD",
+      "specs": {
+        "CPU": "3 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "300Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-intel-performance-vps/&action=add&id=28&cycle=q",
+      "variant_of": "Los Angeles Intel Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=29": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Premium 4 Cores Intel® Xeon® Platinum 8452Y 6 GB DDR5 ECC RAM 100G PCIe 4.0 NVMe SSD 1 IPV4 2T/Month/300Mbps, Based on the Principle of Fair Use $40.00 USD Quarterly $80.00 USD Semi-Annually $150.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Premium",
+      "option": "Los Angeles",
+      "price": "40.00 USD",
+      "specs": {
+        "CPU": "4 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "300Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-intel-performance-vps/&action=add&id=29&cycle=q",
+      "variant_of": "Los Angeles Intel Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=51": {
+      "available": false,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Starter 1Core Intel® Xeon® Gold 5412U 1GB DDR5 ECC RAM 20G NVMe SSD 1 IPV4 Falkenstein, Germany 2TB/Month/1000Mbps $6.00 USD Quarterly $11.90 USD Semi-Annually $22.90 USD Annually Out of stock!",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Starter",
+      "option": "Falkenstein",
+      "price": "6.00 USD",
+      "specs": {
+        "CPU": "1Core",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "1000Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/falkenstein-intel-vps/&action=add&id=51&cycle=q",
+      "variant_of": "Falkenstein Intel Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=52": {
+      "available": false,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Standard 2Cores Intel® Xeon® Gold 5412U 2GB DDR5 ECC RAM 40G NVMe SSD 1 IPV4 Falkenstein, Germany 4TB/Month/1000Mbps $10.00 USD Quarterly $19.90 USD Semi-Annually $39.90 USD Annually Out of stock!",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Standard",
+      "option": "Falkenstein",
+      "price": "10.00 USD",
+      "specs": {
+        "CPU": "2Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "1000Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/falkenstein-intel-vps/&action=add&id=52&cycle=q",
+      "variant_of": "Falkenstein Intel Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=58": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Starter 1 Core AMD Ryzen9 7950X 1GB DDR5 RAM 25G NVMe SSD 1 IPV4 1T/Month/300Mbps, Fair Use $18.00 USD Quarterly $36.00 USD Semi-Annually $66.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Starter",
+      "option": "Los Angeles",
+      "price": "18.00 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "300Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-ryzen9-performance-vps/&action=add&id=58&cycle=q",
+      "variant_of": "Los Angeles Ryzen9 Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=59": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Standard 2 Cores AMD Ryzen9 7950X 2GB DDR5 RAM 40G NVMe SSD 1 IPV4 2T/Month/500Mbps, Fair Use $28.00 USD Quarterly $56.00 USD Semi-Annually $106.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Standard",
+      "option": "Los Angeles",
+      "price": "28.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "500Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-ryzen9-performance-vps/&action=add&id=59&cycle=q",
+      "variant_of": "Los Angeles Ryzen9 Performance Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=60": {
+      "available": true,
+      "billing_cycles": [
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "Los Angeles Ryzen9 Performance VPS - Specials - Starter 1 Core AMD Ryzen9 7950X 1GB DDR5 RAM 25G NVMe SSD 1 IPV4 1T/Month/300Mbps, Fair Use Los Angeles, China Optimised $58.90 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Los Angeles Ryzen9 Performance VPS - Specials - Starter",
+      "option": null,
+      "price": "58.90 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Yearly, Semiannual",
+        "Port": "300Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=60&cycle=a",
+      "variant_of": "Special Offer"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=68": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Starter 1 Core AMD EPYC 7003 Series 2 GB DDR4 RAM 30G NVMe SSD 1 IPV4 1T/Month/300Mbps, Based on the Principle of Fair Use $16.00 USD Quarterly $32.00 USD Semi-Annually $60.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Starter",
+      "option": "Los Angeles",
+      "price": "16.00 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "300Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-amd-vps/&action=add&id=68&cycle=q",
+      "variant_of": "Los Angeles Amd Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=69": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Standard 2 Cores AMD EPYC 7003 Series 3 GB DDR4 RAM 50G NVMe SSD 1 IPV4 2T/Month/300Mbps, Based on the Principle of Fair Use $24.00 USD Quarterly $48.00 USD Semi-Annually $90.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Standard",
+      "option": "Los Angeles",
+      "price": "24.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "300Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-amd-vps/&action=add&id=69&cycle=q",
+      "variant_of": "Los Angeles Amd Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=72": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Pro 3 Cores AMD EPYC 7003 Series 4GB DDR4 ECC RAM 80G PCIe 4.0 NVMe SSD 1 IPV4 2T/Month/300Mbps, Based on the Principle of Fair Use $32.00 USD Quarterly $64.00 USD Semi-Annually $120.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Pro",
+      "option": "Los Angeles",
+      "price": "32.00 USD",
+      "specs": {
+        "CPU": "3 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "300Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-amd-vps/&action=add&id=72&cycle=q",
+      "variant_of": "Los Angeles Amd Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=73": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Premium 4 Cores AMD EPYC 7003 Series 6GB DDR4 ECC RAM 100G PCIe 4.0 NVMe SSD 1 IPV4 2T/Month/300Mbps, Based on the Principle of Fair Use $40.00 USD Quarterly $80.00 USD Semi-Annually $150.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Premium",
+      "option": "Los Angeles",
+      "price": "40.00 USD",
+      "specs": {
+        "CPU": "4 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "300Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-amd-vps/&action=add&id=73&cycle=q",
+      "variant_of": "Los Angeles Amd Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=74": {
+      "available": false,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Ultra 6 Cores AMD EPYC 7003 Series 8GB DDR4 ECC RAM 120G PCIe 4.0 NVMe SSD 1 IPV4 2T/Month/500Mbps, Based on the Principle of Fair Use $48.00 USD Quarterly $96.00 USD Semi-Annually $176.00 USD Annually Out of stock!",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Ultra",
+      "option": "Los Angeles",
+      "price": "48.00 USD",
+      "specs": {
+        "CPU": "6 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "500Mbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-amd-vps/&action=add&id=74&cycle=q",
+      "variant_of": "Los Angeles Amd Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=84": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Starter 1 Core AMD EPYC 7002 Series 1 GB DDR4 RAM 20G NVMe SSD 1 IPV4 2T/Month/1Gbps $8.00 USD Quarterly $16.00 USD Semi-Annually $28.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Starter",
+      "option": "Los Angeles",
+      "price": "8.00 USD",
+      "specs": {
+        "CPU": "1 Core",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "1Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-global-vps/&action=add&id=84&cycle=q",
+      "variant_of": "Los Angeles Global Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=85": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Standard 2 Cores AMD EPYC 7002 Series 2 GB DDR4 RAM 40G NVMe SSD 1 IPV4 4T/Month/1Gbps $12.00 USD Quarterly $24.00 USD Semi-Annually $40.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Standard",
+      "option": "Los Angeles",
+      "price": "12.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "1Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-global-vps/&action=add&id=85&cycle=q",
+      "variant_of": "Los Angeles Global Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=86": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Pro 3 Cores AMD EPYC 7002 Series 4 GB DDR4 RAM 60G NVMe SSD 1 IPV4 6T/Month/1Gbps $20.00 USD Quarterly $40.00 USD Semi-Annually $72.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Pro",
+      "option": "Los Angeles",
+      "price": "20.00 USD",
+      "specs": {
+        "CPU": "3 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "1Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-global-vps/&action=add&id=86&cycle=q",
+      "variant_of": "Los Angeles Global Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=87": {
+      "available": true,
+      "billing_cycles": [
+        "Quarterly",
+        "Semiannual",
+        "Monthly",
+        "Yearly"
+      ],
+      "currency": "USD",
+      "description": "Premium 4 Cores AMD EPYC 7002 Series 6 GB DDR4 RAM 80G NVMe SSD 1 IPV4 8T/Month/1Gbps $28.00 USD Quarterly $56.00 USD Semi-Annually $98.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Premium",
+      "option": "Los Angeles",
+      "price": "28.00 USD",
+      "specs": {
+        "CPU": "4 Cores",
+        "Cycles": "Quarterly, Semiannual, Monthly, Yearly",
+        "Port": "1Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/los-angeles-global-vps/&action=add&id=87&cycle=q",
+      "variant_of": "Los Angeles Global Vps"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=94": {
+      "available": false,
+      "billing_cycles": [
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "Los Angeles Global VPS - Specials - Standard 2 Cores AMD EPYC 7002 Series 2 GB DDR4 RAM 40G NVMe SSD 1 IPV4 4T/Month/1Gbps International network, not optimized for China $25.00 USD Annually Out of stock!",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Los Angeles Global VPS - Specials - Standard",
+      "option": null,
+      "price": "25.00 USD",
+      "specs": {
+        "CPU": "2 Cores",
+        "Cycles": "Yearly, Semiannual",
+        "Port": "1Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=94&cycle=a",
+      "variant_of": "Special Offer"
+    },
+    "clients.zgovps.com::https://clients.zgovps.com/index.php?action=add&id=95": {
+      "available": true,
+      "billing_cycles": [
+        "Yearly",
+        "Semiannual"
+      ],
+      "currency": "USD",
+      "description": "Los Angeles Global VPS - Specials - Pro 3 Cores AMD EPYC 7002 Series 4 GB DDR4 RAM 60G NVMe SSD 1 IPV4 6T/Month/1Gbps International network, not optimized for China $45.00 USD Annually Continue",
+      "domain": "clients.zgovps.com",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Los Angeles Global VPS - Specials - Pro",
+      "option": null,
+      "price": "45.00 USD",
+      "specs": {
+        "CPU": "3 Cores",
+        "Cycles": "Yearly, Semiannual",
+        "Port": "1Gbps"
+      },
+      "url": "https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=95&cycle=a",
+      "variant_of": "Special Offer"
+    },
+    "vps.hosting::https://vps.hosting/cart/&cat_id=domains": {
+      "available": null,
+      "billing_cycles": null,
+      "currency": "EUR",
+      "description": "Enter a list of domains to transfer, one per line, followed by colon \":\" and authcode.",
+      "domain": "vps.hosting",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "Find the Right Domain Name.",
+      "option": "&Cat Id=Domains",
+      "price": "10.95 EUR",
+      "specs": {
+        ".com": "€10.95 EUR",
+        ".net": "€10.95 EUR",
+        ".org": "€10.95 EUR",
+        "Enter a list of domains to transfer, one per line, followed by colon \"": "\" and authcode.",
+        "TLD": "Register"
+      },
+      "url": "https://vps.hosting/cart/&cat_id=domains",
+      "variant_of": "&Cat Id=Domains"
+    },
+    "vps.hosting::https://vps.hosting/cart/ssl?action=add&id=41": {
+      "available": true,
+      "billing_cycles": null,
+      "currency": null,
+      "description": "GoGetSSL™ Domain SSL GoGetSSL™ Wildcard SSL GoGetSSL™ Public IP SAN",
+      "domain": "vps.hosting",
+      "first_seen": "2026-02-20T04:47:47+00:00",
+      "last_change": "2026-02-20T04:47:47+00:00",
+      "last_notified_new": null,
+      "last_notified_new_option": null,
+      "last_notified_restock": null,
+      "last_seen": "2026-02-20T04:47:47+00:00",
+      "name": "GoGetSSL™ Domain SSL",
+      "option": null,
+      "price": null,
+      "specs": null,
+      "url": "https://vps.hosting/cart/ssl/?action=add&id=41",
+      "variant_of": null
+    }
+  },
+  "schema_version": 1,
+  "updated_at": "2026-02-20T04:47:47+00:00"
+}

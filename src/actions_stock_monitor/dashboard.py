@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import html
 import json
-import os
 from datetime import datetime, timezone
 from typing import Any
 
@@ -32,25 +31,11 @@ def _format_ts_short(ts: str | None) -> str:
 def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] | None = None) -> str:
     run_summary = run_summary or {}
     updated_at = state.get("updated_at") or run_summary.get("finished_at") or ""
-    stale_minutes = int(os.getenv("STALE_MINUTES", "180"))
-
-    # Use real current UTC time for stale detection, not the potentially-old updated_at.
-    now = datetime.now(timezone.utc)
 
     products: list[dict[str, Any]] = []
     for _, p in (state.get("products") or {}).items():
         if not isinstance(p, dict):
             continue
-        last_seen_dt = _parse_iso(p.get("last_seen"))
-        stale = False
-        if last_seen_dt:
-            age_min = int((now - last_seen_dt).total_seconds() / 60)
-            stale = age_min >= stale_minutes
-        else:
-            # If we have no last_seen at all, consider it stale only if > stale_minutes old.
-            first_seen_dt = _parse_iso(p.get("first_seen"))
-            if first_seen_dt:
-                stale = int((now - first_seen_dt).total_seconds() / 60) >= stale_minutes
 
         billing = p.get("billing_cycles") or []
         if isinstance(billing, list):
@@ -69,7 +54,6 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
                 "url": p.get("url") or "",
                 "first_seen": p.get("first_seen") or "",
                 "last_seen": p.get("last_seen") or "",
-                "stale": stale,
                 "billing_cycles": billing,
                 "option": p.get("option") or "",
                 "variant_of": p.get("variant_of") or "",
@@ -302,11 +286,33 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       margin-top: 6px;
       display: flex; flex-wrap: wrap; gap: 6px;
     }}
-    .desc {{
-      margin-top: 6px;
+    .desc-wrap {{
+      margin-top: 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      background: rgba(0,0,0,.24);
+      overflow: hidden;
+    }}
+    .desc-wrap summary {{
+      cursor: pointer;
+      padding: 7px 10px;
+      font-size: 11px;
       color: var(--muted);
+      background: rgba(255,255,255,.04);
+      user-select: none;
+    }}
+    .desc-wrap[open] summary {{
+      color: var(--text);
+    }}
+    .desc-box {{
+      padding: 8px 10px;
+      color: var(--text);
       font-size: 12px;
-      line-height: 1.35;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      max-height: 180px;
+      overflow-y: auto;
     }}
     .chip {{
       padding: 4px 8px;
@@ -315,14 +321,6 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       border: 1px solid rgba(255,255,255,.10);
       color: var(--muted);
       font-size: 11px;
-    }}
-    .tag-stale {{
-      margin-left: 8px;
-      padding: 2px 6px;
-      border-radius: 8px;
-      font-size: 11px;
-      color: rgba(0,0,0,.85);
-      background: var(--amber);
     }}
     .option-tag {{
       margin-left: 6px;
@@ -409,7 +407,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
   <div class="wrap">
     <header>
       <div>
-        <h1 class="title">Restock Monitor — Cyber Dashboard</h1>
+        <h1 class="title">Restock Monitor - Cyber Dashboard</h1>
         <div class="sub">
           Last updated: <b>{_h(updated_at)}</b><br/>
           Domains: <b>{domains_ok}</b> ok, <b>{domains_error}</b> error · Products: <b>{len(products)}</b>
@@ -419,12 +417,12 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         <div class="pill"><a href="https://t.me/tx_stock_monitor" target="_blank" rel="noreferrer noopener">Telegram group</a></div>
         <div class="pill">Restocks: <b>{_h(run_summary.get("restocks", 0))}</b></div>
         <div class="pill">New: <b>{_h(run_summary.get("new_products", 0))}</b></div>
-        <div class="pill run-pill">Run: <span class="muted">{_h(run_started)}</span> → <span class="muted">{_h(run_finished)}</span></div>
+        <div class="pill run-pill">Run: <span class="muted">{_h(run_started)}</span> -> <span class="muted">{_h(run_finished)}</span></div>
       </div>
     </header>
 
     <div class="controls">
-      <input id="q" type="search" placeholder="Search domain, name, price, specs…" autocomplete="off" />
+      <input id="q" type="search" placeholder="Search domain, name, price, specs, details" autocomplete="off" />
       <select id="site" aria-label="Site category">
         <option value="">All sites</option>
       </select>
@@ -561,15 +559,16 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         const meta = statusMeta(p.available);
         const tr = document.createElement("tr");
         const specs = Object.entries(p.specs || {{}}).map(([k,v]) => `<span class="chip">${{escapeHtml(k)}}: ${{escapeHtml(v)}}</span>`).join("");
-        const desc = p.description ? `<div class="desc">${{escapeHtml(p.description)}}</div>` : "";
-        const staleTag = p.stale ? `<span class="tag-stale">STALE</span>` : "";
+        const desc = p.description
+          ? `<details class="desc-wrap"><summary>Description</summary><div class="desc-box">${{escapeHtml(p.description)}}</div></details>`
+          : "";
         const optionTag = p.option ? `<span class="option-tag">${{escapeHtml(p.option)}}</span>` : "";
         const variantInfo = p.variant_of ? `<div class="muted" style="font-size:11px;margin-top:2px">Plan: ${{escapeHtml(p.variant_of)}}</div>` : "";
         const cyclesCell = p.billing_cycles ? escapeHtml(p.billing_cycles) : '<span class="muted">—</span>';
 
         tr.innerHTML = `
           <td data-k="Status">
-            <span class="badge"><span class="dot ${{meta.cls}}"></span> ${{meta.label}} ${{staleTag}}</span>
+            <span class="badge"><span class="dot ${{meta.cls}}"></span> ${{meta.label}}</span>
           </td>
           <td data-k="Domain"><span class="muted">${{escapeHtml(p.domain)}}</span></td>
           <td data-k="Product">

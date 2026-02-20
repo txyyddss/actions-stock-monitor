@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -35,6 +36,7 @@ def _fetch_text(client: HttpClient, url: str, *, allow_flaresolverr: bool = True
 
 
 _NON_PRODUCT_URL_FRAGMENTS = (
+    "cart",
     "clientarea.php",
     "register",
     "login",
@@ -64,6 +66,18 @@ def _looks_like_non_product_page(url: str) -> bool:
         return False
     u = (p.path or "").lower()
     q = (p.query or "").lower()
+    if u.rstrip("/") in ("/cart", "/products", "/store"):
+        if not any(x in q for x in ("a=add", "pid=", "id=", "product=", "gid=", "fid=")):
+            return True
+    if "/products/cart/" in u and not any(x in q for x in ("a=add", "action=add", "pid=", "id=", "product=")):
+        return True
+    if "?/cart/" in url.lower():
+        tail = url.lower().split("?/cart/", 1)[1]
+        tail = tail.split("&", 1)[0].strip("/")
+        if tail.count("/") <= 0 and not any(x in q for x in ("a=add", "pid=", "id=", "product=")):
+            return True
+    if "index.php?/products/" in url.lower() and not any(x in q for x in ("a=add", "action=add", "pid=", "id=", "product=")):
+        return True
     if "a=view" in q and "cart.php" in u:
         return True
     if any(x in u for x in _NON_PRODUCT_URL_FRAGMENTS):
@@ -141,6 +155,16 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
             }
             continue
 
+        # Remove products that disappeared from a successfully crawled domain.
+        seen_ids = {p.id for p in run.products}
+        for pid, rec in list((state.get("products") or {}).items()):
+            if not isinstance(rec, dict):
+                continue
+            if rec.get("domain") != domain:
+                continue
+            if pid not in seen_ids:
+                state["products"].pop(pid, None)
+
         for product in run.products:
             prev = state["products"].get(product.id)
             if not prev:
@@ -217,87 +241,69 @@ def _notify_restock(cfg, product: Product, now: str, *, timeout_seconds: float) 
 
 
 def _notify_new_product(cfg, product: Product, now: str, *, timeout_seconds: float) -> bool:
-    msg = _format_message("NEW PRODUCT", "🆕", product, now)
+    msg = _format_message("NEW PRODUCT", "✨", product, now)
     return send_telegram_html(cfg=cfg, message_html=msg, timeout_seconds=min(15.0, timeout_seconds))
 
 
 def _notify_new_option(cfg, product: Product, now: str, *, timeout_seconds: float) -> bool:
-    msg = _format_message("NEW OPTION", "✨", product, now)
+    msg = _format_message("NEW OPTION", "🧩", product, now)
     return send_telegram_html(cfg=cfg, message_html=msg, timeout_seconds=min(15.0, timeout_seconds))
 
 
 def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
-    """
-    Format a Telegram notification message in a clean, informative layout inspired by:
-
-    #ZgoCloud
-    Los Angeles Ryzen9 Performance- Lite
-    • 1 Core AMD Ryzen9 7950X
-    • 512 MB DDR5 RAM
-    • 15G NVMe SSD
-    ℹ️ China Optimized, CN2GIA&9929&CMIN2
-    💰 Price: $38.9 USD Annually
-    👉 Order Now (link)
-    🕒 2026-02-18 11:10:56
-    """
     lines: list[str] = []
 
-    # Header: hashtag domain + alert type
     domain_tag = product.domain.replace(".", "").replace("-", "")
-    lines.append(f"<b>{h(icon)} {h(kind)}</b>")
+    lines.append(f"<b>[{h(icon)}] {h(kind)}</b>")
     lines.append(f"<b>#{h(domain_tag)}</b>")
     lines.append("")
 
-    # Product name
     name = product.name
     if product.variant_of and product.option:
-        name = f"{product.variant_of} — {product.option}"
+        name = f"{product.variant_of} - {product.option}"
     elif product.variant_of:
-        name = f"{product.variant_of} — {product.name}"
+        name = f"{product.variant_of} - {product.name}"
     lines.append(f"<b>{h(name)}</b>")
     lines.append("")
 
-    # Specs as bullet points
+    if product.price:
+        lines.append(f"💰 <b>Price:</b> {h(product.price)}")
+    if product.billing_cycles:
+        lines.append(f"<b>Cycles:</b> {h(', '.join(product.billing_cycles))}")
+
+    if product.available is True:
+        lines.append("✅ <b>Status:</b> In Stock")
+    elif product.available is False:
+        lines.append("❌ <b>Status:</b> Out of Stock")
+    else:
+        lines.append("<b>Status:</b> Unknown")
+
+    if product.option:
+        lines.append(f"<b>Option:</b> {h(product.option)}")
+    if product.variant_of:
+        lines.append(f"<b>Plan:</b> {h(product.variant_of)}")
+    lines.append("")
+
     if product.specs:
         prio = ["Location", "Node", "CPU", "RAM", "Disk", "Storage", "Transfer", "Traffic", "Bandwidth", "Port", "IPv4", "IPv6", "Cycles", "OS"]
         items = list(product.specs.items())
         items.sort(key=lambda kv: (prio.index(kv[0]) if kv[0] in prio else 999, str(kv[0])))
-        for k, v in items[:12]:
+        spec_lines: list[str] = []
+        for k, v in items[:20]:
             if not k or not v:
                 continue
-            # Skip numeric-key specs (extracted from bullet lists) that are too noisy
-            if k.isdigit():
-                continue
-            lines.append(f"• {h(str(v))}")
-        lines.append("")
+            spec_lines.append(f"{k}: {v}")
+        if spec_lines:
+            lines.append("<b>Specs</b>")
+            lines.append(f"<pre>{h(chr(10).join(spec_lines))}</pre>")
 
-    # Info line (description as a short contextual note)
-    if product.description:
-        desc = (product.description or "").strip()
-        if len(desc) > 200:
-            desc = desc[:200] + "…"
-        if desc:
-            lines.append(f"ℹ️ {h(desc)}")
-            lines.append("")
+    # Detailed description in a code block (no ellipsis truncation).
+    if product.description and product.description.strip():
+        lines.append("<b>Details</b>")
+        lines.append(f"<pre>{h(product.description.strip())}</pre>")
 
-    # Price line
-    if product.price:
-        cycle_label = ""
-        if product.billing_cycles:
-            cycle_label = f" {', '.join(product.billing_cycles)}"
-        lines.append(f"💰 Price: <b>{h(product.price)}{h(cycle_label)}</b>")
-
-    # Stock status
-    if product.available is True:
-        lines.append("✅ <b>In Stock</b>")
-    elif product.available is False:
-        lines.append("❌ <b>Out of Stock</b>")
-
-    # Order link
     lines.append(f'👉 <a href="{h(product.url)}">Order Now</a>')
-
-    # Timestamp
-    lines.append(f"🕒 {h(now)}")
+    lines.append(f"🕒 <code>{h(now)}</code>")
 
     message = "\n".join(lines)
     return message[:3900]
@@ -365,6 +371,9 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                     max_pages_limit = max(max_pages_limit, 40)
                 if _is_whmcs_domain(domain, fetch.text):
                     max_pages_limit = max(max_pages_limit, 24)
+                if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+                    # HostBill-style carts often require an extra discovery hop from category -> products.
+                    max_pages_limit = max(max_pages_limit, 48)
 
             discovered = []
             # Try domain-specific extra pages (including SPA API endpoints) first so we don't
@@ -383,6 +392,9 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             default_stop = "6" if _is_whmcs_domain(domain, fetch.text) else "4"
             stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", default_stop))
             stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "4"))
+            if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+                # HostBill sites often discover real product pages only after several category hops.
+                stop_after_no_new = 0
             no_new_streak = 0
             fetch_error_streak = 0
             pages_visited = 0
@@ -391,8 +403,8 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                 if max_pages_limit > 0 and pages_visited >= max_pages_limit:
                     break
                 pages_visited += 1
-                # Secondary pages are fetched directly to avoid expensive challenge-solving loops.
-                page_fetch = _fetch_text(client, page_url, allow_flaresolverr=_is_primary_listing_page(page_url))
+                allow_solver = _should_use_flaresolverr_for_discovery_page(page_url)
+                page_fetch = _fetch_text(client, page_url, allow_flaresolverr=allow_solver)
                 if not page_fetch.ok or not page_fetch.text:
                     fetch_error_streak += 1
                     if stop_after_fetch_errors > 0 and fetch_error_streak >= stop_after_fetch_errors and _is_primary_listing_page(page_url):
@@ -429,13 +441,32 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
 
         # Some providers only reveal stock state on the product detail page (or render it client-side on listings).
         # Enrich all products with unknown or False availability via detail page fetches.
-        _ENRICH_DOMAINS = {"fachost.cloud", "backwaves.net", "app.vmiss.com", "wawo.wiki"}
+        _ENRICH_DOMAINS = {
+            "fachost.cloud",
+            "backwaves.net",
+            "app.vmiss.com",
+            "wawo.wiki",
+            "vps.hosting",
+            "clients.zgovps.com",
+            "clientarea.gigsgigscloud.com",
+        }
+        _CYCLE_ENRICH_DOMAINS = {
+            "fachost.cloud",
+            "wawo.wiki",
+            "vps.hosting",
+            "clients.zgovps.com",
+            "clientarea.gigsgigscloud.com",
+        }
         if domain in _ENRICH_DOMAINS:
-            unknown_count = sum(1 for p in products if p.available is None)
             false_only = all(p.available is False for p in products) if products else False
+            include_missing_cycles = domain in _CYCLE_ENRICH_DOMAINS
+            enrich_pages = 80 if include_missing_cycles and domain in {"wawo.wiki", "clientarea.gigsgigscloud.com"} else 40
             products = _enrich_availability_via_product_pages(
-                client, products, max_pages=40,
+                client,
+                products,
+                max_pages=enrich_pages,
                 include_false=(false_only or domain in {"fachost.cloud", "backwaves.net"}),
+                include_missing_cycles=include_missing_cycles,
             )
 
         duration_ms = int((time.perf_counter() - started) * 1000)
@@ -520,6 +551,7 @@ def _enrich_availability_via_product_pages(
     *,
     max_pages: int,
     include_false: bool = False,
+    include_missing_cycles: bool = False,
 ) -> list[Product]:
     candidates: list[tuple[int, Product]] = []
     for idx, p in enumerate(products):
@@ -527,7 +559,9 @@ def _enrich_availability_via_product_pages(
             break
         if not p.url.startswith(("http://", "https://")):
             continue
-        if p.available is None or (include_false and p.available is False):
+        needs_availability = p.available is None or (include_false and p.available is False)
+        needs_cycles = include_missing_cycles and not p.billing_cycles
+        if needs_availability or needs_cycles:
             candidates.append((idx, p))
 
     if not candidates:
@@ -538,7 +572,8 @@ def _enrich_availability_via_product_pages(
     max_workers = max(1, min(max_workers, len(candidates)))
 
     def fetch_one(p: Product) -> tuple[bool | None, list[str] | None]:
-        fetch = _fetch_text(client, p.url, allow_flaresolverr=False)
+        allow_solver = _should_use_flaresolverr_for_discovery_page(p.url)
+        fetch = _fetch_text(client, p.url, allow_flaresolverr=allow_solver)
         if not fetch.ok or not fetch.text:
             return None, None
         html = fetch.text
@@ -624,12 +659,37 @@ def _is_primary_listing_page(url: str) -> bool:
     return False
 
 
+def _should_use_flaresolverr_for_discovery_page(url: str) -> bool:
+    ul = (url or "").lower()
+    if _is_primary_listing_page(url):
+        return True
+    if "/api/" in ul or ul.startswith("https://api.") or "getvpsstore" in ul:
+        return True
+    if "/pages/pricing" in ul or ul.endswith("/pricing"):
+        return True
+    try:
+        p = urlparse(url)
+    except Exception:
+        return False
+    path = (p.path or "").lower()
+    if "?/cart/" in ul:
+        return True
+    if path.rstrip("/") in ("/cart", "/products", "/store"):
+        return True
+    if "/cart/" in path or "/products/" in path:
+        return True
+    return False
+
+
 def _default_entrypoint_pages(base_url: str) -> list[str]:
     # Common product listing entry points across WHMCS installs and similar billing setups.
     return [
         urljoin(base_url, "/cart.php"),
         urljoin(base_url, "/index.php?rp=/store"),
         urljoin(base_url, "/store"),
+        urljoin(base_url, "/cart"),
+        urljoin(base_url, "/index.php?/cart/"),
+        urljoin(base_url, "/products"),
         urljoin(base_url, "/billing/cart.php"),
         urljoin(base_url, "/billing/index.php?rp=/store"),
         urljoin(base_url, "/billing/store"),
@@ -653,7 +713,14 @@ def _domain_extra_pages(domain: str) -> list[str]:
         return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
     if domain == "fachost.cloud":
         base = "https://fachost.cloud"
-        return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
+        return [
+            f"{base}/products/tw-hinet-vds",
+            f"{base}/products/tw-nat",
+            f"{base}/products/custom",
+            f"{base}/products/hk-hkt-vds",
+            f"{base}/products/tw-seednet-vds",
+            f"{base}/products/tw-tbc-vds",
+        ]
     if domain == "app.vmiss.com":
         return [
             "https://app.vmiss.com/cart.php",
@@ -664,14 +731,18 @@ def _domain_extra_pages(domain: str) -> list[str]:
     if domain == "bill.hostdare.com":
         return [f"https://bill.hostdare.com/cart.php?gid={i}" for i in range(1, 15)]
     if domain == "clients.zgovps.com":
-        base = "https://clients.zgovps.com"
-        return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
+        return ["https://clients.zgovps.com/index.php?/cart/"]
+    if domain == "vps.hosting":
+        return ["https://vps.hosting/cart/"]
     if domain == "clientarea.gigsgigscloud.com":
-        base = "https://clientarea.gigsgigscloud.com"
-        return [f"{base}/cart.php?gid={i}" for i in range(1, 20)]
+        return ["https://clientarea.gigsgigscloud.com/cart/"]
+    if domain == "www.vps.soy":
+        base = "https://www.vps.soy"
+        return [f"{base}/cart?fid=1"] + [f"{base}/cart?fid=1&gid={i}" for i in range(1, 20)]
     if domain == "www.dmit.io":
         return [
             "https://www.dmit.io/cart.php",
+            "https://www.dmit.io/pages/pricing",
             "https://www.dmit.io/pages/tier1",
         ] + [f"https://www.dmit.io/cart.php?gid={i}" for i in range(1, 15)]
 
@@ -688,6 +759,8 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
             max_pages = max(max_pages, 40)
         if _is_whmcs_domain(domain, html):
             max_pages = max(max_pages, 24)
+        if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+            max_pages = max(max_pages, 32)
     soup = BeautifulSoup(html, "lxml")
     base_netloc = urlparse(base_url).netloc.lower()
 
@@ -700,25 +773,48 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
         seen.add(u)
         candidates.append(u)
 
-    for a in soup.find_all("a"):
-        href = a.get("href")
+    def absolutize(href: str) -> str:
+        href = str(href or "").strip()
         if not href:
-            continue
+            return ""
+        if href.startswith(("http://", "https://", "/")):
+            return urljoin(base_url, href)
+        href_l = href.lower()
+        if href_l.startswith(
+            (
+                "cart/",
+                "products/",
+                "store/",
+                "billing/",
+                "cart.php",
+                "index.php?/cart/",
+                "index.php?/products/",
+                "index.php?rp=/store",
+            )
+        ):
+            p = urlparse(base_url)
+            root = f"{p.scheme}://{p.netloc}/"
+            return urljoin(root, href)
+        return urljoin(base_url, href)
+
+    def consider_href(href: str) -> None:
+        if not href:
+            return
         href = str(href).strip()
-        if href.startswith(("#", "javascript:")):
-            continue
-        abs_url = urljoin(base_url, href)
+        if not href or href.startswith(("#", "javascript:")):
+            return
+        abs_url = absolutize(href)
         p = urlparse(abs_url)
         if p.netloc.lower() != base_netloc:
-            continue
+            return
         u = abs_url.lower()
+        path_l = (p.path or "").lower()
         if any(x in u for x in ["a=view", "/knowledgebase", "rp=/knowledgebase", "/login", "clientarea.php", "register"]):
-            continue
+            return
 
         # WHMCS store/category pages (avoid individual product detail pages).
         if "rp=/store" in u:
             rp = (p.query or "").lower()
-            # Quick check: rp=/store/<cat> (category) vs rp=/store/<cat>/<product> (product detail).
             try:
                 from urllib.parse import parse_qs as _parse_qs
 
@@ -731,26 +827,69 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
                     add(abs_url)
             else:
                 add(abs_url)
-            continue
-        if "/store/" in p.path.lower():
-            after = p.path.lower().split("/store/", 1)[1]
+            return
+        if "/store/" in path_l:
+            after = path_l.split("/store/", 1)[1]
             parts = [x for x in after.split("/") if x]
             if len(parts) <= 1:
                 add(abs_url)
-            continue
+            return
+
+        # HostBill route style: /index.php?/cart/<category>/...
+        if "?/cart/" in u:
+            tail = u.split("?/cart/", 1)[1]
+            tail = tail.split("&", 1)[0].strip("/")
+            if tail and tail.count("/") <= 1:
+                add(abs_url)
+            elif not tail:
+                add(abs_url)
+            return
+
+        # Category pages under /cart/<category>.
+        if "/cart/" in path_l:
+            after = path_l.split("/cart/", 1)[1]
+            parts = [x for x in after.split("/") if x]
+            if len(parts) <= 1:
+                add(abs_url)
+            return
+
+        # Category pages under /products/<category>.
+        if "/products/" in path_l:
+            after = path_l.split("/products/", 1)[1]
+            parts = [x for x in after.split("/") if x]
+            if len(parts) <= 1:
+                add(abs_url)
+            return
 
         # WHMCS product group pages.
         if "cart.php" in u and ("gid=" in u or u.endswith("/cart.php")):
             add(abs_url)
-            continue
+            return
+
+        # Pricing pages are frequently the full product list on marketing frontends.
+        if "/pages/pricing" in path_l or path_l.endswith("/pricing"):
+            add(abs_url)
+            return
 
         # GreenCloud listing pages are often top-level *.php pages (not WHMCS store URLs).
         if domain == "greencloudvps.com":
-            path_l = (p.path or "").lower()
             if path_l.endswith(".php") and "/billing/" not in path_l:
                 if any(k in path_l for k in ["vps", "server", "cloud", "resources", "vds"]):
                     add(abs_url)
-                    continue
+                    return
+
+    for a in soup.find_all("a"):
+        href = a.get("href")
+        if href:
+            consider_href(str(href))
+
+    # Some templates expose category links via onclick handlers instead of href.
+    for el in soup.find_all(attrs={"onclick": True}):
+        onclick = str(el.get("onclick") or "")
+        for m in re.finditer(r"""['"]([^'"]+)['"]""", onclick):
+            candidate = m.group(1).strip()
+            if candidate.startswith(("http://", "https://", "/")) or any(k in candidate.lower() for k in ("cart", "store", "products", "pricing", "gid=", "fid=")):
+                consider_href(candidate)
 
     # If we didn't find any obvious listing pages but this looks like WHMCS, try common entry points.
     html_l = (html or "").lower()
@@ -764,11 +903,19 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
     def score(u: str) -> int:
         ul = u.lower()
         s = 0
+        if "/products/cart/" in ul:
+            s -= 1
         if "rp=/store" in ul or "/store/" in ul:
+            s += 2
+        if "?/cart/" in ul or "/cart/" in ul:
+            s += 2
+        if "/products/" in ul:
             s += 2
         if "cart.php?gid=" in ul:
             s += 2
         if ul.endswith("/cart.php"):
+            s += 1
+        if "/pages/pricing" in ul or ul.endswith("/pricing"):
             s += 1
         if domain == "greencloudvps.com" and ul.endswith(".php"):
             s += 1

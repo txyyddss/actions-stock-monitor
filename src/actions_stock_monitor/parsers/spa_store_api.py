@@ -72,6 +72,35 @@ def _fmt_money_cents(value: float | None, *, currency: str) -> tuple[str | None,
     return f"{amount:.2f} {currency}", currency
 
 
+def _cycle_months_to_label(cycle: Any) -> str | None:
+    if not isinstance(cycle, int) or cycle <= 0:
+        return None
+    mapping = {
+        1: "Monthly",
+        3: "Quarterly",
+        6: "Semiannual",
+        12: "Yearly",
+        24: "Biennial",
+        36: "Triennial",
+    }
+    if cycle in mapping:
+        return mapping[cycle]
+    return f"{cycle} Months"
+
+
+def _extract_cycles(price_datas: Any) -> list[str] | None:
+    if not isinstance(price_datas, list):
+        return None
+    out: list[str] = []
+    for item in price_datas:
+        if not isinstance(item, dict):
+            continue
+        label = _cycle_months_to_label(item.get("cycle"))
+        if label and label not in out:
+            out.append(label)
+    return out or None
+
+
 def _mb_to_gb_str(mb: Any) -> str | None:
     if not isinstance(mb, (int, float)):
         return None
@@ -193,9 +222,16 @@ class SpaStoreApiParser:
 
                     best_price_cents = _best_monthly_price(plan.get("price_datas"))
                     price, currency = _fmt_money_cents(best_price_cents, currency=self._cfg.currency)
+                    billing_cycles = _extract_cycles(plan.get("price_datas"))
+                    if billing_cycles:
+                        specs["Cycles"] = ", ".join(billing_cycles)
 
                     description_parts = [p for p in [area_name, node_name] if p]
                     description = " / ".join(description_parts) if description_parts else None
+                    option = area_name or node_name
+                    variant_of = node_name if node_name and node_name.lower() not in plan_name.lower() else None
+                    if not variant_of and area_name and area_name.lower() not in plan_name.lower():
+                        variant_of = area_name
 
                     pid = f"{self.domain}::{normalize_url_for_id(url)}"
                     products.append(
@@ -210,8 +246,10 @@ class SpaStoreApiParser:
                             specs=specs or None,
                             available=available,
                             raw=None,
+                            variant_of=variant_of,
+                            option=option,
+                            billing_cycles=billing_cycles,
                         )
                     )
 
         return products
-

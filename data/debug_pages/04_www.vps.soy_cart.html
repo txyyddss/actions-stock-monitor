@@ -1,0 +1,575 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="utf-8" />
+	<title>购物车 | VPS.SOY</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta content="Green Promise, Cloud Performance." name="description" />
+	<meta content="vps.soy, soy vps, soy cloud, coy idc" name="keywords" />
+	<meta content="VPS.SOY" name="author" />
+	
+
+	
+<link rel="shortcut icon" href="/themes/clientarea/yunyoo/assets/images/favicon.ico">
+<link href="/themes/clientarea/yunyoo/assets/css/bootstrap.min.css?v=1.0.0.d00ffd232936017878fe8529ad6576ea" rel="stylesheet" type="text/css" />
+<link href="/themes/clientarea/yunyoo/assets/css/icons.min.css?v=1.0.0.d00ffd232936017878fe8529ad6576ea" rel="stylesheet" type="text/css" />
+<link href="/themes/clientarea/yunyoo/assets/css/app.min.css?v=1.0.0.d00ffd232936017878fe8529ad6576ea" rel="stylesheet" type="text/css" />
+
+<link href="/themes/clientarea/yunyoo/assets/css/yunyoo.css?v=1.0.0.d00ffd232936017878fe8529ad6576ea" rel="stylesheet" type="text/css" />
+
+<link href="/themes/clientarea/yunyoo/assets/css/DINCondensed-Bold.css?v=1.0.0.d00ffd232936017878fe8529ad6576ea" rel="stylesheet" type="text/css" />
+<link href="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/font-awesome/6.0.0/css/all.css" type="text/css" rel="stylesheet" />
+<!-- 自定义全局样式 -->
+<link href="/themes/clientarea/yunyoo/assets_custom/css/global.css?v=1.0.0.d00ffd232936017878fe8529ad6576ea" rel="stylesheet" >
+<link href="/themes/clientarea/yunyoo/assets_custom/css/responsive.css?v=1.0.0.d00ffd232936017878fe8529ad6576ea" rel="stylesheet">
+<!-- 字体图标 -->
+
+<link href="/themes/clientarea/yunyoo/assets_custom/fonts/iconfont.css?v=1.0.0.d00ffd232936017878fe8529ad6576ea" rel="stylesheet"> 
+
+<!-- JAVASCRIPT -->
+<script src="/themes/clientarea/yunyoo/assets/libs/jquery/jquery.min.js?v=1.0.0.d00ffd232936017878fe8529ad6576ea"></script>
+<script src="/themes/clientarea/yunyoo/assets/libs/bootstrap/js/bootstrap.bundle.min.js?v=1.0.0.d00ffd232936017878fe8529ad6576ea"></script>
+<script src="/themes/clientarea/yunyoo/assets/libs/metismenu/metisMenu.min.js?v=1.0.0.d00ffd232936017878fe8529ad6576ea"></script>
+<script src="/themes/clientarea/yunyoo/assets/libs/simplebar/simplebar.min.js?v=1.0.0.d00ffd232936017878fe8529ad6576ea"></script>
+<script src="/themes/clientarea/yunyoo/assets/libs/node-waves/waves.min.js?v=1.0.0.d00ffd232936017878fe8529ad6576ea"></script>
+
+<!-- 自定义js -->
+<script src="/themes/clientarea/yunyoo/assets_custom/js/throttle.js?v=1.0.0.d00ffd232936017878fe8529ad6576ea"></script>
+
+<link type="text/css" href="/themes/clientarea/yunyoo/assets/libs/toastr/build/toastr.min.css?v=1.0.0.d00ffd232936017878fe8529ad6576ea" rel="stylesheet" />
+<script src="/themes/clientarea/yunyoo/assets/libs/toastr/build/toastr.min.js?v=1.0.0.d00ffd232936017878fe8529ad6576ea"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+
+
+  <script>
+	var setting_web_url = ''
+  var language=null;
+  </script>
+	<style>
+    .logo-lg img{
+      width:150px;
+      height:auto;
+    }
+</style>
+</head>
+<body data-sidebar="dark">
+		<header id="page-topbar">
+		<div class="navbar-header">
+			<div class="d-flex">
+				<!-- LOGO -->
+				<div class="navbar-brand-box">
+					<a href="https://www.vps.soy" class="logo logo-dark">
+												<span class="logo-lg">
+							<img src="/upload/logo.png" alt="" height="17">
+						</span>
+					</a>
+
+					<a href="https://www.vps.soy" class="logo logo-light">
+												<span class="logo-lg">
+							<img src="/upload/logo.png" alt="">
+						</span>
+					</a>
+				</div>
+
+				<button type="button" class="btn btn-sm px-3 font-size-16 header-item waves-effect" id="vertical-menu-btn">
+					<i class="fa fa-fw fa-bars"></i>
+				</button>
+
+
+			</div>
+
+			<div class="d-flex">
+
+
+				<div class="dropdown d-inline-block d-lg-none ml-2 phonehide">
+					<button type="button" class="btn header-item noti-icon waves-effect" id="page-header-search-dropdown"
+						data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="mdi mdi-magnify"></i>
+					</button>
+					<div class="dropdown-menu dropdown-menu-lg dropdown-menu-right p-0"
+						aria-labelledby="page-header-search-dropdown">
+
+						<form class="p-3">
+							<div class="form-group m-0">
+								<div class="input-group">
+									<input type="text" class="form-control" placeholder="Search ..." aria-label="Recipient's username">
+									<div class="input-group-append">
+										<button class="btn btn-primary" type="submit">
+											<i class="mdi mdi-magnify"></i>
+										</button>
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+				
+				<!-- 多语言 -->
+								<div class="dropdown d-inline-block">
+					<button type="button" class="btn header-item waves-effect" data-toggle="dropdown" aria-haspopup="true"
+						aria-expanded="false">
+						<img id="header-lang-img" src="/upload/common/country/CN-y.png" alt="Header Language" height="20">
+					</button>
+					<div class="dropdown-menu dropdown-menu-right">
+						<!-- wyh 20210329 插件使用 -->
+												<!-- item-->
+													<a href="?language=chinese" class="dropdown-item notify-item language" data-lang="zh-cn">
+								<img src="/upload/common/country/CN-y.png" alt="user-image" class="mr-1" height="16">
+								<span class="align-middle">中文简体</span>
+							</a>
+													<a href="?language=chinese_tw" class="dropdown-item notify-item language" data-lang="zh-cn">
+								<img src="/upload/common/country/HK-y.png" alt="user-image" class="mr-1" height="16">
+								<span class="align-middle">中文繁体</span>
+							</a>
+													<a href="?language=english" class="dropdown-item notify-item language" data-lang="zh-cn">
+								<img src="/upload/common/country/US-y.png" alt="user-image" class="mr-1" height="16">
+								<span class="align-middle">English</span>
+							</a>
+											</div>
+				</div>
+				        
+				<!-- 购物车 -->
+				<div class="dropdown d-none d-lg-inline-block ml-1">
+					<button type="button" class="btn header-item noti-icon waves-effect">
+						<a href="cart?action=viewcart"><i class="bx bx-cart-alt" style="margin-top: 8px;"></i></a>
+							<!--  -->
+					</button>
+				</div> 
+
+				<!-- 消息 -->
+				<div class="dropdown d-none d-lg-inline-block ml-1">
+					<a href="message">
+						<button type="button" class="btn header-item noti-icon waves-effect">
+							<i class="bx bx-bell " style="margin-top: 8px;"></i>
+													</button>
+					</a>
+				</div>
+
+				<!-- 个人中心 -->
+								<div class="pointer d-flex align-items-center">
+					<a href="/login" class="text-dark">请登录</a>
+				</div>
+				
+			</div>
+		</div>
+	</header>
+
+	<script>
+	const a="Y29uc29sZS5sb2coIiVjWVVOWU9PIFRoZW1lcyB2MS4wLjAlY2h0dHBzOi8vZ2l0aHViLmNvbS95dW55b28tb3BlbnNvdXJjZSIsImJhY2tncm91bmQ6bGluZWFyLWdyYWRpZW50KDkwZGVnLCNCMDc0RDEgMCUsIzk5NThCRCA3MyUsIzhFNTBCMCA5MiUpO2NvbG9yOndoaXRlO2ZvbnQtc2l6ZToxNHB4O2ZvbnQtd2VpZ2h0OmJvbGQ7cGFkZGluZzo2cHggMTBweDtib3JkZXI6MXB4IHNvbGlkICM4RTUwQjA7IiwiYmFja2dyb3VuZDp3aGl0ZTtjb2xvcjojOEU1MEIwO2ZvbnQtc2l6ZToxNHB4O2ZvbnQtd2VpZ2h0OmJvbGQ7cGFkZGluZzo2cHggMTBweDtib3JkZXI6MXB4IHNvbGlkICM4RTUwQjA7Iik7";eval(atob(a));
+	</script>
+
+	<!-- ========== Left Sidebar Start ========== -->
+<div class="vertical-menu menu-js">
+	<div data-simplebar class="h-100">
+		<!--- Sidemenu -->
+		<div id="sidebar-menu" class="menu-js">
+			<!-- Left Menu Start -->
+			<ul class="metismenu list-unstyled" id="side-menu">
+				<li>
+					<a href="/clientarea" class="waves-effect">
+						<i class="bx bx-home-circle"></i>
+						<span>首页</span>
+					</a>
+				</li>
+				<li>
+					<a href="/login" class="waves-effect">
+						<i class="bx bx-user"></i>
+						<span>登录</span>
+					</a>
+				</li>
+				<li>
+					<a href="/register" class="waves-effect">
+						<i class="bx bx-user"></i> 
+						<span>注册</span>
+					</a>
+				</li>
+				<li>
+					<a href="/cart" class="waves-effect">
+						<i class="bx bx-cart-alt"></i>
+						<span>订购产品</span>
+					</a>
+				</li>
+				<li>				
+					<a href="/news" class="waves-effect">
+						<i class="bx bx-detail"></i>
+						<span>新闻中心</span>
+					</a>
+				</li>
+				<li>				
+					<a href="/knowledgebase" class="waves-effect">
+						<i class="bx bx-detail"></i>
+						<span>帮助中心</span>
+					</a>
+				</li>
+				<li>				
+					<a href="/downloads" class="waves-effect">
+						<i class="bx bx-download"></i>
+						<span>资源下载</span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		<!-- Sidebar -->
+	</div>
+</div>
+
+
+	<div class="main-content">
+		<div class="page-content">
+						
+<div class="container-fluid">
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box d-flex align-items-center justify-content-between">
+                                <div style="display:flex;">
+                    
+                    <a href="javascript:history.go(-1)" class="backBtn" style="display: none;"><i class="bx bx-chevron-left" style="font-size: 32px;margin-top: 1px;color: #555b6d;"></i></a>
+                    <h4 class="mb-0 font-size-18">购物车</h4>
+                </div>
+                                <div class="page-title-right">
+	                                    <ol class="breadcrumb m-0">
+    <li class="breadcrumb-item"><a href="javascript: void(0);">用户中心</a></li>
+    <li class="breadcrumb-item active">购物车</li>
+</ol>
+                                    </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->    
+</div>
+<script>
+    $(function(){
+        $('.backBtn').hide()
+    })
+</script>
+						<div class="container-fluid">
+				  <style>
+  .unfold:hover {
+  color: var(--btn-active-border-color) !important;
+  }
+  .firstgroup_box a, .secondgroup_box a, .pro_box a, .firstgroup_box .firstgroup_item, .secondgroup_box
+  .secondgroup_item, .pro_box .pro_item {
+  color: #0cbc87;
+  }
+  .firstgroup_box .firstgroup_item, .secondgroup_box .secondgroup_item, .pro_box .pro_item {
+  height: auto !important;
+  }
+  .yy-stellar {
+  right: 13px !important;
+  top: -6px !important;
+  }
+    </style>
+  <link rel="stylesheet" href="/themes/cart/yunyoo/assets/DingTalk JinBuTi/result.css">
+  <link rel="stylesheet" href="/themes/cart/yunyoo/assets/css/topbar.css?v=4d00ffd232936017878fe8529ad6576ea">
+  <link rel="stylesheet" href="/themes/cart/yunyoo/assets/css/yunyoo.css?v=1.0.4.d00ffd232936017878fe8529ad6576ea">
+  <link rel="stylesheet" href="/themes/cart/yunyoo/assets/css/yunyoo-g.css?v=1.0.3.d00ffd232936017878fe8529ad6576ea">
+  <div class="firstgroup_box mb-2 flex-column p-2">
+    <div class="firstgroup_box_prov fs-22 ml-3 mt-2 pl-1 w-100 yy-dtjbt-text"><span class="yy-bl"></span>
+      产品类型    </div>
+    <div class="firstgroup_box_group row">
+            <div class="yy-bth pl-1 pr-1 pb-1 p-2 text-primary">
+        <div class="firstgroup_item pointer active w-100 justify-content-start p-2"
+          onclick="window.location.href='/cart?fid=1'">
+          <i class=""></i>
+          <div class="d-flex flex-column align-items-start">
+            <a class="text-white yy-bth-text fs-24 m-0 yy-bth-text-a justify-content-around"">NAT	</a>
+	<a class=" text-white yy-bth-text yy-bth-text-b justify-content-around">            </a>
+          </div>
+          <i id="info-1" class="fa-solid fa-circle-info ml-1 d-none"></i>
+        </div>
+      </div>
+                </div>
+  </div>
+
+  <div class="secondgroup_box mb-2 flex-column p-2">
+    <div class="secondgroup_box_area fs-22 ml-3 mt-2 pl-1 w-100 yy-dtjbt-text"><span class="yy-bl"></span>
+      可用区域    </div>
+    <div class="firstgroup_box_group row m-0 w-100">
+            <div class="yy-bth pl-1 pr-1 pb-1 p-2">
+        <div class="secondgroup_item pointer active  w-100 justify-content-start p-2"
+          onclick="window.location.href='/cart?fid=1&gid=8'">
+          <img class="m-2 yy-img-w"
+            src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/svg/1f1ed-1f1f0.svg">
+          <div class="d-flex flex-column align-items-start">
+            <a class="text-white yy-bth-text fs-24 m-0 yy-bth-text-a justify-content-around">深港              <g-b id="8"></g-b>
+            </a>
+            <a class="text-white yy-bth-text yy-bth-text-b justify-content-around">CNIX            </a>
+          </div>
+        </div>
+        <i id="star-8"></i>
+      </div>
+                  <div class="yy-bth pl-1 pr-1 pb-1 p-2">
+        <div class="secondgroup_item pointer w-100 justify-content-start p-2"
+          onclick="window.location.href='/cart?fid=1&gid=1'">
+          <img class="m-2 yy-img-w"
+            src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/svg/1f1fa-1f1f8.svg">
+          <div class="d-flex flex-column align-items-start">
+            <a class="yy-bth-text fs-24 m-0 yy-bth-text-a justify-content-around">美国              <g-b-s id="1"></g-b-s>
+            </a>
+            <a class="yy-bth-text yy-bth-text-b justify-content-around">三网优化            </a>
+          </div>
+        </div>
+        <i id="star-1"></i>
+      </div>
+                  <div class="yy-bth pl-1 pr-1 pb-1 p-2">
+        <div class="secondgroup_item pointer w-100 justify-content-start p-2"
+          onclick="window.location.href='/cart?fid=1&gid=5'">
+          <img class="m-2 yy-img-w"
+            src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/svg/1f1ed-1f1f0.svg">
+          <div class="d-flex flex-column align-items-start">
+            <a class="yy-bth-text fs-24 m-0 yy-bth-text-a justify-content-around">香港              <g-b-s id="5"></g-b-s>
+            </a>
+            <a class="yy-bth-text yy-bth-text-b justify-content-around">三网直连            </a>
+          </div>
+        </div>
+        <i id="star-5"></i>
+      </div>
+                  <div class="yy-bth pl-1 pr-1 pb-1 p-2">
+        <div class="secondgroup_item pointer w-100 justify-content-start p-2"
+          onclick="window.location.href='/cart?fid=1&gid=7'">
+          <img class="m-2 yy-img-w"
+            src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/svg/1f1ec-1f1e7.svg">
+          <div class="d-flex flex-column align-items-start">
+            <a class="yy-bth-text fs-24 m-0 yy-bth-text-a justify-content-around">英国              <g-b-s id="7"></g-b-s>
+            </a>
+            <a class="yy-bth-text yy-bth-text-b justify-content-around">Global            </a>
+          </div>
+        </div>
+        <i id="star-7"></i>
+      </div>
+                  <div class="yy-bth pl-1 pr-1 pb-1 p-2">
+        <div class="secondgroup_item pointer w-100 justify-content-start p-2"
+          onclick="window.location.href='/cart?fid=1&gid=6'">
+          <img class="m-2 yy-img-w"
+            src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/svg/1f1ed-1f1f0.svg">
+          <div class="d-flex flex-column align-items-start">
+            <a class="yy-bth-text fs-24 m-0 yy-bth-text-a justify-content-around">香港              <g-b-s id="6"></g-b-s>
+            </a>
+            <a class="yy-bth-text yy-bth-text-b justify-content-around">Global            </a>
+          </div>
+        </div>
+        <i id="star-6"></i>
+      </div>
+                  <div class="yy-bth pl-1 pr-1 pb-1 p-2">
+        <div class="secondgroup_item pointer w-100 justify-content-start p-2"
+          onclick="window.location.href='/cart?fid=1&gid=4'">
+          <img class="m-2 yy-img-w"
+            src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/svg/1f1f8-1f1ec.svg">
+          <div class="d-flex flex-column align-items-start">
+            <a class="yy-bth-text fs-24 m-0 yy-bth-text-a justify-content-around">新加坡              <g-b-s id="4"></g-b-s>
+            </a>
+            <a class="yy-bth-text yy-bth-text-b justify-content-around">Global            </a>
+          </div>
+        </div>
+        <i id="star-4"></i>
+      </div>
+                  <div class="yy-bth pl-1 pr-1 pb-1 p-2">
+        <div class="secondgroup_item pointer w-100 justify-content-start p-2"
+          onclick="window.location.href='/cart?fid=1&gid=2'">
+          <img class="m-2 yy-img-w"
+            src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/svg/1f1ef-1f1f5.svg">
+          <div class="d-flex flex-column align-items-start">
+            <a class="yy-bth-text fs-24 m-0 yy-bth-text-a justify-content-around">日本              <g-b-s id="2"></g-b-s>
+            </a>
+            <a class="yy-bth-text yy-bth-text-b justify-content-around">SoftBank            </a>
+          </div>
+        </div>
+        <i id="star-2"></i>
+      </div>
+                  <div class="yy-bth pl-1 pr-1 pb-1 p-2">
+        <div class="secondgroup_item pointer w-100 justify-content-start p-2"
+          onclick="window.location.href='/cart?fid=1&gid=3'">
+          <img class="m-2 yy-img-w"
+            src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/15.1.0/svg/1f1ef-1f1f5.svg">
+          <div class="d-flex flex-column align-items-start">
+            <a class="yy-bth-text fs-24 m-0 yy-bth-text-a justify-content-around">日本              <g-b-s id="3"></g-b-s>
+            </a>
+            <a class="yy-bth-text yy-bth-text-b justify-content-around">IIJ            </a>
+          </div>
+        </div>
+        <i id="star-3"></i>
+      </div>
+                </div>
+  </div>
+  <div class="secondgroup_box mb-2">
+
+    <div class="secondgroup_box_area mr-2 fs-16 yy-dtjbt-text">
+      
+      <div class="panel-group" id="accordion">
+        <div id="collapseTwo" class="panel-collapse collapse">
+          <div class="panel-body">
+            <div id="description"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<link rel="stylesheet" href="/themes/cart/yunyoo/assets/css/products.yunyoo.css?v=1.0.2.d00ffd232936017878fe8529ad6576ea">
+<link rel="stylesheet" href="/themes/cart/yunyoo/assets/fonts/iconfont.css?v=d00ffd232936017878fe8529ad6576ea">
+<div class="card">
+  <div class="card-body p-4">
+    <div class="row">
+            <div class="col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-3 d-flex">
+        <div class="card cartitem shadow w-100">
+          <div class="card-body row align-content-start">
+            <h4>深港IX-PRO</h4>
+            <div class="col-sm-12 d-flex flex-wrap flex-column">
+              <div class="card-text mb-4 mt-3">CPU：1 核 <br>
+内存：1 GB <br>
+硬盘：10 GB <br>
+带宽：1 Gbps <br>
+流量：500 GB <br>
+端口：500 个 <br>
+架构：KVM <br>
+网络：CNIX <br><br>
+禁止一切违规滥用行为！！！</div>
+
+               
+                
+                <img src="/themes/cart/yunyoo/assets/img/saleout.svg" style="position: absolute;top: -40px;right: 20px;width: 50px;" alt="">
+                            </div>
+          </div>
+            <div class="align-items-center d-flex justify-content-between">
+             <div class="ml-4">
+                            <p class="card-text">库存： 0</p>
+                           </div>
+            <div>
+                            <div class="text-right mr-3 ml-3 pr-1" style="color:var(--bs-btn-hover-bg);">¥ <a class="cart-num DINCondensed-Bold">11.00 </a>元 / MONTHLY</div>
+                            
+                           </div>
+             </div>
+          <div class="mt-4 card-footer text-center p-0" style="box-shadow: 0px 4px 20px 2px rgba(6, 75, 179, 0.08);">
+             
+            <a href="javascript:void(0)" style="cursor: not-allowed">立即购买</a>
+                      </div>
+        </div>
+      </div>
+            <div class="col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-3 d-flex">
+        <div class="card cartitem shadow w-100">
+          <div class="card-body row align-content-start">
+            <h4>深港IX-Ultra</h4>
+            <div class="col-sm-12 d-flex flex-wrap flex-column">
+              <div class="card-text mb-4 mt-3">CPU：2 核 <br>
+内存：1 GB <br>
+硬盘：20 GB <br>
+带宽：1 Gbps <br>
+流量：1 TB <br>
+端口：500 个 <br>
+架构：KVM <br>
+网络：CNIX <br><br>
+禁止一切违规滥用行为！！！</div>
+
+               
+                
+                <img src="/themes/cart/yunyoo/assets/img/saleout.svg" style="position: absolute;top: -40px;right: 20px;width: 50px;" alt="">
+                            </div>
+          </div>
+            <div class="align-items-center d-flex justify-content-between">
+             <div class="ml-4">
+                            <p class="card-text">库存： 0</p>
+                           </div>
+            <div>
+                            <div class="text-right mr-3 ml-3 pr-1" style="color:var(--bs-btn-hover-bg);">¥ <a class="cart-num DINCondensed-Bold">20.00 </a>元 / MONTHLY</div>
+                            
+                           </div>
+             </div>
+          <div class="mt-4 card-footer text-center p-0" style="box-shadow: 0px 4px 20px 2px rgba(6, 75, 179, 0.08);">
+             
+            <a href="javascript:void(0)" style="cursor: not-allowed">立即购买</a>
+                      </div>
+        </div>
+      </div>
+            <div class="col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-3 d-flex">
+        <div class="card cartitem shadow w-100">
+          <div class="card-body row align-content-start">
+            <h4>深港IX-MINI</h4>
+            <div class="col-sm-12 d-flex flex-wrap flex-column">
+              <div class="card-text mb-4 mt-3">CPU：1 核 <br>
+内存：512 MB <br>
+硬盘：10 GB <br>
+带宽：1 Gbps <br>
+流量：200 GB <br>
+端口：500 个 <br>
+架构：KVM <br>
+网络：CNIX <br><br>
+禁止一切违规滥用行为！！！</div>
+
+               
+                
+                <img src="/themes/cart/yunyoo/assets/img/saleout.svg" style="position: absolute;top: -40px;right: 20px;width: 50px;" alt="">
+                            </div>
+          </div>
+            <div class="align-items-center d-flex justify-content-between">
+             <div class="ml-4">
+                            <p class="card-text">库存： 0</p>
+                           </div>
+            <div>
+                            <div class="text-right mr-3 ml-3 pr-1" style="color:var(--bs-btn-hover-bg);">¥ <a class="cart-num DINCondensed-Bold">4.50 </a>元 / MONTHLY</div>
+                            
+                           </div>
+             </div>
+          <div class="mt-4 card-footer text-center p-0" style="box-shadow: 0px 4px 20px 2px rgba(6, 75, 179, 0.08);">
+             
+            <a href="javascript:void(0)" style="cursor: not-allowed">立即购买</a>
+                      </div>
+        </div>
+      </div>
+      
+      <div class="table-footer mt-4 d-flex justify-content-center">
+        <ul class="pagination pagination-sm">
+                  </ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  $(function () {
+    $('.cartitem').on('mouseover', function () {
+      $(this).addClass('active')
+    })
+    $('.cartitem').on('mouseleave', function () {
+      $(this).removeClass('active')
+    })
+  })
+</script></div>
+</div>
+</div>
+
+<footer class="footer">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-6">
+				&copy; VPS.SOY.
+			</div>
+			<div class="col-sm-6">
+				<div class="text-sm-right d-none d-sm-block">
+					
+				</div>
+			</div>
+		</div>
+	</div>
+</footer>
+<script src="/themes/clientarea/yunyoo/assets/js/app.js?v=d00ffd232936017878fe8529ad6576ea"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"396acee8239f41e98df3c31466a51c3a","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-D7H2XJN4FJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag(&#039;js&#039;, new Date());
+
+  gtag(&#039;config&#039;, &#039;G-D7H2XJN4FJ&#039;);
+</script>
+
+</html>
+<!--
