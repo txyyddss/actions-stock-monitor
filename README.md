@@ -2,7 +2,7 @@
 
 A stock/restock monitor that scrapes a set of provider storefronts, sends Telegram alerts for new products and restocks, and generates a fast static dashboard (`docs/index.html`).
 
-This repo is designed to run on a schedule via GitHub Actions (see `.github/workflows/main.yml`) and commit updates to:
+This repo is designed to run on a schedule via GitHub Actions (`.github/workflows/main.yml` for full updates and `.github/workflows/lite.yml` for lite updates) and commit updates to:
 
 - `data/state.json` (persistent product state + domain health)
 - `docs/index.html` (static dashboard)
@@ -68,6 +68,7 @@ Common settings:
 - `TIMEOUT_SECONDS` (default: `25`)
 - `MAX_WORKERS` (default: `8`)
 - `MONITOR_LOG` (default: `1`; set to `0` to silence per-domain logs)
+- `MONITOR_MODE` (`full` or `lite`; default: `full`)
 
 Discovery tuning:
 
@@ -88,7 +89,7 @@ Cloudflare/FlareSolverr:
 Hidden WHMCS scanning (pid/gid brute scan):
 
 - `WHMCS_HIDDEN_STOP_AFTER_MISS` (default: `10`)
-- `WHMCS_HIDDEN_MIN_PROBE` (default: `80`)
+- `WHMCS_HIDDEN_MIN_PROBE` (default: `0`)
 - `WHMCS_HIDDEN_BATCH` (default: `8`)
 - `WHMCS_HIDDEN_WORKERS` (default: `6`)
 - `WHMCS_HIDDEN_HARD_MAX_PID` (default: `2000`)
@@ -122,6 +123,12 @@ Run a single monitor pass (dry run = no Telegram sends):
 ```powershell
 $env:FLARESOLVERR_URL="http://127.0.0.1:8191"
 python -m actions_stock_monitor --state data/state.json --output docs/index.html --dry-run
+```
+
+Run lite mode (state-driven targets, no full expansion/pruning):
+
+```powershell
+python -m actions_stock_monitor --state data/state.json --output docs/index.html --mode lite --dry-run
 ```
 
 Live smoke test (per-domain) is available via pytest:

@@ -11,6 +11,10 @@ from .state import load_state, save_state
 
 
 def main(argv: list[str] | None = None) -> int:
+    mode_default = (os.getenv("MONITOR_MODE", "full").strip().lower() or "full")
+    if mode_default not in {"full", "lite"}:
+        mode_default = "full"
+
     parser = argparse.ArgumentParser(prog="actions-stock-monitor")
     parser.add_argument("--state", default="data/state.json")
     parser.add_argument("--output", default="docs/index.html")
@@ -34,6 +38,12 @@ def main(argv: list[str] | None = None) -> int:
         type=int,
         default=int(os.getenv("MAX_WORKERS", "8")),
     )
+    parser.add_argument(
+        "--mode",
+        choices=["full", "lite"],
+        default=mode_default,
+        help="Monitor mode: full crawl or lite state-driven refresh.",
+    )
     args = parser.parse_args(argv)
 
     state_path = Path(args.state)
@@ -50,6 +60,7 @@ def main(argv: list[str] | None = None) -> int:
         timeout_seconds=args.timeout_seconds,
         max_workers=args.max_workers,
         dry_run=args.dry_run,
+        mode=args.mode,
     )
 
     save_state(state_path, new_state)
@@ -57,4 +68,3 @@ def main(argv: list[str] | None = None) -> int:
     html = render_dashboard_html(new_state, run_summary=asdict(run_summary))
     output_path.write_text(html, encoding="utf-8")
     return 0
-

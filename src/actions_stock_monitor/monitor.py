@@ -220,7 +220,14 @@ def _product_to_state_record(product: Product, now: str, *, first_seen: str | No
     }
 
 
-def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_run: bool, timeout_seconds: float) -> tuple[dict, RunSummary]:
+def _update_state_from_runs(
+    previous_state: dict,
+    runs: list[DomainRun],
+    *,
+    dry_run: bool,
+    timeout_seconds: float,
+    prune_missing_products: bool,
+) -> tuple[dict, RunSummary]:
     state = deepcopy(previous_state)
     state.setdefault("products", {})
     state.setdefault("domains", {})
@@ -265,15 +272,16 @@ def _update_state_from_runs(previous_state: dict, runs: list[DomainRun], *, dry_
             }
             continue
 
-        # Remove products that disappeared from a successfully crawled domain.
-        seen_ids = {p.id for p in run.products}
-        for pid, rec in list((state.get("products") or {}).items()):
-            if not isinstance(rec, dict):
-                continue
-            if rec.get("domain") != domain:
-                continue
-            if pid not in seen_ids:
-                state["products"].pop(pid, None)
+        if prune_missing_products:
+            # Full mode prunes products that disappeared from a successful domain crawl.
+            seen_ids = {p.id for p in run.products}
+            for pid, rec in list((state.get("products") or {}).items()):
+                if not isinstance(rec, dict):
+                    continue
+                if rec.get("domain") != domain:
+                    continue
+                if pid not in seen_ids:
+                    state["products"].pop(pid, None)
 
         for product in run.products:
             product = _product_with_special_flag(product)
@@ -440,8 +448,13 @@ def run_monitor(
     timeout_seconds: float,
     max_workers: int,
     dry_run: bool,
+    mode: str = "full",
 ) -> tuple[dict, RunSummary]:
-    effective_targets = targets or DEFAULT_TARGETS
+    mode = (mode or "full").strip().lower()
+    if mode not in {"full", "lite"}:
+        mode = "full"
+
+    configured_targets = targets or DEFAULT_TARGETS
 
     proxy_url = os.getenv("PROXY_URL", "").strip() or None
     flaresolverr_url = os.getenv("FLARESOLVERR_URL", "").strip() or None
@@ -455,24 +468,125 @@ def run_monitor(
     previous_state = deepcopy(previous_state)
     previous_state.setdefault("last_run", {})["started_at"] = started_at
 
-    runs: list[DomainRun] = []
+    effective_targets = configured_targets
+    allow_expansion = True
+    prune_missing_products = True
+    if mode == "lite":
+        effective_targets = _select_lite_targets(previous_state=previous_state, fallback_targets=configured_targets)
+        allow_expansion = False
+        prune_missing_products = False
+
+    raw_runs: list[DomainRun] = []
     log_enabled = os.getenv("MONITOR_LOG", "1").strip() != "0"
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futures = {ex.submit(_scrape_target, client, target): target for target in effective_targets}
+        futures = {
+            ex.submit(_scrape_target, client, target, allow_expansion=allow_expansion): target
+            for target in effective_targets
+        }
         for fut in as_completed(futures):
             run = fut.result()
-            runs.append(run)
-            if log_enabled:
-                if run.ok:
-                    print(f"[{run.domain}] ok products={len(run.products)} {run.duration_ms}ms", flush=True)
-                else:
-                    print(f"[{run.domain}] error products=0 {run.duration_ms}ms :: {run.error}", flush=True)
+            raw_runs.append(run)
 
-    next_state, summary = _update_state_from_runs(previous_state, runs, dry_run=dry_run, timeout_seconds=timeout_seconds)
+    runs = _merge_runs_by_domain(raw_runs) if mode == "lite" else raw_runs
+    if log_enabled:
+        print(f"[monitor] mode={mode} targets={len(effective_targets)} domains={len(runs)}", flush=True)
+        for run in runs:
+            if run.ok:
+                print(f"[{run.domain}] ok products={len(run.products)} {run.duration_ms}ms", flush=True)
+            else:
+                print(f"[{run.domain}] error products=0 {run.duration_ms}ms :: {run.error}", flush=True)
+
+    next_state, summary = _update_state_from_runs(
+        previous_state,
+        runs,
+        dry_run=dry_run,
+        timeout_seconds=timeout_seconds,
+        prune_missing_products=prune_missing_products,
+    )
     return next_state, summary
 
 
-def _scrape_target(client: HttpClient, target: str) -> DomainRun:
+def _is_http_url(value: str) -> bool:
+    v = (value or "").strip().lower()
+    return v.startswith("http://") or v.startswith("https://")
+
+
+def _select_lite_targets(*, previous_state: dict, fallback_targets: list[str]) -> list[str]:
+    default_targets = fallback_targets or DEFAULT_TARGETS
+    by_domain: dict[str, str] = {}
+    for target in default_targets:
+        if not _is_http_url(target):
+            continue
+        by_domain[_domain_from_url(target)] = target
+
+    state_domains: list[str] = []
+    seen_domains: set[str] = set()
+
+    for domain in (previous_state.get("domains") or {}).keys():
+        if isinstance(domain, str) and domain and domain not in seen_domains:
+            seen_domains.add(domain)
+            state_domains.append(domain)
+
+    first_product_url_by_domain: dict[str, str] = {}
+    for rec in (previous_state.get("products") or {}).values():
+        if not isinstance(rec, dict):
+            continue
+        domain = rec.get("domain")
+        url = rec.get("url")
+        if not isinstance(domain, str) or not domain:
+            continue
+        if not isinstance(url, str) or not _is_http_url(url):
+            continue
+        if domain not in seen_domains:
+            seen_domains.add(domain)
+            state_domains.append(domain)
+        first_product_url_by_domain.setdefault(domain, url)
+
+    out: list[str] = []
+    seen_targets: set[str] = set()
+    for domain in state_domains:
+        target = by_domain.get(domain) or first_product_url_by_domain.get(domain)
+        if not target or target in seen_targets:
+            continue
+        seen_targets.add(target)
+        out.append(target)
+
+    return out or default_targets
+
+
+def _merge_runs_by_domain(runs: list[DomainRun]) -> list[DomainRun]:
+    merged: dict[str, dict] = {}
+    for run in runs:
+        rec = merged.setdefault(run.domain, {"duration_ms": 0, "ok": False, "errors": [], "products": {}})
+        rec["duration_ms"] += int(run.duration_ms or 0)
+        if run.ok:
+            rec["ok"] = True
+            for product in run.products:
+                rec["products"][product.id] = product
+        elif run.error:
+            rec["errors"].append(str(run.error))
+
+    out: list[DomainRun] = []
+    for domain in sorted(merged.keys()):
+        rec = merged[domain]
+        if rec["ok"]:
+            out.append(
+                DomainRun(
+                    domain=domain,
+                    ok=True,
+                    error=None,
+                    duration_ms=rec["duration_ms"],
+                    products=list(rec["products"].values()),
+                )
+            )
+            continue
+        errors = rec["errors"][:3]
+        error_msg = "; ".join(errors) if errors else "fetch failed"
+        out.append(DomainRun(domain=domain, ok=False, error=error_msg, duration_ms=rec["duration_ms"], products=[]))
+    return out
+
+
+def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = True) -> DomainRun:
     domain = _domain_from_url(target)
     started = time.perf_counter()
 
@@ -493,7 +607,10 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
         products = [p for p in products if not _looks_like_noise_product(p)]
         deduped: dict[str, Product] = {p.id: p for p in products}
 
-        if _needs_discovery(products, base_url=fetch.url) or _should_force_discovery(fetch.text, base_url=fetch.url, domain=domain, product_count=len(deduped)):
+        if allow_expansion and (
+            _needs_discovery(products, base_url=fetch.url)
+            or _should_force_discovery(fetch.text, base_url=fetch.url, domain=domain, product_count=len(deduped))
+        ):
             raw_page_limit = os.environ.get("DISCOVERY_MAX_PAGES_PER_DOMAIN")
             max_pages_limit = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 16
             if max_pages_limit <= 0:
@@ -514,8 +631,8 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                 # Try domain-specific extra pages (including SPA API endpoints) first so we don't
                 # abort discovery after a streak of 404/blocked default entry points.
                 discovered.extend(_domain_extra_pages(domain))
-                if is_whmcs:
-                    discovered.extend(_whmcs_gid_pages(fetch.url))
+                # Avoid brute-enumerating gid pages here; it is expensive on Cloudflare sites.
+                # Hidden scanning and normal link discovery handle unlinked/sparse product groups.
                 discovered.extend(_discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain))
                 discovered.extend(_default_entrypoint_pages(fetch.url))
                 discovered = _dedupe_keep_order([u for u in discovered if u and u != fetch.url])
@@ -538,6 +655,7 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                 discovery_batch = max(1, min(discovery_batch, 20))
 
                 queue_idx = 0
+
                 def fetch_one(page_url: str):
                     allow_solver = _should_use_flaresolverr_for_discovery_page(page_url)
                     page_fetch = _fetch_text(client, page_url, allow_flaresolverr=allow_solver)
@@ -604,8 +722,19 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
                 products = [p for p in deduped.values() if not _looks_like_noise_product(p)]
 
         # Hidden WHMCS products: brute-scan pid/gid pages and keep only in-stock hits.
-        if is_whmcs:
-            hidden = _scan_whmcs_hidden_products(client, parser, base_url=fetch.url, existing_ids=set(deduped.keys()))
+        if allow_expansion and is_whmcs:
+            seed_urls = []
+            seed_urls.extend(_domain_extra_pages(domain))
+            seed_urls.extend(_discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain))
+            seed_urls.extend(_default_entrypoint_pages(fetch.url))
+            seed_urls = _dedupe_keep_order(seed_urls)
+            hidden = _scan_whmcs_hidden_products(
+                client,
+                parser,
+                base_url=fetch.url,
+                existing_ids=set(deduped.keys()),
+                seed_urls=seed_urls,
+            )
             for hp in hidden:
                 hp = _product_with_special_flag(hp)
                 deduped[hp.id] = hp
@@ -640,7 +769,7 @@ def _scrape_target(client: HttpClient, target: str) -> DomainRun:
             "www.vps.soy",
             "www.dmit.io",
         }
-        if domain in _ENRICH_DOMAINS or is_whmcs:
+        if allow_expansion and (domain in _ENRICH_DOMAINS or is_whmcs):
             false_only = all(p.available is False for p in products) if products else False
             include_missing_cycles = is_whmcs or (domain in _CYCLE_ENRICH_DOMAINS)
             enrich_pages = 80 if include_missing_cycles and domain in {"wawo.wiki", "clientarea.gigsgigscloud.com"} else 40
@@ -1047,13 +1176,12 @@ def _domain_extra_pages(domain: str) -> list[str]:
     if domain == "akile.io":
         return ["https://api.akile.io/api/v1/store/GetVpsStoreV3"]
 
-    # WHMCS sites: enumerate product groups to ensure all are crawled.
+    # WHMCS sites: keep this list small. Large gid enumerations are expensive on Cloudflare sites
+    # and can be handled via discovery + hidden scanners.
     if domain == "my.rfchost.com":
-        base = "https://my.rfchost.com"
-        return [f"{base}/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://my.rfchost.com/cart.php", "https://my.rfchost.com/index.php?rp=/store"]
     if domain == "wawo.wiki":
-        base = "https://wawo.wiki"
-        return [f"{base}/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://wawo.wiki/cart.php", "https://wawo.wiki/index.php?rp=/store"]
     if domain == "fachost.cloud":
         base = "https://fachost.cloud"
         return [
@@ -1067,14 +1195,11 @@ def _domain_extra_pages(domain: str) -> list[str]:
             f"{base}/products/specials",
         ]
     if domain == "app.vmiss.com":
-        return [
-            "https://app.vmiss.com/cart.php",
-            "https://app.vmiss.com/index.php?rp=/store",
-        ] + [f"https://app.vmiss.com/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://app.vmiss.com/cart.php", "https://app.vmiss.com/index.php?rp=/store"]
     if domain == "my.racknerd.com":
-        return [f"https://my.racknerd.com/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://my.racknerd.com/cart.php", "https://my.racknerd.com/index.php?rp=/store"]
     if domain == "bill.hostdare.com":
-        return [f"https://bill.hostdare.com/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://bill.hostdare.com/cart.php", "https://bill.hostdare.com/index.php?rp=/store"]
     if domain == "clients.zgovps.com":
         return ["https://clients.zgovps.com/index.php?/cart/"]
     if domain == "vps.hosting":
@@ -1083,29 +1208,32 @@ def _domain_extra_pages(domain: str) -> list[str]:
         return ["https://clientarea.gigsgigscloud.com/cart/"]
     if domain == "www.vps.soy":
         base = "https://www.vps.soy"
-        return [f"{base}/cart?fid=1"] + [f"{base}/cart?fid=1&gid={i}" for i in range(1, 80)]
+        return [f"{base}/cart?fid=1"]
     if domain == "www.dmit.io":
         return [
             "https://www.dmit.io/cart.php",
             "https://www.dmit.io/pages/pricing",
             "https://www.dmit.io/pages/tier1",
-        ] + [f"https://www.dmit.io/cart.php?gid={i}" for i in range(1, 80)]
+            "https://www.dmit.io/index.php?rp=/store",
+        ]
     if domain == "cloud.colocrossing.com":
         return [
             "https://cloud.colocrossing.com/index.php?rp=/store/specials",
-        ] + [f"https://cloud.colocrossing.com/cart.php?gid={i}" for i in range(1, 80)]
+            "https://cloud.colocrossing.com/cart.php",
+            "https://cloud.colocrossing.com/index.php?rp=/store",
+        ]
     if domain == "bandwagonhost.com":
-        return [f"https://bandwagonhost.com/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://bandwagonhost.com/cart.php", "https://bandwagonhost.com/index.php?rp=/store"]
     if domain == "www.lycheen.com":
-        return [f"https://www.lycheen.com/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://www.lycheen.com/cart.php", "https://www.lycheen.com/index.php?rp=/store"]
     if domain == "cloud.tizz.yt":
-        return [f"https://cloud.tizz.yt/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://cloud.tizz.yt/cart.php", "https://cloud.tizz.yt/index.php?rp=/store"]
     if domain == "bestvm.cloud":
-        return [f"https://bestvm.cloud/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://bestvm.cloud/cart.php", "https://bestvm.cloud/index.php?rp=/store"]
     if domain == "www.mkcloud.net":
-        return [f"https://www.mkcloud.net/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://www.mkcloud.net/cart.php", "https://www.mkcloud.net/index.php?rp=/store"]
     if domain == "alphavps.com":
-        return [f"https://alphavps.com/clients/cart.php?gid={i}" for i in range(1, 80)]
+        return ["https://alphavps.com/clients/cart.php", "https://alphavps.com/clients/index.php?rp=/store"]
 
     return []
 
@@ -1280,6 +1408,7 @@ def _scan_whmcs_hidden_products(
     *,
     base_url: str,
     existing_ids: set[str],
+    seed_urls: list[str] | None = None,
 ) -> list[Product]:
     """
     Brute-force WHMCS cart.php?a=add&pid=N and cart.php?gid=N pages.
@@ -1287,7 +1416,7 @@ def _scan_whmcs_hidden_products(
     Only return products that are currently in stock.
     """
     stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "10"))
-    min_probe_before_stop = int(os.getenv("WHMCS_HIDDEN_MIN_PROBE", "80"))
+    min_probe_before_stop = int(os.getenv("WHMCS_HIDDEN_MIN_PROBE", "0"))
     batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "8"))
     workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "6"))
     hard_max_pid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_PID", "2000"))
@@ -1305,6 +1434,12 @@ def _scan_whmcs_hidden_products(
     log_hits = os.getenv("WHMCS_HIDDEN_LOG", "0").strip() == "1"
     pid_candidates: set[int] = set()
     probed_pids: set[int] = set()
+    seed_gids: set[int] = set()
+
+    for u in seed_urls or []:
+        gid = _query_param_int(u, "gid")
+        if isinstance(gid, int) and gid > 0:
+            seed_gids.add(gid)
 
     def _pid_id_candidates(pid: int) -> set[str]:
         out: set[str] = set()
@@ -1465,6 +1600,8 @@ def _scan_whmcs_hidden_products(
                             if log_hits:
                                 print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
 
+    if seed_gids:
+        scan_ids(kind="gid", ids=sorted(seed_gids))
     scan_ids(kind="gid")
 
     # If gid pages expose pid links, probe those pids first (handles sparse/non-consecutive pid allocations).
