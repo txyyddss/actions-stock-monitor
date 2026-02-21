@@ -72,16 +72,19 @@ Remove-Item -Recurse -Force data/debug/*
 - `DISCOVERY_FORCE_IF_PRIMARY_LISTING_PRODUCTS_LEQ`
 
 ### Hidden WHMCS Scanner
+- Hidden scan supports both WHMCS (`pid`/`gid`) and HostBill-like (`id`/`fid`) carts using the same `WHMCS_HIDDEN_*` knobs.
+- Brute scans start from `0` for both product IDs and group/category IDs.
+- Hidden-scan discoveries are kept regardless of stock state (`in stock` / `out of stock` / `unknown`).
 - `WHMCS_HIDDEN_MAX_DURATION_SECONDS`
 - `WHMCS_HIDDEN_WORKERS`, `WHMCS_HIDDEN_BATCH`
 - `WHMCS_HIDDEN_HARD_MAX_PID`, `WHMCS_HIDDEN_HARD_MAX_GID`
 - `WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO`
-- `WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE`
+- `WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE` (default `12`)
 - `WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS`
 - `WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS`
-- `WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES`
-- `WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES`
-- `WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER`
+- `WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES` (default `40`)
+- `WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES` (default `40`)
+- `WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER` (default `36`)
 - `WHMCS_HIDDEN_LOG`
 
 ### Cloudflare / Network

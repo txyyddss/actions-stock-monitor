@@ -8,7 +8,8 @@ import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
-from urllib.parse import parse_qs, urljoin, urlparse
+from html import unescape
+from urllib.parse import parse_qs, urljoin, urlparse, urlunparse
 
 from bs4 import BeautifulSoup
 
@@ -1195,7 +1196,9 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=False, error=fetch.error or "fetch failed", duration_ms=duration_ms, products=[])
 
+    is_hostbill = _is_hostbill_domain(domain, fetch.text)
     is_whmcs = _is_whmcs_domain(domain, fetch.text)
+    scan_platform = "hostbill" if is_hostbill else ("whmcs" if is_whmcs else "")
     parser = get_parser_for_domain(domain)
     try:
         if log_enabled:
@@ -1204,7 +1207,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         products = [p for p in products if not _looks_like_noise_product(p)]
         deduped: dict[str, Product] = {p.id: p for p in products}
         initial_product_count = len(deduped)
-        hidden_allowed = bool(is_whmcs and domain not in hidden_scan_denylist)
+        hidden_allowed = bool(scan_platform and domain not in hidden_scan_denylist)
         parallel_simple_hidden = os.getenv("PARALLEL_SIMPLE_HIDDEN", "1").strip() != "0"
         hidden_future = None
         hidden_executor = None
@@ -1243,6 +1246,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 existing_ids=set(deduped.keys()),
                 seed_urls=seed_urls,
                 deadline=hidden_deadline,
+                platform=scan_platform,
             )
 
         if allow_expansion and (not _deadline_exceeded()) and (
@@ -1260,7 +1264,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                     max_pages_limit = max(max_pages_limit, 40)
                 if is_whmcs:
                     max_pages_limit = max(max_pages_limit, 64)
-                if domain in {"clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+                if is_hostbill:
                     # HostBill-style carts often require an extra discovery hop from category -> products.
                     max_pages_limit = max(max_pages_limit, 48)
 
@@ -1278,9 +1282,9 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
 
                 max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "500"))
                 # WHMCS category pages may be sparse/non-contiguous; avoid stopping too early.
-                default_stop = "0" if is_whmcs else "4"
+                default_stop = "0" if (is_whmcs or is_hostbill) else "4"
                 stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", default_stop))
-                fetch_error_default = "0" if (is_whmcs or domain in {"clientarea.gigsgigscloud.com", "clients.zgovps.com"}) else "4"
+                fetch_error_default = "0" if (is_whmcs or is_hostbill) else "4"
                 stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", fetch_error_default))
                 raw_strict_stop = os.getenv("DISCOVERY_STRICT_FETCH_ERROR_STOP", "").strip().lower()
                 if raw_strict_stop in {"1", "true", "yes", "on"}:
@@ -1288,8 +1292,8 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 elif raw_strict_stop in {"0", "false", "no", "off"}:
                     strict_fetch_error_stop = False
                 else:
-                    strict_fetch_error_stop = not (is_whmcs or domain in {"clientarea.gigsgigscloud.com", "clients.zgovps.com"})
-                if domain in {"clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+                    strict_fetch_error_stop = not (is_whmcs or is_hostbill)
+                if is_hostbill:
                     # HostBill sites often discover real product pages only after several category hops.
                     stop_after_no_new = 0
                 no_new_streak = 0
@@ -1402,7 +1406,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         if log_enabled:
             print(f"[scrape:{domain}] stage=simple_parse done products={len(deduped)}", flush=True)
 
-        # Hidden WHMCS products: brute-scan pid/gid pages and keep only in-stock hits.
+        # Hidden products (WHMCS/HostBill): brute-scan id/group pages and keep all discovered hits.
         hidden: list[Product] = []
         if hidden_future is not None:
             try:
@@ -1441,6 +1445,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 existing_ids=set(deduped.keys()),
                 seed_urls=seed_urls,
                 deadline=hidden_deadline,
+                platform=scan_platform,
             )
             for hp in hidden:
                 hp = _product_with_special_flag(hp)
@@ -1452,32 +1457,27 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         # Some providers only reveal stock state on the product detail page (or render it client-side on listings).
         # Enrich all products with unknown or False availability via detail page fetches.
         _ENRICH_DOMAINS = {
-            "fachost.cloud",
             "backwaves.net",
             "app.vmiss.com",
             "wawo.wiki",
             "clients.zgovps.com",
             "clientarea.gigsgigscloud.com",
-            "www.vps.soy",
             "www.dmit.io",
             "greencloudvps.com",
         }
         _CYCLE_ENRICH_DOMAINS = {
-            "fachost.cloud",
             "wawo.wiki",
             "clients.zgovps.com",
             "clientarea.gigsgigscloud.com",
-            "www.vps.soy",
             "www.dmit.io",
         }
         _TRUE_RECHECK_DOMAINS = {
             "clientarea.gigsgigscloud.com",
-            "www.vps.soy",
             "www.dmit.io",
         }
-        if allow_expansion and (domain in _ENRICH_DOMAINS or is_whmcs) and (not _deadline_exceeded()):
+        if allow_expansion and (domain in _ENRICH_DOMAINS or is_whmcs or is_hostbill) and (not _deadline_exceeded()):
             false_only = all(p.available is False for p in products) if products else False
-            include_missing_cycles = is_whmcs or (domain in _CYCLE_ENRICH_DOMAINS)
+            include_missing_cycles = is_whmcs or is_hostbill or (domain in _CYCLE_ENRICH_DOMAINS)
             enrich_pages = 80 if include_missing_cycles and domain in {"wawo.wiki", "clientarea.gigsgigscloud.com"} else 40
             if is_whmcs:
                 enrich_pages = max(enrich_pages, 60)
@@ -1492,7 +1492,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                     products,
                     domain=domain,
                     max_pages=enrich_pages,
-                    include_false=(false_only or domain in {"fachost.cloud", "backwaves.net"}),
+                    include_false=(false_only or domain in {"backwaves.net"}),
                     include_true=(domain in _TRUE_RECHECK_DOMAINS),
                     include_missing_cycles=include_missing_cycles,
                 )
@@ -1550,13 +1550,11 @@ def _dedupe_keep_order(urls: list[str]) -> list[str]:
 
 def _is_whmcs_domain(domain: str, html: str) -> bool:
     """Detect WHMCS-based storefronts where product groups are separate pages."""
-    if domain.lower() in {"cloud.tizz.yt"}:
-        return False
     t = (html or "").lower()
     if "whmcs" in t or "cart.php" in t or "rp=/store" in t:
         return True
     whmcs_domains = {
-        "my.rfchost.com", "fachost.cloud", "my.frantech.ca", "wawo.wiki",
+        "my.rfchost.com", "my.frantech.ca", "wawo.wiki",
         "nmcloud.cc", "bgp.gd", "wap.ac", "www.bagevm.com", "backwaves.net",
         "cloud.ggvision.net", "cloud.colocrossing.com",
         "clients.zgovps.com", "my.racknerd.com",
@@ -1564,6 +1562,26 @@ def _is_whmcs_domain(domain: str, html: str) -> bool:
         "bestvm.cloud", "www.mkcloud.net", "alphavps.com",
     }
     return domain.lower() in whmcs_domains
+
+
+def _is_hostbill_domain(domain: str, html: str) -> bool:
+    domain_l = (domain or "").lower()
+    if domain_l in {"clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+        return True
+    t = (html or "").lower()
+    if any(
+        marker in t
+        for marker in (
+            "index.php?/cart/",
+            "?/cart/",
+            "action=add&id=",
+            "name=\"id\"",
+            "name='id'",
+            "/cart/&step=",
+        )
+    ):
+        return True
+    return False
 
 
 def _should_force_discovery(html: str, *, base_url: str, domain: str, product_count: int) -> bool:
@@ -1994,18 +2012,6 @@ def _domain_extra_pages(domain: str) -> list[str]:
         return ["https://my.rfchost.com/cart.php", "https://my.rfchost.com/index.php?rp=/store"]
     if domain == "wawo.wiki":
         return ["https://wawo.wiki/cart.php", "https://wawo.wiki/index.php?rp=/store"]
-    if domain == "fachost.cloud":
-        base = "https://fachost.cloud"
-        return [
-            f"{base}/products/tw-hinet-vds",
-            f"{base}/products/tw-nat",
-            f"{base}/products/custom",
-            f"{base}/products/hk-hkt-vds",
-            f"{base}/products/tw-seednet-vds",
-            f"{base}/products/tw-tbc-vds",
-            f"{base}/products/hk-vds",
-            f"{base}/products/specials",
-        ]
     if domain == "app.vmiss.com":
         return ["https://app.vmiss.com/cart.php", "https://app.vmiss.com/index.php?rp=/store"]
     if domain == "my.racknerd.com":
@@ -2014,9 +2020,6 @@ def _domain_extra_pages(domain: str) -> list[str]:
         return ["https://clients.zgovps.com/index.php?/cart/"]
     if domain == "clientarea.gigsgigscloud.com":
         return ["https://clientarea.gigsgigscloud.com/cart/"]
-    if domain == "www.vps.soy":
-        base = "https://www.vps.soy"
-        return [f"{base}/cart?fid=1"]
     if domain == "www.dmit.io":
         return [
             "https://www.dmit.io/cart.php",
@@ -2044,43 +2047,172 @@ def _whmcs_gid_pages(base_url: str) -> list[str]:
     max_gid = int(os.getenv("WHMCS_MAX_GID_SCAN", "80"))
     p = urlparse(base_url)
     root = f"{p.scheme}://{p.netloc}"
-    prefixes = [""]
-    path_l = (p.path or "").lower()
-    if "/billing" in path_l:
-        prefixes.append("/billing")
-    if "/clients" in path_l:
-        prefixes.append("/clients")
+    prefixes = _scan_prefixes(base_url)
 
     pages: list[str] = []
     for pref in prefixes:
-        for gid in range(1, max_gid + 1):
+        for gid in range(0, max_gid + 1):
             pages.append(f"{root}{pref}/cart.php?gid={gid}")
     return pages
 
 
-def _pid_cart_endpoints(base_url: str) -> list[str]:
+def _scan_prefixes(base_url: str) -> list[str]:
+    p = urlparse(base_url)
+    path_l = (p.path or "").lower()
+    out = [""]
+    if "/billing" in path_l:
+        out.append("/billing")
+    if "/clients" in path_l:
+        out.append("/clients")
+    return list(dict.fromkeys(out))
+
+
+def _hostbill_route_bases(base_url: str, seed_urls: list[str] | None = None) -> list[str]:
+    try:
+        base = urlparse(base_url)
+    except Exception:
+        return []
+    root = f"{base.scheme}://{base.netloc}"
+    seed_candidates = [base_url]
+    for raw in (seed_urls or []):
+        try:
+            seed_candidates.append(urljoin(base_url, raw))
+        except Exception:
+            continue
+
+    out: list[str] = []
+    seen: set[str] = set()
+
+    def add(u: str) -> None:
+        key = compact_ws(u).lower()
+        if not key or key in seen:
+            return
+        seen.add(key)
+        out.append(u)
+
+    for pref in _scan_prefixes(base_url):
+        add(f"{root}{pref}/index.php?/cart/")
+        add(f"{root}{pref}/cart/")
+
+    for u in seed_candidates:
+        try:
+            p = urlparse(u)
+        except Exception:
+            continue
+        if p.netloc.lower() != base.netloc.lower():
+            continue
+        q = p.query or ""
+        if q.startswith("/cart/"):
+            route_prefix = q.split("&", 1)[0]
+            add(urlunparse((p.scheme, p.netloc, p.path, p.params, route_prefix, p.fragment)))
+        path_l = (p.path or "").lower()
+        if "/cart/" in path_l:
+            add(urlunparse((p.scheme, p.netloc, p.path, p.params, "", p.fragment)))
+    return out
+
+
+def _pid_cart_endpoints(
+    base_url: str,
+    *,
+    platform: str = "whmcs",
+    seed_urls: list[str] | None = None,
+) -> list[str]:
+    platform_l = (platform or "whmcs").strip().lower()
+    if platform_l == "hostbill":
+        return _hostbill_product_endpoints(base_url, seed_urls=seed_urls)
+
     p = urlparse(base_url)
     root = f"{p.scheme}://{p.netloc}"
-    prefixes = [""]
-    path_l = (p.path or "").lower()
-    if "/billing" in path_l:
-        prefixes.append("/billing")
-    if "/clients" in path_l:
-        prefixes.append("/clients")
+    prefixes = _scan_prefixes(base_url)
     return [f"{root}{pref}/cart.php?a=add&pid={{pid}}" for pref in prefixes]
 
 
-def _product_matches_pid(product: Product, pid: int) -> bool:
+def _hostbill_product_endpoints(base_url: str, *, seed_urls: list[str] | None = None) -> list[str]:
+    p = urlparse(base_url)
+    root = f"{p.scheme}://{p.netloc}"
+    out: list[str] = []
+    seen: set[str] = set()
+
+    def add(u: str) -> None:
+        if not u:
+            return
+        key = compact_ws(u).lower()
+        if key in seen:
+            return
+        seen.add(key)
+        out.append(u)
+
+    for pref in _scan_prefixes(base_url):
+        add(f"{root}{pref}/cart.php?action=add&id={{id}}")
+        add(f"{root}{pref}/cart?action=add&id={{id}}")
+        add(f"{root}{pref}/index.php?/cart/&action=add&id={{id}}")
+
+    for route in _hostbill_route_bases(base_url, seed_urls=seed_urls):
+        rp = urlparse(route)
+        if (rp.query or "").startswith("/cart/"):
+            add(f"{route}&action=add&id={{id}}")
+        else:
+            sep = "&" if rp.query else "?"
+            add(f"{route}{sep}action=add&id={{id}}")
+
+    for raw in seed_urls or []:
+        abs_url = urljoin(base_url, raw)
+        if "action=add" not in abs_url.lower():
+            continue
+        if _query_param_int(abs_url, "id") is None:
+            continue
+        templ = re.sub(r"([?&]id=)\d+", r"\1{id}", abs_url, flags=re.IGNORECASE)
+        add(templ)
+
+    return out
+
+
+def _hostbill_group_endpoints(base_url: str, *, seed_urls: list[str] | None = None) -> list[str]:
+    p = urlparse(base_url)
+    root = f"{p.scheme}://{p.netloc}"
+    out: list[str] = []
+    seen: set[str] = set()
+
+    def add(u: str) -> None:
+        if not u:
+            return
+        key = compact_ws(u).lower()
+        if key in seen:
+            return
+        seen.add(key)
+        out.append(u)
+
+    for pref in _scan_prefixes(base_url):
+        add(f"{root}{pref}/cart.php?fid={{fid}}")
+        add(f"{root}{pref}/cart?fid={{fid}}")
+        add(f"{root}{pref}/index.php?/cart/&fid={{fid}}")
+
+    for route in _hostbill_route_bases(base_url, seed_urls=seed_urls):
+        rp = urlparse(route)
+        if (rp.query or "").startswith("/cart/"):
+            add(f"{route}&fid={{fid}}")
+        else:
+            sep = "&" if rp.query else "?"
+            add(f"{route}{sep}fid={{fid}}")
+
+    return out
+
+
+def _product_matches_probe_id(product: Product, probe_id: int, *, id_keys: tuple[str, ...]) -> bool:
     try:
         parsed = urlparse(product.url)
         qs = parse_qs(parsed.query or "")
-        for key in ("pid", "id", "product_id", "planid"):
+        for key in id_keys:
             val = (qs.get(key) or [None])[0]
-            if isinstance(val, str) and val.strip().isdigit() and int(val.strip()) == pid:
+            if isinstance(val, str) and val.strip().isdigit() and int(val.strip()) == probe_id:
                 return True
     except Exception:
         return False
     return False
+
+
+def _product_matches_pid(product: Product, pid: int) -> bool:
+    return _product_matches_probe_id(product, pid, id_keys=("pid", "id", "product_id", "planid"))
 
 
 def _query_param_int(url: str, key: str) -> int | None:
@@ -2097,16 +2229,76 @@ def _query_param_int(url: str, key: str) -> int | None:
     return None
 
 
-_PID_NUM_RE = re.compile(r"[?&]pid=(\d+)\b", re.IGNORECASE)
+_HIDDEN_SCAN_ID_RE = re.compile(r"(?:[?&]|&amp;)(pid|id|product_id|gid|fid)=(\d+)\b", re.IGNORECASE)
 
 
-def _extract_pid_numbers(html: str) -> set[int]:
+def _extract_id_candidates_from_text(text: str, *, keys: set[str]) -> set[int]:
     out: set[int] = set()
-    for m in _PID_NUM_RE.finditer(html or ""):
+    if not text:
+        return out
+    for m in _HIDDEN_SCAN_ID_RE.finditer(text):
+        key = (m.group(1) or "").strip().lower()
+        if key not in keys:
+            continue
         try:
-            out.add(int(m.group(1)))
+            out.add(int(m.group(2)))
         except Exception:
             pass
+    return out
+
+
+def _extract_candidate_ids_from_html(
+    html: str,
+    *,
+    base_url: str,
+    keys: tuple[str, ...],
+) -> set[int]:
+    key_set = {k.lower() for k in keys}
+    out: set[int] = set()
+    if not html:
+        return out
+
+    def add_val(key: str, raw: str | None) -> None:
+        if key.lower() not in key_set:
+            return
+        if not isinstance(raw, str):
+            return
+        val = raw.strip()
+        if not val.isdigit():
+            return
+        out.add(int(val))
+
+    for blob in (html, unescape(html)):
+        out.update(_extract_id_candidates_from_text(blob or "", keys=key_set))
+
+    try:
+        soup = BeautifulSoup(html, "lxml")
+    except Exception:
+        soup = None
+    if soup is None:
+        return out
+
+    for tag_name, attr_name in (("a", "href"), ("form", "action")):
+        for tag in soup.find_all(tag_name):
+            raw_attr = str(tag.get(attr_name) or "").strip()
+            if not raw_attr:
+                continue
+            for value in (raw_attr, unescape(raw_attr), urljoin(base_url, unescape(raw_attr))):
+                try:
+                    qs = parse_qs(urlparse(value).query or "")
+                except Exception:
+                    continue
+                for key, vals in qs.items():
+                    if not vals:
+                        continue
+                    add_val(str(key), str(vals[0]))
+                out.update(_extract_id_candidates_from_text(value, keys=key_set))
+
+    for inp in soup.find_all("input"):
+        name = compact_ws(str(inp.get("name") or "")).lower()
+        value = inp.get("value")
+        add_val(name, str(value) if value is not None else None)
+
     return out
 
 
@@ -2127,22 +2319,21 @@ def _stable_page_signature(url: str, html: str) -> str:
     return f"{url_key}::{digest}"
 
 
-_PID_HIDDEN_INPUT_RE = re.compile(r"""name=['"]pid['"][^>]*value=['"](\d+)['"]""", re.IGNORECASE)
+def _html_mentions_probe_id(html: str, probe_id: int, *, id_keys: tuple[str, ...]) -> bool:
+    if probe_id < 0:
+        return False
+    raw = html or ""
+    for key in id_keys:
+        k = re.escape(key)
+        if re.search(rf"(?:[?&]|&amp;){k}={probe_id}\b", raw, flags=re.IGNORECASE):
+            return True
+        if re.search(rf"""name=['"]{k}['"][^>]*value=['"]{probe_id}['"]""", raw, flags=re.IGNORECASE):
+            return True
+    return False
 
 
 def _html_mentions_pid(html: str, pid: int) -> bool:
-    if pid <= 0:
-        return False
-    tl = (html or "").lower()
-    if f"pid={pid}" in tl:
-        return True
-    m = _PID_HIDDEN_INPUT_RE.search(html or "")
-    if m:
-        try:
-            return int(m.group(1)) == pid
-        except Exception:
-            return False
-    return False
+    return _html_mentions_probe_id(html, pid, id_keys=("pid",))
 
 
 def _looks_like_pid_stock_page(html: str) -> bool:
@@ -2165,15 +2356,19 @@ def _looks_like_pid_stock_page(html: str) -> bool:
     return False
 
 
-def _gid_cart_endpoints(base_url: str) -> list[str]:
+def _gid_cart_endpoints(
+    base_url: str,
+    *,
+    platform: str = "whmcs",
+    seed_urls: list[str] | None = None,
+) -> list[str]:
+    platform_l = (platform or "whmcs").strip().lower()
+    if platform_l == "hostbill":
+        return _hostbill_group_endpoints(base_url, seed_urls=seed_urls)
+
     p = urlparse(base_url)
     root = f"{p.scheme}://{p.netloc}"
-    prefixes = [""]
-    path_l = (p.path or "").lower()
-    if "/billing" in path_l:
-        prefixes.append("/billing")
-    if "/clients" in path_l:
-        prefixes.append("/clients")
+    prefixes = _scan_prefixes(base_url)
     return [f"{root}{pref}/cart.php?gid={{gid}}" for pref in prefixes]
 
 
@@ -2221,6 +2416,47 @@ def _looks_like_whmcs_gid_page(html: str) -> bool:
     return False
 
 
+def _looks_like_hostbill_id_page(html: str) -> bool:
+    text = compact_ws(html or "")
+    if not text:
+        return False
+    tl = text.lower()
+    known_miss = (
+        "not found",
+        "invalid",
+        "product does not exist",
+        "no product selected",
+    )
+    if any(m in tl for m in known_miss):
+        return False
+    if extract_availability(text) is not None:
+        return True
+    if any(k in tl for k in ("billing cycle", "configoption", "configure", "action=add&id=", "step=3")):
+        return True
+    return False
+
+
+def _looks_like_hostbill_group_page(html: str) -> bool:
+    text = compact_ws(html or "")
+    if not text:
+        return False
+    tl = text.lower()
+    known_miss = (
+        "not found",
+        "invalid",
+        "no products",
+    )
+    if any(m in tl for m in known_miss):
+        return False
+    if re.search(r"(?:action=add(?:&amp;|&)id=\d+)", tl, flags=re.IGNORECASE):
+        return True
+    if re.search(r"""name=['"]id['"][^>]*value=['"]\d+['"]""", tl, flags=re.IGNORECASE):
+        return True
+    if any(k in tl for k in ("?/cart/", "/cart/")) and any(k in tl for k in ("add to cart", "configure", "order")):
+        return True
+    return False
+
+
 def _scan_whmcs_hidden_products(
     client: HttpClient,
     parser,
@@ -2229,22 +2465,27 @@ def _scan_whmcs_hidden_products(
     existing_ids: set[str],
     seed_urls: list[str] | None = None,
     deadline: float | None = None,
+    platform: str = "whmcs",
 ) -> list[Product]:
     """
-    Brute-force WHMCS cart.php?a=add&pid=N and cart.php?gid=N pages.
+    Brute-force hidden cart endpoints for WHMCS/HostBill platforms.
     - gid scan stops after N consecutive ids return the same page signature.
     - pid scan stops after N consecutive ids have no product/stock evidence.
     - both scans also stop after N consecutive ids make no new discovery progress.
-    Only return products that are currently in stock.
+    Returns all discovered products regardless of stock state.
     """
+    platform_l = (platform or "whmcs").strip().lower()
+    if platform_l not in {"whmcs", "hostbill"}:
+        platform_l = "whmcs"
+
     legacy_stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "10"))
     pid_stop_after_no_info = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO", str(legacy_stop_after_miss)))
-    gid_stop_after_same_page = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE", "5"))
+    gid_stop_after_same_page = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE", "12"))
     pid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS", "60"))
     gid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS", "60"))
-    pid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES", "18"))
-    gid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES", "18"))
-    redirect_sig_stop_after = int(os.getenv("WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER", "12"))
+    pid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES", "40"))
+    gid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES", "40"))
+    redirect_sig_stop_after = int(os.getenv("WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER", "36"))
     min_probe_before_stop = int(os.getenv("WHMCS_HIDDEN_MIN_PROBE", "0"))
     batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "3"))
     workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "2"))
@@ -2259,31 +2500,41 @@ def _scan_whmcs_hidden_products(
     gid_stop_after_duplicates = max(0, gid_stop_after_duplicates)
     redirect_sig_stop_after = max(0, redirect_sig_stop_after)
 
-    pid_endpoints = _pid_cart_endpoints(base_url)
-    gid_endpoints = _gid_cart_endpoints(base_url)
+    product_kind = "id" if platform_l == "hostbill" else "pid"
+    group_kind = "fid" if platform_l == "hostbill" else "gid"
+    product_id_match_keys = ("id", "pid", "product_id", "planid")
+    product_html_id_keys = (product_kind, "id", "pid", "product_id")
+    candidate_id_keys = (product_kind, "id", "pid", "product_id")
+
+    pid_endpoints = _pid_cart_endpoints(base_url, platform=platform_l, seed_urls=seed_urls)
+    gid_endpoints = _gid_cart_endpoints(base_url, platform=platform_l, seed_urls=seed_urls)
     if not pid_endpoints and not gid_endpoints:
         return []
 
     domain_for_ids = urlparse(base_url).netloc.lower()
     seen_ids: set[str] = set(existing_ids or set())
-    found_in_stock: dict[str, Product] = {}
+    found_products: dict[str, Product] = {}
     log_hits = os.getenv("WHMCS_HIDDEN_LOG", "0").strip() == "1"
     pid_candidates: set[int] = set()
     probed_pids: set[int] = set()
     seed_gids: set[int] = set()
 
     for u in seed_urls or []:
-        gid = _query_param_int(u, "gid")
-        if isinstance(gid, int) and gid > 0:
+        abs_u = urljoin(base_url, u)
+        gid = _query_param_int(abs_u, group_kind)
+        if isinstance(gid, int) and gid >= 0:
             seed_gids.add(gid)
 
     def _deadline_exceeded() -> bool:
         return deadline is not None and time.perf_counter() >= deadline
 
+    def _known_ids() -> set[str]:
+        return seen_ids | set(found_products.keys())
+
     def _pid_id_candidates(pid: int) -> set[str]:
         out: set[str] = set()
         for tmpl in pid_endpoints:
-            u = tmpl.format(pid=pid)
+            u = tmpl.format(**{product_kind: pid})
             try:
                 out.add(f"{domain_for_ids}::{normalize_url_for_id(u)}")
             except Exception:
@@ -2291,9 +2542,9 @@ def _scan_whmcs_hidden_products(
         return out
 
     def scan_ids(*, kind: str, ids: list[int] | None = None) -> None:
-        nonlocal seen_ids, found_in_stock
+        nonlocal seen_ids, found_products
 
-        if kind == "pid":
+        if kind == product_kind:
             endpoints = pid_endpoints
             hard_max = hard_max_pid
         else:
@@ -2305,7 +2556,7 @@ def _scan_whmcs_hidden_products(
         if _deadline_exceeded():
             return
 
-        cur = 1
+        cur = 0
         pid_no_info_streak = 0
         pid_no_progress_streak = 0
         pid_dup_streak = 0
@@ -2340,70 +2591,69 @@ def _scan_whmcs_hidden_products(
                     continue
                 html = fetch.text
                 full_signature = _stable_page_signature(fetch.url, html)
-                page_signature = full_signature if kind == "gid" else None
-                if kind == "gid" and fallback_signature is None and page_signature:
+                page_signature = full_signature if kind == group_kind else None
+                if kind == group_kind and fallback_signature is None and page_signature:
                     fallback_signature = page_signature
-                pid_mentioned = _html_mentions_pid(html, cur_id) if kind == "pid" else True
 
-                # Many WHMCS installs redirect invalid ids back to cart.php or the homepage.
-                # Treat those as misses (no product/stock evidence for this id).
-                if kind == "pid":
-                    got = _query_param_int(fetch.url, "pid")
-                    if got is not None and got != cur_id:
-                        if fallback_redirect_signature is None:
-                            fallback_redirect_signature = _redirect_signature(fetch.url)
-                        continue
-                    if got is None and fallback_redirect_signature is None:
+                id_mentioned = _html_mentions_probe_id(html, cur_id, id_keys=product_html_id_keys) if kind == product_kind else True
+                query_key = product_kind if kind == product_kind else group_kind
+                got = _query_param_int(fetch.url, query_key)
+                if got is not None and got != cur_id:
+                    if fallback_redirect_signature is None:
                         fallback_redirect_signature = _redirect_signature(fetch.url)
-                    # Some valid flows redirect to URLs without pid. Only trust those when
-                    # the page explicitly references the probed pid.
-                    if got is None and not pid_mentioned:
-                        continue
-                else:
-                    got = _query_param_int(fetch.url, "gid")
-                    if got != cur_id:
-                        if fallback_redirect_signature is None:
-                            fallback_redirect_signature = _redirect_signature(fetch.url)
-                        continue
+                    continue
+                if got is None and fallback_redirect_signature is None:
+                    fallback_redirect_signature = _redirect_signature(fetch.url)
+                if kind == product_kind and platform_l == "whmcs" and got is None and not id_mentioned:
+                    continue
 
-                evidence = _looks_like_whmcs_pid_page(html) if kind == "pid" else _looks_like_whmcs_gid_page(html)
-                if kind == "pid" and evidence and not pid_mentioned:
+                if kind == product_kind:
+                    evidence = _looks_like_whmcs_pid_page(html) if platform_l == "whmcs" else _looks_like_hostbill_id_page(html)
+                else:
+                    evidence = _looks_like_whmcs_gid_page(html) if platform_l == "whmcs" else _looks_like_hostbill_group_page(html)
+                if kind == product_kind and platform_l == "whmcs" and evidence and not id_mentioned:
                     # Some sites serve a generic default/cart page for any pid; don't treat that as evidence.
                     evidence = False
                 extra_pids: set[int] = set()
-                if kind == "gid":
-                    extra_pids = _extract_pid_numbers(html)
+                if kind == group_kind:
+                    extra_pids = _extract_candidate_ids_from_html(
+                        html,
+                        base_url=fetch.url,
+                        keys=candidate_id_keys,
+                    )
                     if extra_pids:
                         evidence = True
 
                 # Some valid carts redirect to a flow URL that drops pid/gid from the final URL.
                 # Keep parser context anchored to the probed endpoint in that case.
                 parse_base_url = fetch.url
-                if kind == "pid" and got is None and pid_mentioned:
+                if kind == product_kind and got is None:
                     parse_base_url = url
 
                 parsed = parser.parse(html, base_url=parse_base_url)
                 parsed = [_product_with_special_flag(p) for p in parsed]
 
-                if kind == "pid" and parsed:
-                    parsed = [p for p in parsed if _product_matches_pid(p, cur_id)]
+                if kind == product_kind and parsed:
+                    parsed = [p for p in parsed if _product_matches_probe_id(p, cur_id, id_keys=product_id_match_keys)]
 
                 normalized: list[Product] = []
                 for p in parsed:
                     page_avail = _infer_availability_from_detail_html(html, domain=domain_for_ids)
-                    if page_avail is None and kind == "pid" and _looks_like_pid_stock_page(html):
+                    if page_avail is None and kind == product_kind and _looks_like_pid_stock_page(html):
                         page_avail = True
                     normalized.append(_clone_product(p, available=(p.available if page_avail is None else page_avail)))
 
                 if normalized:
-                    is_dup = all(p.id in seen_ids for p in normalized)
+                    known_ids = _known_ids()
+                    is_dup = all(p.id in known_ids for p in normalized)
                     return cur_id, True, is_dup, normalized, extra_pids, page_signature, None
 
                 # Some WHMCS themes require JS rendering or hide details; fall back to heuristics.
                 if evidence:
                     is_dup = False
-                    if kind == "gid" and extra_pids:
-                        is_dup = not any((cid not in seen_ids) for pid in extra_pids for cid in _pid_id_candidates(pid))
+                    if kind == group_kind and extra_pids:
+                        known_ids = _known_ids()
+                        is_dup = not any((cid not in known_ids) for pid in extra_pids for cid in _pid_id_candidates(pid))
                     return cur_id, True, is_dup, [], extra_pids, page_signature, None
 
             return cur_id, False, False, [], set(), fallback_signature, fallback_redirect_signature
@@ -2412,7 +2662,7 @@ def _scan_whmcs_hidden_products(
         with ThreadPoolExecutor(max_workers=max_workers) as ex:
             if ids is not None:
                 # Explicit id list: probe all (useful for sparse/non-consecutive ids discovered from gid pages).
-                id_list = [i for i in ids if isinstance(i, int) and i > 0]
+                id_list = [i for i in ids if isinstance(i, int) and i >= 0]
                 if not id_list:
                     return
                 id_list = sorted(set(id_list))
@@ -2426,33 +2676,23 @@ def _scan_whmcs_hidden_products(
                     batch_results = [f.result() for f in as_completed(futs)]
                     batch_results.sort(key=lambda x: x[0])
                     for _id, has_evidence, is_dup, products, extra_pids, _page_sig, _redirect_sig in batch_results:
-                        if kind == "gid" and extra_pids:
+                        if kind == group_kind and extra_pids:
                             pid_candidates.update(extra_pids)
                         if not has_evidence or is_dup:
                             continue
                         for p in products:
-                            if kind == "gid":
-                                # Keep gid discovery from suppressing subsequent pid checks:
-                                # gid pages often carry weak/unknown availability for pid products.
-                                if p.available is True and p.id not in seen_ids:
-                                    seen_ids.add(p.id)
-                                    found_in_stock[p.id] = p
-                                    if log_hits:
-                                        print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
-                                continue
-                            if p.id in seen_ids:
-                                continue
-                            seen_ids.add(p.id)
-                            if p.available is True:
-                                found_in_stock[p.id] = p
-                                if log_hits:
-                                    print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
+                            known_before = (p.id in found_products) or (p.id in seen_ids)
+                            found_products[p.id] = p
+                            if kind == product_kind:
+                                seen_ids.add(p.id)
+                            if (not known_before) and log_hits:
+                                print(f"[hidden:{kind}] discovered {p.domain} :: {p.name} :: {p.url}", flush=True)
                 return
 
             while cur <= hard_max:
                 if _deadline_exceeded():
                     break
-                if kind == "pid":
+                if kind == product_kind:
                     if (
                         pid_stop_after_no_info > 0
                         and pid_no_info_streak >= pid_stop_after_no_info
@@ -2508,7 +2748,7 @@ def _scan_whmcs_hidden_products(
 
                 batch = list(range(cur, min(hard_max, cur + batch_size - 1) + 1))
                 cur = batch[-1] + 1
-                if kind == "pid" and probed_pids:
+                if kind == product_kind and probed_pids:
                     # Avoid re-fetching candidate pids we already probed via explicit candidate probing.
                     batch = [cid for cid in batch if cid not in probed_pids]
                     if not batch:
@@ -2532,12 +2772,12 @@ def _scan_whmcs_hidden_products(
                     else:
                         redirect_signature_streak = 0
                     new_pid_candidates = 0
-                    if kind == "gid" and extra_pids:
+                    if kind == group_kind and extra_pids:
                         before = len(pid_candidates)
                         pid_candidates.update(extra_pids)
                         new_pid_candidates = max(0, len(pid_candidates) - before)
 
-                    if kind == "pid":
+                    if kind == product_kind:
                         if has_evidence:
                             pid_no_info_streak = 0
                         else:
@@ -2553,23 +2793,15 @@ def _scan_whmcs_hidden_products(
                     added_products = 0
                     if has_evidence and not is_dup:
                         for p in products:
-                            if kind == "gid":
-                                if p.available is True and p.id not in seen_ids:
-                                    seen_ids.add(p.id)
-                                    added_products += 1
-                                    found_in_stock[p.id] = p
-                                    if log_hits:
-                                        print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
-                                continue
-                            if p.id in seen_ids:
-                                continue
-                            seen_ids.add(p.id)
-                            added_products += 1
-                            if p.available is True:
-                                found_in_stock[p.id] = p
+                            known_before = (p.id in found_products) or (p.id in seen_ids)
+                            found_products[p.id] = p
+                            if kind == product_kind:
+                                seen_ids.add(p.id)
+                            if not known_before:
+                                added_products += 1
                                 if log_hits:
-                                    print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
-                    if kind == "pid":
+                                    print(f"[hidden:{kind}] discovered {p.domain} :: {p.name} :: {p.url}", flush=True)
+                    if kind == product_kind:
                         if has_evidence and is_dup:
                             pid_dup_streak += 1
                         elif has_evidence:
@@ -2583,9 +2815,9 @@ def _scan_whmcs_hidden_products(
                             gid_dup_streak = 0
                         else:
                             gid_dup_streak = 0
-                    made_progress = added_products > 0 or (kind == "gid" and new_pid_candidates > 0)
+                    made_progress = added_products > 0 or (kind == group_kind and new_pid_candidates > 0)
 
-                    if kind == "pid":
+                    if kind == product_kind:
                         if made_progress:
                             pid_no_progress_streak = 0
                         else:
@@ -2597,8 +2829,8 @@ def _scan_whmcs_hidden_products(
                             gid_no_progress_streak += 1
 
     if seed_gids:
-        scan_ids(kind="gid", ids=sorted(seed_gids))
-    scan_ids(kind="gid")
+        scan_ids(kind=group_kind, ids=sorted(seed_gids))
+    scan_ids(kind=group_kind)
 
     # If gid pages expose pid links, probe those pids first (handles sparse/non-consecutive pid allocations).
     if pid_candidates and pid_endpoints:
@@ -2607,15 +2839,16 @@ def _scan_whmcs_hidden_products(
             probe_list = probe_list[:candidate_pid_limit]
         if probe_list:
             probed_pids.update(probe_list)
-            scan_ids(kind="pid", ids=probe_list)
+            scan_ids(kind=product_kind, ids=probe_list)
 
-    scan_ids(kind="pid")
-    return list(found_in_stock.values())
+    scan_ids(kind=product_kind)
+    return list(found_products.values())
 
 
 def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[str]:
     raw_page_limit = os.environ.get("DISCOVERY_MAX_PAGES_PER_DOMAIN")
     max_pages = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 16
+    is_hostbill = _is_hostbill_domain(domain, html)
     # Only apply higher defaults when the user hasn't explicitly configured a limit.
     if raw_page_limit is None:
         if domain == "greencloudvps.com":
@@ -2623,14 +2856,13 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
             max_pages = max(max_pages, 40)
         if _is_whmcs_domain(domain, html):
             max_pages = max(max_pages, 24)
-        if domain in {"clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+        if is_hostbill:
             max_pages = max(max_pages, 32)
         if domain in {"my.racknerd.com"}:
             max_pages = max(max_pages, 80)
     soup = BeautifulSoup(html, "lxml")
     base_netloc = urlparse(base_url).netloc.lower()
-    hostbill_like_domains = {"clientarea.gigsgigscloud.com", "clients.zgovps.com"}
-    cart_depth = 2 if domain in hostbill_like_domains else 1
+    cart_depth = 2 if is_hostbill else 1
 
     candidates: list[str] = []
     seen: set[str] = set()

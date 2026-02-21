@@ -138,7 +138,7 @@ class TestGenericParserNameFallback(unittest.TestCase):
         self.assertNotIn("2", specs)
 
     def test_extracts_multi_kv_specs_from_single_line(self) -> None:
-        parser = GenericDomainParser(GenericParserConfig(domain="www.vps.soy"))
+        parser = GenericDomainParser(GenericParserConfig(domain="cloud.bffyun.com"))
         html = """
         <div class="product card">
           <h3>深港IX-MINI</h3>
@@ -146,7 +146,7 @@ class TestGenericParserNameFallback(unittest.TestCase):
           <a href="/cart?product=ix-mini">立即购买</a>
         </div>
         """
-        products = parser.parse(html, base_url="https://www.vps.soy/cart")
+        products = parser.parse(html, base_url="https://cloud.bffyun.com/cart")
         self.assertEqual(len(products), 1)
         specs = products[0].specs or {}
         self.assertEqual(specs.get("CPU"), "1 核")
@@ -167,14 +167,14 @@ class TestGenericParserNameFallback(unittest.TestCase):
         self.assertEqual(products[0].name, "black-friday-flash-offer-4gb-ram-vps-40tb-bw-2025-1")
 
     def test_customer_plans_group_listing_is_not_treated_as_product(self) -> None:
-        parser = GenericDomainParser(GenericParserConfig(domain="cloud.tizz.yt"))
+        parser = GenericDomainParser(GenericParserConfig(domain="cloud.bffyun.com"))
         html = """
         <div class="card product">
           <h3>萌云 企业级 VPS · 开通更快</h3>
           <a href="/customer/plans?group_id=2">立即查看</a>
         </div>
         """
-        products = parser.parse(html, base_url="https://cloud.tizz.yt/")
+        products = parser.parse(html, base_url="https://cloud.bffyun.com/")
         self.assertEqual(products, [])
 
 

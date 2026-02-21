@@ -1,5 +1,4 @@
 DEFAULT_TARGETS: list[str] = [
-    "https://fachost.cloud/",
     "https://my.rfchost.com/",
     "https://app.vmiss.com/",
     "https://acck.io/",
@@ -21,9 +20,7 @@ DEFAULT_TARGETS: list[str] = [
     "https://my.racknerd.com/",
     "https://clientarea.gigsgigscloud.com/",
     "https://cloud.boil.network/",
-    "https://www.vps.soy/",
     "https://cloud.bffyun.com/",
-    "https://cloud.tizz.yt/",
     "https://bestvm.cloud/",
 
 

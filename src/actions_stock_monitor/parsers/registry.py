@@ -6,7 +6,6 @@ from .spa_store_api import SpaStoreApiConfig, SpaStoreApiParser
 
 
 _KNOWN_DOMAINS = [
-    "fachost.cloud",
     "my.rfchost.com",
     "app.vmiss.com",
     "acck.io",
@@ -28,9 +27,7 @@ _KNOWN_DOMAINS = [
     "my.racknerd.com",
     "clientarea.gigsgigscloud.com",
     "cloud.boil.network",
-    "www.vps.soy",
     "cloud.bffyun.com",
-    "cloud.tizz.yt",
     "bestvm.cloud",
 
 

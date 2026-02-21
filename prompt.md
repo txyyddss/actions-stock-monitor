@@ -95,7 +95,6 @@
 
 Support the following domains with modular parsing logic:
 
-* `https://fachost.cloud/`
 * `https://my.rfchost.com/`
 * `https://app.vmiss.com/`
 * `https://acck.io/`
