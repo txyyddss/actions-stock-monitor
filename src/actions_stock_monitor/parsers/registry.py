@@ -16,7 +16,6 @@ _KNOWN_DOMAINS = [
     "bgp.gd",
     "nmcloud.cc",
     "my.frantech.ca",
-    "wawo.wiki",
     "backwaves.net",
     "cloud.ggvision.net",
     "wap.ac",

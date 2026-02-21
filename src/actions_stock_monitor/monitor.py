@@ -1459,14 +1459,12 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         _ENRICH_DOMAINS = {
             "backwaves.net",
             "app.vmiss.com",
-            "wawo.wiki",
             "clients.zgovps.com",
             "clientarea.gigsgigscloud.com",
             "www.dmit.io",
             "greencloudvps.com",
         }
         _CYCLE_ENRICH_DOMAINS = {
-            "wawo.wiki",
             "clients.zgovps.com",
             "clientarea.gigsgigscloud.com",
             "www.dmit.io",
@@ -1478,7 +1476,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         if allow_expansion and (domain in _ENRICH_DOMAINS or is_whmcs or is_hostbill) and (not _deadline_exceeded()):
             false_only = all(p.available is False for p in products) if products else False
             include_missing_cycles = is_whmcs or is_hostbill or (domain in _CYCLE_ENRICH_DOMAINS)
-            enrich_pages = 80 if include_missing_cycles and domain in {"wawo.wiki", "clientarea.gigsgigscloud.com"} else 40
+            enrich_pages = 80 if include_missing_cycles and domain in {"clientarea.gigsgigscloud.com"} else 40
             if is_whmcs:
                 enrich_pages = max(enrich_pages, 60)
             if domain in {"bgp.gd", "cloud.colocrossing.com", "clients.zgovps.com"}:
@@ -1554,7 +1552,7 @@ def _is_whmcs_domain(domain: str, html: str) -> bool:
     if "whmcs" in t or "cart.php" in t or "rp=/store" in t:
         return True
     whmcs_domains = {
-        "my.rfchost.com", "my.frantech.ca", "wawo.wiki",
+        "my.rfchost.com", "my.frantech.ca",
         "nmcloud.cc", "bgp.gd", "wap.ac", "www.bagevm.com", "backwaves.net",
         "cloud.ggvision.net", "cloud.colocrossing.com",
         "clients.zgovps.com", "my.racknerd.com",
@@ -2010,8 +2008,6 @@ def _domain_extra_pages(domain: str) -> list[str]:
     # and can be handled via discovery + hidden scanners.
     if domain == "my.rfchost.com":
         return ["https://my.rfchost.com/cart.php", "https://my.rfchost.com/index.php?rp=/store"]
-    if domain == "wawo.wiki":
-        return ["https://wawo.wiki/cart.php", "https://wawo.wiki/index.php?rp=/store"]
     if domain == "app.vmiss.com":
         return ["https://app.vmiss.com/cart.php", "https://app.vmiss.com/index.php?rp=/store"]
     if domain == "my.racknerd.com":

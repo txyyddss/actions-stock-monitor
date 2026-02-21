@@ -9,7 +9,6 @@ DEFAULT_TARGETS: list[str] = [
     "https://bgp.gd/",
     "https://nmcloud.cc/",
     "https://my.frantech.ca/",
-    "https://wawo.wiki/",
     "https://backwaves.net/",
     "https://cloud.ggvision.net/",
     "https://wap.ac/",

@@ -105,7 +105,6 @@ Support the following domains with modular parsing logic:
 * `https://bgp.gd/`
 * `https://nmcloud.cc/`
 * `https://my.frantech.ca/`
-* `https://wawo.wiki/`
 * `https://backwaves.net/`
 * `https://cloud.ggvision.net/`
 * `https://wap.ac/`

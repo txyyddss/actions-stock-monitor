@@ -73,4 +73,6 @@ def load_state(path: Path) -> dict[str, Any]:
 
 def save_state(path: Path, state: dict[str, Any]) -> None:
     out = {**state, "schema_version": SCHEMA_VERSION, "updated_at": utc_now_iso()}
-    path.write_text(json.dumps(out, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    payload = json.dumps(out, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    path.unlink(missing_ok=True)
+    path.write_text(payload, encoding="utf-8")

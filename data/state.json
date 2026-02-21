@@ -120,12 +120,6 @@
       "last_ok": "2026-02-21T14:39:58+00:00",
       "last_status": "ok"
     },
-    "wawo.wiki": {
-      "last_duration_ms": 75585,
-      "last_error": null,
-      "last_ok": "2026-02-21T14:39:58+00:00",
-      "last_status": "ok"
-    },
     "www.bagevm.com": {
       "last_duration_ms": 168938,
       "last_error": null,
