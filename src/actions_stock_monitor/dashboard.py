@@ -43,6 +43,15 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
         cycle_prices = p.get("cycle_prices") or {}
         if not isinstance(cycle_prices, dict):
             cycle_prices = {}
+        locations = p.get("locations")
+        if not isinstance(locations, list):
+            base_loc = p.get("location") or p.get("option")
+            locations = [str(base_loc)] if isinstance(base_loc, str) and base_loc else []
+        else:
+            locations = [str(x) for x in locations if isinstance(x, str) and x]
+        location_links = p.get("location_links")
+        if not isinstance(location_links, dict):
+            location_links = {}
 
         products.append(
             {
@@ -57,7 +66,9 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
                 "last_seen": p.get("last_seen") or "",
                 "billing_cycles": billing,
                 "cycle_prices": cycle_prices,
-                "location": p.get("location") or p.get("option") or "",
+                "location": p.get("location") or p.get("option") or (locations[0] if locations else ""),
+                "locations": locations,
+                "location_links": location_links,
                 "variant_of": p.get("variant_of") or "",
                 "is_special": bool(p.get("is_special")),
             }
@@ -607,7 +618,8 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     DATA.products.forEach(p => {{
       const spec = Object.entries(p.specs||{{}}).map(([k,v])=>k+":"+v).join(" ");
       const cp = Object.entries(p.cycle_prices||{{}}).map(([k,v])=>k+":"+v).join(" ");
-      p._blob = `${{p.domain}} ${{p.name}} ${{p.price}} ${{p.description||""}} ${{spec}} ${{p.url}} ${{p.billing_cycles||""}} ${{p.location||""}} ${{cp}}`.toLowerCase();
+      const locs = Array.isArray(p.locations) ? p.locations.join(" ") : "";
+      p._blob = `${{p.domain}} ${{p.name}} ${{p.price}} ${{p.description||""}} ${{spec}} ${{p.url}} ${{p.billing_cycles||""}} ${{p.location||""}} ${{locs}} ${{cp}}`.toLowerCase();
     }});
 
     const tb = document.getElementById("tb");
@@ -711,7 +723,8 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
 
           const specs=Object.entries(p.specs||{{}}).map(([k,v])=>'<span class="chip">'+esc(k)+": "+esc(v)+"</span>").join("");
           const desc=p.description?'<details class="desc-toggle"><summary>Details</summary><div class="desc-box">'+esc(p.description)+"</div></details>":"";
-          const locTag=p.location?'<span class="tag tag-location">'+esc(p.location)+"</span>":"";
+          const locs = Array.isArray(p.locations) && p.locations.length ? p.locations : (p.location ? [p.location] : []);
+          const locTag = locs.slice(0,3).map(x => '<span class="tag tag-location">'+esc(x)+"</span>").join("") + (locs.length>3?'<span class="tag tag-location">+'+String(locs.length-3)+' more</span>':"");
           const spTag=p.is_special?'<span class="tag tag-special">Special</span>':"";
           const variant=p.variant_of?'<div class="variant-info">Plan: '+esc(p.variant_of)+"</div>":"";
           const cycles=p.billing_cycles?esc(p.billing_cycles):'<span class="muted">—</span>';

@@ -38,6 +38,29 @@ def load_state(path: Path) -> dict[str, Any]:
     data.setdefault("products", {})
     data.setdefault("domains", {})
 
+    # Backward compatibility: normalize location fields to the newer list+links shape.
+    for _pid, rec in list((data.get("products") or {}).items()):
+        if not isinstance(rec, dict):
+            continue
+        loc = rec.get("location") or rec.get("option")
+        locations = rec.get("locations")
+        if not isinstance(locations, list):
+            if isinstance(loc, str) and loc.strip():
+                rec["locations"] = [loc.strip()]
+            else:
+                rec["locations"] = None
+        else:
+            cleaned = [str(x).strip() for x in locations if isinstance(x, str) and str(x).strip()]
+            rec["locations"] = cleaned or None
+            if not rec.get("location") and cleaned:
+                rec["location"] = cleaned[0]
+        location_links = rec.get("location_links")
+        if not isinstance(location_links, dict):
+            if isinstance(rec.get("url"), str) and rec.get("locations"):
+                rec["location_links"] = {str(rec["locations"][0]): rec["url"]}
+            else:
+                rec["location_links"] = None
+
     # Config cleanup: drop accidental/legacy entries that should not be monitored.
     if isinstance(data.get("domains"), dict):
         data["domains"].pop("example.com", None)

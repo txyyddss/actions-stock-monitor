@@ -88,6 +88,94 @@ class TestMonitorModes(unittest.TestCase):
         self.assertTrue(calls_full and all(calls_full))
         self.assertTrue(calls_lite and not any(calls_lite))
 
+    def test_full_default_run_prunes_removed_domains(self) -> None:
+        previous_state = {
+            "products": {
+                "old-id": {
+                    "domain": "removed.test",
+                    "url": "https://removed.test/p/1",
+                    "name": "Old",
+                    "price": "1.00 USD",
+                    "currency": "USD",
+                    "description": "",
+                    "specs": {},
+                    "available": True,
+                }
+            },
+            "domains": {"removed.test": {"last_status": "ok"}},
+            "last_run": {"started_at": "2026-02-01T00:00:00+00:00"},
+        }
+
+        def fake_scrape(_client, _target: str, *, allow_expansion: bool = True) -> DomainRun:
+            return DomainRun(
+                domain="kept.test",
+                ok=True,
+                error=None,
+                duration_ms=1,
+                products=[
+                    Product(
+                        id="kept-id",
+                        domain="kept.test",
+                        url="https://kept.test/p/1",
+                        name="Kept",
+                        price="1.00 USD",
+                        currency="USD",
+                        description="",
+                        specs={},
+                        available=True,
+                    )
+                ],
+            )
+
+        with mock.patch("actions_stock_monitor.monitor.DEFAULT_TARGETS", ["https://kept.test/"]):
+            with mock.patch("actions_stock_monitor.monitor._scrape_target", side_effect=fake_scrape):
+                state, _summary = run_monitor(
+                    previous_state=previous_state,
+                    targets=[],
+                    timeout_seconds=5.0,
+                    max_workers=1,
+                    dry_run=True,
+                    mode="full",
+                )
+
+        self.assertNotIn("removed.test", state["domains"])
+        self.assertNotIn("old-id", state["products"])
+        self.assertIn("kept-id", state["products"])
+
+    def test_full_explicit_targets_does_not_prune_removed_domains(self) -> None:
+        previous_state = {
+            "products": {
+                "old-id": {
+                    "domain": "removed.test",
+                    "url": "https://removed.test/p/1",
+                    "name": "Old",
+                    "price": "1.00 USD",
+                    "currency": "USD",
+                    "description": "",
+                    "specs": {},
+                    "available": True,
+                }
+            },
+            "domains": {"removed.test": {"last_status": "ok"}},
+            "last_run": {"started_at": "2026-02-01T00:00:00+00:00"},
+        }
+
+        def fake_scrape(_client, _target: str, *, allow_expansion: bool = True) -> DomainRun:
+            return DomainRun(domain="kept.test", ok=True, error=None, duration_ms=1, products=[])
+
+        with mock.patch("actions_stock_monitor.monitor._scrape_target", side_effect=fake_scrape):
+            state, _summary = run_monitor(
+                previous_state=previous_state,
+                targets=["https://kept.test/"],
+                timeout_seconds=5.0,
+                max_workers=1,
+                dry_run=True,
+                mode="full",
+            )
+
+        self.assertIn("removed.test", state["domains"])
+        self.assertIn("old-id", state["products"])
+
 
 if __name__ == "__main__":
     unittest.main()

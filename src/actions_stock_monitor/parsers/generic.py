@@ -91,11 +91,11 @@ class GenericDomainParser:
 
             name = self._extract_name(card) or self._name_from_text(text) or self.domain
             url_name = self._name_from_url(url)
-            if self._looks_like_action_label(name):
+            if self._looks_like_action_label(name) and self._is_url_name_confident(url_name, fallback_for=name):
                 name = url_name or name
-            if self._looks_like_non_name(name):
+            if self._looks_like_non_name(name) and self._is_url_name_confident(url_name, fallback_for=name):
                 name = url_name or name
-            if compact_ws(name).lower() in {self.domain.lower(), urlparse(url).netloc.lower()}:
+            if compact_ws(name).lower() in {self.domain.lower(), urlparse(url).netloc.lower()} and self._is_url_name_confident(url_name, fallback_for=name):
                 name = url_name or name
             # Some plans are dotted codes like TYO.AS3.Pro.TINY while card headers only show
             # the trailing token (e.g. "TINY"). Prefer the full URL-derived code when it matches.
@@ -116,6 +116,9 @@ class GenericDomainParser:
                 specs = dict(specs)
                 specs["Cycles"] = ", ".join(billing_cycles)
             description = self._extract_description(card, name=name) or (text[:1200] if text else None)
+            desc_name = self._name_from_description_lead(description)
+            if desc_name and self._looks_like_generic_name_for_replacement(name):
+                name = desc_name
             variant_of, location = self._infer_variant_and_location(url=url, name=name, specs=specs)
             is_special = looks_like_special_offer(name=name, url=url, description=description)
 
@@ -147,7 +150,7 @@ class GenericDomainParser:
 
     def _iter_cards(self, soup: BeautifulSoup, *, fast_only: bool = False) -> Iterable:
         # High-signal "card" selectors used by common hosting storefronts.
-        for sel in [".package", ".product", ".plan", ".pricing", ".card", ".tt-single-product", ".cart-product", ".cartitem", ".bordered-section"]:
+        for sel in [".package", ".product", ".plan", ".pricing", ".card", ".tt-single-product", ".cart-product", ".cartitem", ".cartbox", ".bordered-section"]:
             for tag in soup.select(sel):
                 yield tag
 
@@ -203,6 +206,9 @@ class GenericDomainParser:
             "h2",
             "h3",
             "h4",
+            "[id$='-name']",
+            "[id*='product'][id$='name']",
+            "nobr",
             ".title",
             ".name",
             ".product-name",
@@ -213,11 +219,12 @@ class GenericDomainParser:
             ".tt-product-name",
             "[class*='title']",
             "[class*='name']",
+            "strong",
         ]:
             t = tag.select_one(sel)
             if t:
                 name = compact_ws(t.get_text(" ", strip=True))
-                if 2 <= len(name) <= 140:
+                if 2 <= len(name) <= 140 and not self._looks_like_non_name(name):
                     return name
 
         # HostBill-style forms: first meaningful stripped string is usually the plan name.
@@ -265,7 +272,9 @@ class GenericDomainParser:
             candidates.append(label)
         if candidates:
             # Prefer the longest label; button labels are typically short.
-            return sorted(candidates, key=len, reverse=True)[0]
+            for cand in sorted(candidates, key=len, reverse=True):
+                if not self._looks_like_non_name(cand):
+                    return cand
         return None
 
     @staticmethod
@@ -290,6 +299,10 @@ class GenericDomainParser:
         if sum(1 for ch in n if ch in ",，。:：") >= 2 and len(n) > 45:
             return True
         if n.count(" ") >= 9:
+            return True
+        if "默认配置" in n or "請下單時自行加配" in n or "请下单时自行加配" in n:
+            return True
+        if "get started" in n_l or "not transferable" in n_l:
             return True
         return False
 
@@ -369,7 +382,10 @@ class GenericDomainParser:
 
         if not candidates:
             cls = " ".join(tag.get("class", []) if hasattr(tag, "get") else "")
-            if "cartitem" in cls.lower():
+            card_text = compact_ws(getattr(tag, "get_text", lambda *a, **k: "")(" ", strip=True))
+            has_price = bool(extract_price(card_text)[0])
+            has_buy_signal = looks_like_purchase_action(card_text)
+            if "cartitem" in cls.lower() and has_price and has_buy_signal:
                 name = self._extract_name(tag) or self._name_from_text(compact_ws(tag.get_text(" ", strip=True))) or "item"
                 add_candidate(self._append_query(base_url, {"product": self._slugify(name)}), name, base_score=4)
 
@@ -507,6 +523,11 @@ class GenericDomainParser:
             return True
         if any(x in path for x in ["contact", "about", "privacy", "terms", "tos", "changelog", "refund", "protocol", "faq", "blog"]):
             return True
+        if "product/buyvm" in path:
+            return True
+        if "/customer/plans" in path:
+            if not any(k in qs for k in ["pid", "id", "product", "product_id", "plan_id", "planid"]):
+                return True
 
         # HostBill category/listing pages frequently use /products/cart/<category>.
         if "/products/cart/" in path:
@@ -610,12 +631,37 @@ class GenericDomainParser:
                 last = parts[-1]
                 if "." in prev and "." not in last and len(last) <= 12:
                     return f"{prev}.{last}"
+                if GenericDomainParser._looks_like_suffix_token(last) and prev:
+                    return f"{prev}-{last}"
                 return parts[-1]
 
         path_parts = [x for x in p.path.split("/") if x]
         if path_parts:
+            if len(path_parts) >= 2 and GenericDomainParser._looks_like_suffix_token(path_parts[-1]):
+                return f"{path_parts[-2]}-{path_parts[-1]}"
             return path_parts[-1]
         return None
+
+    @staticmethod
+    def _looks_like_suffix_token(value: str) -> bool:
+        token = compact_ws(value).lower().strip("-_")
+        if not token:
+            return False
+        if len(token) <= 3:
+            return True
+        return bool(re.fullmatch(r"\d+[a-z]{1,2}", token))
+
+    @staticmethod
+    def _is_url_name_confident(url_name: str | None, *, fallback_for: str | None) -> bool:
+        if not url_name:
+            return False
+        u = compact_ws(url_name)
+        if len(u) < 3:
+            return False
+        fallback = compact_ws(fallback_for or "")
+        if fallback and len(fallback) > len(u) + 10 and not GenericDomainParser._looks_like_suffix_token(fallback):
+            return False
+        return True
 
     _NAME_PRICE_SPLIT_RE = re.compile(r"(?:HK\$|US\$|NT\$|\$|€|£|¥|￥|元|USD|EUR|GBP|HKD|CNY|RMB|JPY|TWD)\s*\d", re.IGNORECASE)
     _NAME_TRIM_TAIL_RE = re.compile(r"(?:\b\d+\s*(?:available|left|in\s*stock)\b|\bavailable\b|可用|库存|庫存)\s*$", re.IGNORECASE)
@@ -642,6 +688,44 @@ class GenericDomainParser:
         return prefix
 
     @staticmethod
+    def _name_from_description_lead(description: str | None) -> str | None:
+        t = compact_ws(description or "")
+        if not t:
+            return None
+        m = re.search(r"\b([A-Za-z][A-Za-z0-9._-]{2,63})\b", t[:220])
+        if not m:
+            return None
+        cand = m.group(1)
+        if cand.upper() in {"CPU", "KVM", "IPV4", "IPV6", "SSD", "HDD", "CNY", "USD", "GB", "TB"}:
+            return None
+        # Guard against tiny tokens that are unlikely to be product names.
+        if len(cand) < 4:
+            return None
+        return cand
+
+    @staticmethod
+    def _looks_like_generic_name_for_replacement(name: str) -> bool:
+        n = compact_ws(name)
+        if not n:
+            return True
+        n_l = n.lower()
+        if re.fullmatch(r"\d+\s*(?:core|cores?|vcpu|vcore|cpu|gb|tb|mbps|g|m)", n_l):
+            return True
+        if re.fullmatch(r"\d+\s*(?:核心|核)", n):
+            return True
+        noise_tokens = (
+            "标价为实际价格",
+            "鏍囦环涓哄疄闄呬环鏍",
+            "套餐与价格",
+            "濂楅涓庝环鏍",
+            "product price",
+            "pricing",
+        )
+        if any(tok in n_l for tok in noise_tokens):
+            return True
+        return False
+
+    @staticmethod
     def _looks_like_action_label(name: str) -> bool:
         n = compact_ws(name).lower()
         if not n:
@@ -655,6 +739,7 @@ class GenericDomainParser:
             "details",
             "view",
             "continue",
+            "get started",
             "立即订购",
             "立即購買",
             "立即购买",
@@ -670,7 +755,7 @@ class GenericDomainParser:
 
     def _promote_to_best_card(self, tag, *, base_url: str):
         cls = " ".join(tag.get("class", []) if hasattr(tag, "get") else "").lower()
-        if "cart-product" in cls or "cartitem" in cls:
+        if "cart-product" in cls or "cartitem" in cls or "cartbox" in cls:
             return tag
         if getattr(tag, "name", "") == "form" and self._is_add_form(tag):
             return tag
@@ -754,6 +839,20 @@ class GenericDomainParser:
                     return True
                 if marker is None and looks_like_purchase_action(label):
                     return True
+                label_l = label.lower()
+                if any(k in label_l for k in ("buy", "order", "checkout", "add", "订购", "訂購", "购买", "購買")):
+                    return True
+                if any(k in cls_l for k in ("buy", "order", "checkout", "cart", "add")):
+                    return True
+
+                href = ""
+                if hasattr(el, "get"):
+                    href = str(el.get("href") or el.get("data-href") or el.get("data-url") or "")
+                onclick = str(el.get("onclick") or "") if hasattr(el, "get") else ""
+                target = f"{href} {onclick}".lower()
+                if target and any(k in target for k in ("action=add", "a=add", "pid=", "id=", "product=", "product_id=")):
+                    if "a=view" not in target and "domain=register" not in target and "domain=transfer" not in target:
+                        return True
         except Exception:
             pass
 
@@ -946,6 +1045,8 @@ class GenericDomainParser:
         category = self._category_label_from_url(url)
         if not location and category:
             location = self._location_from_category(category)
+        if not location and name:
+            location = self._location_from_name_hint(name)
         variant_of = None
         if category:
             cl = category.lower()
@@ -966,6 +1067,12 @@ class GenericDomainParser:
                 slug = parts[0]
         else:
             p = urlparse(url)
+            qs = parse_qs(p.query or "")
+            rp = (qs.get("rp") or [None])[0]
+            if isinstance(rp, str) and rp.startswith("/store/"):
+                rp_parts = [x for x in rp.strip("/").split("/") if x]
+                if len(rp_parts) >= 2:
+                    slug = rp_parts[1]
             if p.query.startswith("/cart/"):
                 tail = p.query.split("/cart/", 1)[1]
                 tail = tail.split("&", 1)[0]
@@ -1001,6 +1108,7 @@ class GenericDomainParser:
             "vps", "vds", "kvm", "cloud", "server", "servers", "dedicated", "shared", "hosting",
             "performance", "special", "offer", "nat", "simplecloud", "colocation", "ssl", "domain",
             "reseller", "storage", "edge", "global", "intel", "amd", "ryzen9", "ryzen", "epyc",
+            "lite", "plus", "standard", "premium", "pro", "basic", "eco",
         }
         loc_tokens: list[str] = []
         for tok in tokens:
@@ -1008,6 +1116,33 @@ class GenericDomainParser:
             if tl in stop:
                 break
             loc_tokens.append(tok)
+        if not loc_tokens:
+            return None
+        return compact_ws(" ".join(loc_tokens)).title()
+
+    @staticmethod
+    def _location_from_name_hint(name: str) -> str | None:
+        if not name:
+            return None
+        tokens = [t for t in re.split(r"[\s\-_/]+", compact_ws(name)) if t]
+        if not tokens:
+            return None
+        stop = {
+            "vps", "vds", "kvm", "cloud", "server", "servers", "dedicated", "shared", "hosting",
+            "performance", "special", "offer", "nat", "simplecloud", "colocation", "ssl", "domain",
+            "reseller", "storage", "edge", "global", "intel", "amd", "ryzen9", "ryzen", "epyc",
+            "lite", "plus", "standard", "premium", "pro", "basic", "eco", "plan", "traffic",
+        }
+        loc_tokens: list[str] = []
+        for tok in tokens:
+            tl = tok.lower()
+            if tl in stop:
+                break
+            if re.fullmatch(r"\d+[a-z]*", tl):
+                break
+            loc_tokens.append(tok)
+            if len(loc_tokens) >= 3:
+                break
         if not loc_tokens:
             return None
         return compact_ws(" ".join(loc_tokens)).title()

@@ -42,12 +42,6 @@
       "last_ok": "2026-02-20T11:31:07+00:00",
       "last_status": "ok"
     },
-    "bill.hostdare.com": {
-      "last_duration_ms": 5293,
-      "last_error": null,
-      "last_ok": "2026-02-20T11:31:07+00:00",
-      "last_status": "ok"
-    },
     "clientarea.gigsgigscloud.com": {
       "last_duration_ms": 101342,
       "last_error": null,

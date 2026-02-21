@@ -54,6 +54,30 @@ class TestDashboard(unittest.TestCase):
         self.assertNotIn("</script><script>alert", html)
         self.assertIn("\\u003c/script\\u003e\\u003cscript\\u003ealert", html)
 
+    def test_dashboard_embeds_merged_locations(self) -> None:
+        state = {
+            "updated_at": "2026-02-18T00:00:00+00:00",
+            "products": {
+                "p1": {
+                    "domain": "example.test",
+                    "name": "Merged Plan",
+                    "price": "9.99 USD",
+                    "available": True,
+                    "specs": {"RAM": "2GB RAM"},
+                    "url": "https://example.test/buy",
+                    "first_seen": "2026-02-18T00:00:00+00:00",
+                    "last_seen": "2026-02-18T00:00:00+00:00",
+                    "location": "New York",
+                    "locations": ["New York", "Los Angeles"],
+                }
+            },
+            "domains": {"example.test": {"last_status": "ok"}},
+        }
+        html = render_dashboard_html(state, run_summary={"finished_at": state["updated_at"]})
+        self.assertIn("Merged Plan", html)
+        self.assertIn("New York", html)
+        self.assertIn("Los Angeles", html)
+
 
 if __name__ == "__main__":
     unittest.main()

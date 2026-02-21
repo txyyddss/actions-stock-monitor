@@ -4,9 +4,11 @@ import unittest
 
 from actions_stock_monitor.parsers.common import (
     extract_availability,
+    extract_billing_cycles_from_text,
     extract_location_variants,
     extract_price,
     extract_specs,
+    looks_like_special_offer,
     looks_like_purchase_action,
     normalize_url_for_id,
 )
@@ -43,6 +45,12 @@ class TestParsersCommon(unittest.TestCase):
 
     def test_extract_availability_prefers_oos_over_weak_in_stock(self) -> None:
         self.assertFalse(extract_availability("Out of stock - Add to cart"))
+
+    def test_extract_availability_handles_mojibake_stock_markers(self) -> None:
+        self.assertFalse(extract_availability("缂鸿揣 (0 鍙敤)"))
+
+    def test_extract_billing_cycles_handles_mojibake_monthly(self) -> None:
+        self.assertEqual(extract_billing_cycles_from_text("99.00CNY 姣忔湀"), ["Monthly"])
 
     def test_extract_location_variants_examples(self) -> None:
         html_a = """
@@ -83,6 +91,28 @@ class TestParsersCommon(unittest.TestCase):
         </div>
         """
         self.assertEqual(extract_location_variants(html_d), [("New York", None), ("Atlanta", None)])
+
+    def test_extract_location_variants_section_region_layout(self) -> None:
+        html = """
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Region</h2>
+          </div>
+          <div class="section-body">
+            <div class="panel panel-form">
+              <div class="panel-body d-flex flex-nowrap align-items-center">
+                <select name="configoption[72]" id="inputConfigOption72" class="form-control">
+                  <option value="174" selected="selected">New York, USA</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        """
+        self.assertEqual(extract_location_variants(html), [("New York, USA", None)])
+
+    def test_special_offer_detects_chinese_keyword(self) -> None:
+        self.assertTrue(looks_like_special_offer(name="香港特供套餐", url="https://example.test/buy", description=None))
 
 
 if __name__ == "__main__":

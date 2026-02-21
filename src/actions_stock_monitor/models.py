@@ -20,6 +20,8 @@ class Product:
     billing_cycles: list[str] | None = None
     cycle_prices: dict[str, str] | None = None
     location: str | None = None
+    locations: list[str] | None = None
+    location_links: dict[str, str] | None = None
     is_special: bool = False
 
 

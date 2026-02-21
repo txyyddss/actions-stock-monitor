@@ -24,15 +24,12 @@ _KNOWN_DOMAINS = [
     "www.bagevm.com",
     "cloud.colocrossing.com",
     "www.dmit.io",
-    "bill.hostdare.com",
     "clients.zgovps.com",
-    "vps.hosting",
     "my.racknerd.com",
     "clientarea.gigsgigscloud.com",
     "cloud.boil.network",
     "www.vps.soy",
     "cloud.bffyun.com",
-    "bandwagonhost.com",
     "www.lycheen.com",
     "cloud.tizz.yt",
     "bestvm.cloud",
@@ -43,8 +40,12 @@ _KNOWN_DOMAINS = [
 _PARSERS = {d: GenericDomainParser(GenericParserConfig(domain=d)) for d in _KNOWN_DOMAINS}
 
 # SPA storefronts with API-backed inventory.
-_PARSERS["acck.io"] = SpaStoreApiParser(SpaStoreApiConfig(domain="acck.io", currency="CNY", shop_path="/shop/server"))
-_PARSERS["akile.io"] = SpaStoreApiParser(SpaStoreApiConfig(domain="akile.io", currency="CNY", shop_path="/shop/server"))
+_PARSERS["acck.io"] = SpaStoreApiParser(
+    SpaStoreApiConfig(domain="acck.io", currency="CNY", shop_path="/shop/server", shop_query={"type": "bandwidth"})
+)
+_PARSERS["akile.io"] = SpaStoreApiParser(
+    SpaStoreApiConfig(domain="akile.io", currency="CNY", shop_path="/shop/server", shop_query={"type": "bandwidth"})
+)
 _PARSERS["greencloudvps.com"] = GreenCloudVpsParser(GreenCloudVpsConfig(domain="greencloudvps.com"))
 
 

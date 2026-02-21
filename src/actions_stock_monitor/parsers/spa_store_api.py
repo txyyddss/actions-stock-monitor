@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import parse_qsl, urlencode, urlparse
 
 from bs4 import BeautifulSoup
 
@@ -134,6 +134,7 @@ class SpaStoreApiConfig:
     domain: str
     currency: str = "CNY"
     shop_path: str = "/shop/server"
+    shop_query: dict[str, str] | None = None
 
 
 class SpaStoreApiParser:
@@ -192,14 +193,29 @@ class SpaStoreApiParser:
                         continue
 
                     # Build a stable, user-meaningful link back to the storefront.
-                    query = {}
+                    base_query: dict[str, str] = {}
+                    try:
+                        parsed_shop = urlparse(self._cfg.shop_path)
+                        for k, v in parse_qsl(parsed_shop.query, keep_blank_values=True):
+                            if k and v:
+                                base_query[k] = v
+                    except Exception:
+                        base_query = {}
+                    for k, v in (self._cfg.shop_query or {}).items():
+                        if isinstance(k, str) and isinstance(v, str) and k and v:
+                            base_query[k] = v
+
+                    query = dict(base_query)
                     if isinstance(area_id, int):
                         query["areaId"] = str(area_id)
                     if isinstance(node_id, int):
                         query["nodeId"] = str(node_id)
                     if isinstance(plan_id, int):
                         query["planId"] = str(plan_id)
-                    url = f"https://{self.domain}{self._cfg.shop_path}"
+                    shop_url = self._cfg.shop_path
+                    if "?" in shop_url:
+                        shop_url = shop_url.split("?", 1)[0]
+                    url = f"https://{self.domain}{shop_url}"
                     if query:
                         url += "?" + urlencode(query)
 

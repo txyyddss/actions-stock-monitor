@@ -105,6 +105,20 @@ class _DynamicGidClient(_FakeClient):
         return super().fetch_text(url, allow_flaresolverr=allow_flaresolverr)
 
 
+class _DynamicPidClient(_FakeClient):
+    def __init__(self, domain: str) -> None:
+        super().__init__(pages={})
+        self._domain = domain
+
+    def fetch_text(self, url: str, *, allow_flaresolverr: bool = True) -> _Fetch:
+        self.calls.append(url)
+        qs = parse_qs(urlparse(url).query)
+        pid = (qs.get("pid") or [None])[0]
+        if isinstance(pid, str) and pid.isdigit():
+            return _Fetch(url=url, ok=True, text="<html><button>Add to cart</button></html>")
+        return super().fetch_text(url, allow_flaresolverr=allow_flaresolverr)
+
+
 class TestWhmcsHiddenScanner(unittest.TestCase):
     def test_scanner_stops_after_consecutive_misses_and_returns_in_stock_only(self) -> None:
         domain = "example.test"
@@ -266,6 +280,60 @@ class TestWhmcsHiddenScanner(unittest.TestCase):
             )
 
         self.assertEqual(client.calls, [])
+
+    def test_pid_scan_stops_after_duplicate_streak(self) -> None:
+        domain = "example.test"
+        base_url = f"https://{domain}/"
+        client = _DynamicPidClient(domain=domain)
+        parser = _FakeParser(domain)
+        existing_ids = {
+            f"{domain}::{normalize_url_for_id(f'https://{domain}/cart.php?a=add&pid={pid}')}"
+            for pid in range(1, 100)
+        }
+
+        env = {
+            "WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO": "0",
+            "WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS": "0",
+            "WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES": "5",
+            "WHMCS_HIDDEN_BATCH": "1",
+            "WHMCS_HIDDEN_WORKERS": "1",
+            "WHMCS_HIDDEN_HARD_MAX_PID": "200",
+            "WHMCS_HIDDEN_HARD_MAX_GID": "0",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            _scan_whmcs_hidden_products(client, parser, base_url=base_url, existing_ids=existing_ids)
+
+        pid_calls = 0
+        for url in client.calls:
+            qs = parse_qs(urlparse(url).query)
+            if (qs.get("pid") or [None])[0] is not None:
+                pid_calls += 1
+        self.assertEqual(pid_calls, 5)
+
+    def test_pid_scan_stops_after_same_redirect_signature(self) -> None:
+        domain = "example.test"
+        base_url = f"https://{domain}/"
+        client = _FakeClient(pages={})
+        parser = _NoopParser()
+
+        env = {
+            "WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO": "0",
+            "WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS": "0",
+            "WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER": "6",
+            "WHMCS_HIDDEN_BATCH": "1",
+            "WHMCS_HIDDEN_WORKERS": "1",
+            "WHMCS_HIDDEN_HARD_MAX_PID": "200",
+            "WHMCS_HIDDEN_HARD_MAX_GID": "0",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            _scan_whmcs_hidden_products(client, parser, base_url=base_url, existing_ids=set())
+
+        pid_calls = 0
+        for url in client.calls:
+            qs = parse_qs(urlparse(url).query)
+            if (qs.get("pid") or [None])[0] is not None:
+                pid_calls += 1
+        self.assertEqual(pid_calls, 6)
 
 
 if __name__ == "__main__":

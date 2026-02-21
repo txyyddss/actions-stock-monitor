@@ -54,10 +54,11 @@ class TestScrapeTargetSpaApiDiscovery(unittest.TestCase):
         self.assertTrue(run.ok)
         self.assertGreater(len(run.products), 0)
         self.assertIn(api, client.calls)
+        self.assertIn("type=bandwidth", run.products[0].url)
+        self.assertIn("planId=1", run.products[0].url)
         # The API endpoint should be attempted before the default entrypoints.
         self.assertLess(client.calls.index(api), client.calls.index("https://acck.io/cart.php"))
 
 
 if __name__ == "__main__":
     unittest.main()
-

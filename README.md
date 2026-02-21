@@ -91,8 +91,12 @@ Hidden WHMCS scanning (pid/gid brute scan):
 
 - `WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO` (default: `10`; falls back to `WHMCS_HIDDEN_STOP_AFTER_MISS` if unset)
 - `WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE` (default: `5`)
-- `WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS` (default: `120`)
-- `WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS` (default: `120`)
+- `WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS` (default: `60`)
+- `WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS` (default: `60`)
+- `WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES` (default: `18`)
+- `WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES` (default: `18`)
+- `WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER` (default: `12`)
+- `WHMCS_HIDDEN_MAX_DURATION_SECONDS` (default: `60`; per-domain hidden scan time cap)
 - `WHMCS_HIDDEN_STOP_AFTER_MISS` (legacy fallback for pid stop threshold)
 - `WHMCS_HIDDEN_MIN_PROBE` (default: `0`)
 - `WHMCS_HIDDEN_BATCH` (default: `3`)
@@ -142,6 +146,13 @@ Live smoke test (per-domain) is available via pytest:
 $env:RUN_LIVE_TESTS="1"
 $env:FLARESOLVERR_URL="http://127.0.0.1:8191"
 pytest -q
+```
+
+Single-site debugging workflow (sequential, one target at a time):
+
+```powershell
+python scripts/site_debug.py --target https://acck.io/ --stage simple --flaresolverr-url http://127.0.0.1:8191/
+python scripts/site_debug.py --target https://acck.io/ --stage monitor --flaresolverr-url http://127.0.0.1:8191/
 ```
 
 ## Deploy Dashboard to Cloudflare Pages (Static)

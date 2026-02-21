@@ -1,10 +1,11 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import hashlib
 import os
 import re
 import sys
 import time
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
 from urllib.parse import parse_qs, urljoin, urlparse
@@ -28,6 +29,8 @@ from .targets import DEFAULT_TARGETS
 from .telegram import h, load_telegram_config, send_telegram_html
 from .timeutil import utc_now_iso
 
+_MISSING = object()
+
 
 def _domain_from_url(url: str) -> str:
     netloc = urlparse(url).netloc.lower()
@@ -38,6 +41,94 @@ def _slugify_fragment(value: str) -> str:
     v = compact_ws(value).lower()
     v = re.sub(r"[^a-z0-9]+", "-", v).strip("-")
     return v or "x"
+
+
+def _normalize_name_key(value: str | None) -> str:
+    text = compact_ws(value or "").lower()
+    text = re.sub(r"[^a-z0-9]+", "", text)
+    return text
+
+
+def _product_locations(product: Product) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for raw in (product.locations or []):
+        if not isinstance(raw, str):
+            continue
+        loc = compact_ws(raw)
+        if not loc:
+            continue
+        key = loc.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(loc)
+    if product.location:
+        loc = compact_ws(product.location)
+        if loc and loc.lower() not in seen:
+            out.append(loc)
+    return out
+
+
+def _location_links_for_product(product: Product) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for loc, link in (product.location_links or {}).items():
+        if not isinstance(loc, str) or not isinstance(link, str):
+            continue
+        loc_n = compact_ws(loc)
+        if not loc_n:
+            continue
+        out[loc_n] = link
+    for loc in _product_locations(product):
+        out.setdefault(loc, product.url)
+    return out
+
+
+def _canonical_product_key(product: Product) -> str:
+    try:
+        parsed = urlparse(product.url)
+        qs_raw = parse_qs(parsed.query or "")
+    except Exception:
+        parsed = urlparse("")
+        qs_raw = {}
+    path_scope = "/".join([x for x in (parsed.path or "").lower().split("/") if x][:3])
+    qs: dict[str, list[str]] = {str(k).lower(): v for k, v in qs_raw.items()}
+    rp_val = ""
+    try:
+        rp_first = (qs.get("rp") or [None])[0]
+        if isinstance(rp_first, str):
+            rp_val = compact_ws(rp_first).lower()
+    except Exception:
+        rp_val = ""
+    rp_parts = [x for x in rp_val.strip("/").split("/") if x] if rp_val else []
+
+    for key in ("planid", "product_id", "pid", "id"):
+        vals = qs.get(key) or []
+        if not vals:
+            continue
+        raw = compact_ws(str(vals[0]))
+        if raw:
+            if path_scope:
+                return f"{product.domain}::{path_scope}::{key}:{raw}"
+            return f"{product.domain}::{key}:{raw}"
+
+    url_norm = normalize_url_for_id(product.url)
+    path_l = (parsed.path or "").strip("/").lower()
+    is_rp_product_path = bool(rp_val.startswith("/store/") and len(rp_parts) >= 3)
+    if is_rp_product_path:
+        return f"{product.domain}::url:{url_norm}"
+    if path_l and path_l not in {"cart.php", "index.php"}:
+        # URL-path-backed product pages are usually stable canonical IDs; avoid
+        # collapsing distinct plans that merely share a weak/generic display name.
+        return f"{product.domain}::url:{url_norm}"
+
+    variant = _normalize_name_key(product.variant_of)
+    name = _normalize_name_key(product.name)
+    if variant and name and path_l in {"", "cart.php", "index.php"} and not is_rp_product_path:
+        return f"{product.domain}::name:{variant}:{name}"
+    if name and path_l in {"", "cart.php", "index.php"} and not is_rp_product_path:
+        return f"{product.domain}::name:{name}"
+    return f"{product.domain}::url:{url_norm}"
 
 
 def _telegram_domain_tag(domain: str) -> str:
@@ -74,6 +165,8 @@ def _product_with_special_flag(product: Product) -> Product:
         raw=product.raw,
         variant_of=product.variant_of,
         location=product.location,
+        locations=product.locations,
+        location_links=product.location_links,
         billing_cycles=product.billing_cycles,
         cycle_prices=product.cycle_prices,
         is_special=is_special,
@@ -88,9 +181,11 @@ def _clone_product(
     price: str | None = None,
     description: str | None = None,
     specs: dict[str, str] | None = None,
-    available: bool | None = None,
+    available: bool | None | object = _MISSING,
     variant_of: str | None = None,
     location: str | None = None,
+    locations: list[str] | None = None,
+    location_links: dict[str, str] | None = None,
     billing_cycles: list[str] | None = None,
     cycle_prices: dict[str, str] | None = None,
     is_special: bool | None = None,
@@ -104,10 +199,12 @@ def _clone_product(
         currency=product.currency,
         description=description if description is not None else product.description,
         specs=specs if specs is not None else product.specs,
-        available=available if available is not None else product.available,
+        available=product.available if available is _MISSING else available,
         raw=product.raw,
         variant_of=variant_of if variant_of is not None else product.variant_of,
         location=location if location is not None else product.location,
+        locations=locations if locations is not None else product.locations,
+        location_links=location_links if location_links is not None else product.location_links,
         billing_cycles=billing_cycles if billing_cycles is not None else product.billing_cycles,
         cycle_prices=cycle_prices if cycle_prices is not None else product.cycle_prices,
         is_special=product.is_special if is_special is None else bool(is_special),
@@ -156,6 +253,7 @@ _NON_PRODUCT_URL_FRAGMENTS = (
     "status",
     "faq",
     "blog",
+    "vps-hosting.php",
 )
 
 
@@ -199,6 +297,179 @@ def _looks_like_non_product_page(url: str) -> bool:
     return False
 
 
+def _availability_rank(v: bool | None) -> int:
+    if v is True:
+        return 0
+    if v is False:
+        return 1
+    return 2
+
+
+def _name_quality(name: str | None) -> int:
+    n = compact_ws(name or "")
+    if not n:
+        return 0
+    score = 0
+    if len(n) >= 6:
+        score += 1
+    if re.search(r"[a-zA-Z].*\d|\d.*[a-zA-Z]", n):
+        score += 1
+    if "|" in n or "-" in n:
+        score += 1
+    if len(n.split()) >= 2:
+        score += 1
+    return score
+
+
+def _merge_products_by_canonical_plan(products: list[Product]) -> list[Product]:
+    if not products:
+        return []
+    groups: dict[str, list[Product]] = {}
+    for product in products:
+        key = _canonical_product_key(product)
+        groups.setdefault(key, []).append(product)
+
+    merged: list[Product] = []
+    for _key, items in groups.items():
+        if len(items) == 1:
+            one = items[0]
+            locs = _product_locations(one)
+            links = _location_links_for_product(one)
+            merged.append(
+                _clone_product(
+                    one,
+                    location=(locs[0] if locs else one.location),
+                    locations=(locs or None),
+                    location_links=(links or None),
+                )
+            )
+            continue
+
+        items_sorted = sorted(
+            items,
+            key=lambda p: (
+                _availability_rank(p.available),
+                -_name_quality(p.name),
+                -(len(p.specs or {})),
+                -(len(p.cycle_prices or {})),
+                p.id,
+            ),
+        )
+        base = items_sorted[0]
+
+        avail_values = [p.available for p in items]
+        if any(v is True for v in avail_values):
+            merged_available = True
+        elif avail_values and all(v is False for v in avail_values):
+            merged_available = False
+        else:
+            merged_available = None
+
+        merged_cycles: list[str] = []
+        for p in items:
+            for cycle in (p.billing_cycles or []):
+                if cycle not in merged_cycles:
+                    merged_cycles.append(cycle)
+        merged_cycles_or_none = merged_cycles or None
+
+        merged_cycle_prices: dict[str, str] = {}
+        for p in items:
+            for cycle, price in (p.cycle_prices or {}).items():
+                merged_cycle_prices.setdefault(cycle, price)
+        merged_cycle_prices_or_none = merged_cycle_prices or None
+
+        locs: list[str] = []
+        seen_locs: set[str] = set()
+        for p in items:
+            for loc in _product_locations(p):
+                k = loc.lower()
+                if k in seen_locs:
+                    continue
+                seen_locs.add(k)
+                locs.append(loc)
+
+        location_links: dict[str, str] = {}
+        for p in items:
+            for loc, link in _location_links_for_product(p).items():
+                location_links.setdefault(loc, link)
+
+        variant_counter = Counter([compact_ws(p.variant_of or "") for p in items if compact_ws(p.variant_of or "")])
+        merged_variant = variant_counter.most_common(1)[0][0] if variant_counter else base.variant_of
+
+        merged_specs = dict(base.specs or {})
+        if locs and "Location" not in merged_specs:
+            merged_specs["Location"] = ", ".join(locs[:4])
+        merged_specs_or_none = merged_specs or None
+
+        merged_price = base.price
+        if not merged_price and merged_cycle_prices_or_none:
+            for preferred in ("Monthly", "Quarterly", "Yearly"):
+                if preferred in merged_cycle_prices_or_none:
+                    merged_price = merged_cycle_prices_or_none[preferred]
+                    break
+            if not merged_price:
+                try:
+                    merged_price = next(iter(merged_cycle_prices_or_none.values()))
+                except Exception:
+                    merged_price = base.price
+
+        merged.append(
+            _clone_product(
+                base,
+                available=merged_available,
+                price=merged_price,
+                variant_of=merged_variant,
+                location=(locs[0] if locs else base.location),
+                locations=(locs or None),
+                location_links=(location_links or None),
+                billing_cycles=merged_cycles_or_none,
+                cycle_prices=merged_cycle_prices_or_none,
+                specs=merged_specs_or_none,
+                is_special=any(p.is_special for p in items),
+            )
+        )
+
+    merged.sort(key=lambda p: (p.domain, _availability_rank(p.available), compact_ws(p.name).lower(), p.id))
+    return merged
+
+
+def _fill_cycle_price_defaults(products: list[Product]) -> list[Product]:
+    out: list[Product] = []
+    for p in products:
+        cycles = list(p.billing_cycles or [])
+        cycle_prices = dict(p.cycle_prices or {})
+        if cycle_prices and not cycles:
+            cycles = list(cycle_prices.keys())
+        if p.price and not cycles:
+            cycles = ["Monthly"]
+        if (not cycle_prices) and p.price and cycles:
+            preferred = "Monthly" if "Monthly" in cycles else cycles[0]
+            cycle_prices = {preferred: p.price}
+        out.append(
+            _clone_product(
+                p,
+                billing_cycles=(cycles or None),
+                cycle_prices=(cycle_prices or None),
+            )
+        )
+    return out
+
+
+def _apply_domain_availability_fallbacks(domain: str, products: list[Product]) -> list[Product]:
+    domain_l = (domain or "").lower()
+    if domain_l not in {"clients.zgovps.com", "clientarea.gigsgigscloud.com"}:
+        return products
+    out: list[Product] = []
+    for p in products:
+        if p.available is None and p.price:
+            ul = (p.url or "").lower()
+            if "action=add" in ul and any(k in ul for k in ("id=", "pid=", "product_id=")):
+                out.append(_clone_product(p, available=True))
+                continue
+        out.append(p)
+    return out
+
+
 def _product_to_state_record(product: Product, now: str, *, first_seen: str | None = None) -> dict:
     return {
         "domain": product.domain,
@@ -210,6 +481,8 @@ def _product_to_state_record(product: Product, now: str, *, first_seen: str | No
         "specs": product.specs,
         "variant_of": product.variant_of,
         "location": product.location,
+        "locations": (product.locations or _product_locations(product) or None),
+        "location_links": (product.location_links or _location_links_for_product(product) or None),
         "billing_cycles": product.billing_cycles,
         "cycle_prices": product.cycle_prices,
         "is_special": bool(product.is_special),
@@ -230,6 +503,8 @@ def _update_state_from_runs(
     dry_run: bool,
     timeout_seconds: float,
     prune_missing_products: bool,
+    prune_removed_domains: bool = False,
+    active_domains: set[str] | None = None,
 ) -> tuple[dict, RunSummary]:
     state = deepcopy(previous_state)
     state.setdefault("products", {})
@@ -253,6 +528,18 @@ def _update_state_from_runs(
         v = rec.get("variant_of")
         if isinstance(d, str) and isinstance(v, str) and d and v:
             existing_variant_keys.add((d, v))
+
+    if prune_removed_domains and active_domains:
+        active = {d.lower() for d in active_domains if isinstance(d, str) and d}
+        for domain in list((state.get("domains") or {}).keys()):
+            if domain.lower() not in active:
+                state["domains"].pop(domain, None)
+        for pid, rec in list((state.get("products") or {}).items()):
+            if not isinstance(rec, dict):
+                continue
+            rec_domain = str(rec.get("domain") or "").lower()
+            if rec_domain and rec_domain not in active:
+                state["products"].pop(pid, None)
 
     for run in runs:
         domain = run.domain
@@ -316,6 +603,8 @@ def _update_state_from_runs(
                 or prev.get("specs") != product.specs
                 or prev.get("variant_of") != product.variant_of
                 or (prev.get("location") or prev.get("option")) != product.location
+                or (prev.get("locations") or []) != (product.locations or _product_locations(product) or [])
+                or (prev.get("location_links") or {}) != (product.location_links or _location_links_for_product(product) or {})
                 or prev.get("billing_cycles") != product.billing_cycles
                 or prev.get("cycle_prices") != product.cycle_prices
                 or bool(prev.get("is_special")) != bool(product.is_special)
@@ -334,6 +623,8 @@ def _update_state_from_runs(
                     "specs": product.specs,
                     "variant_of": product.variant_of,
                     "location": product.location,
+                    "locations": (product.locations or _product_locations(product) or None),
+                    "location_links": (product.location_links or _location_links_for_product(product) or None),
                     "billing_cycles": product.billing_cycles,
                     "cycle_prices": product.cycle_prices,
                     "is_special": bool(product.is_special),
@@ -387,15 +678,12 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
         False: "🔴",
         None: "🟡",
     }
-    emoji = _ICONS.get(icon, "📦")
+    emoji = _ICONS.get(icon, "📢")
     domain_tag = _telegram_domain_tag(product.domain)
 
     parts: list[str] = []
-
-    # ── Header ──
     parts.append(f"{emoji} <b>{h(kind)}</b>  ·  <b>#{h(domain_tag)}</b>")
 
-    # ── Product name ──
     name = product.name
     if product.variant_of and product.location:
         name = f"{product.variant_of} — {product.location}"
@@ -405,7 +693,6 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
         name = f"⭐ {name}"
     parts.append(f"<b>{h(name)}</b>")
 
-    # ── Key info line (compact) ──
     info_parts: list[str] = []
     status_icon = _STATUS_ICONS.get(product.available, "🟡")
     if product.available is True:
@@ -415,12 +702,14 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
     else:
         info_parts.append(f"{status_icon} Unknown")
     if product.price:
-        info_parts.append(f"💰 {h(product.price)}")
-    if product.location:
-        info_parts.append(f"📍 {h(product.location)}")
+        info_parts.append(f"💵 {h(product.price)}")
+    msg_location = product.location
+    if product.locations and len(product.locations) > 1:
+        msg_location = f"{product.locations[0]} +{len(product.locations) - 1} more"
+    if msg_location:
+        info_parts.append(f"📍 {h(msg_location)}")
     parts.append("  ·  ".join(info_parts))
 
-    # ── Cycle prices (compact table) ──
     if product.cycle_prices:
         order = ["Monthly", "Quarterly", "Semiannual", "Yearly", "Biennial", "Triennial", "Quadrennial", "Quinquennial", "One-Time"]
         items = sorted(product.cycle_prices.items(), key=lambda kv: (order.index(kv[0]) if kv[0] in order else 999, kv[0]))
@@ -429,7 +718,6 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
     elif product.billing_cycles:
         parts.append(f"🔁 {h(', '.join(product.billing_cycles))}")
 
-    # ── Specs (compact, top items only) ──
     if product.specs:
         prio = ["CPU", "RAM", "Disk", "Storage", "Transfer", "Traffic", "Bandwidth", "Port", "IPv4", "IPv6", "Location", "Data Center"]
         items = sorted(product.specs.items(), key=lambda kv: (prio.index(kv[0]) if kv[0] in prio else 999, str(kv[0])))
@@ -437,18 +725,15 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
         if spec_lines:
             parts.append(f"<pre>{h(chr(10).join(spec_lines))}</pre>")
 
-    # ── Description (truncated) ──
     if product.description and product.description.strip():
         desc = product.description.strip()
         if len(desc) > 300:
-            desc = desc[:300] + "…"
+            desc = desc[:300] + "..."
         parts.append(f"<i>{h(desc)}</i>")
 
-    # ── Meta ──
     if product.variant_of:
         parts.append(f"📋 Plan: {h(product.variant_of)}")
 
-    # ── Link + timestamp ──
     parts.append(f'🔗 <a href="{h(product.url)}">Open Product Page</a>')
     parts.append(f"<code>{h(now)}</code>")
 
@@ -469,6 +754,7 @@ def run_monitor(
         mode = "full"
 
     configured_targets = targets or DEFAULT_TARGETS
+    explicit_targets = bool(targets)
 
     proxy_url = os.getenv("PROXY_URL", "").strip() or None
     flaresolverr_url = os.getenv("FLARESOLVERR_URL", "").strip() or None
@@ -485,10 +771,12 @@ def run_monitor(
     effective_targets = configured_targets
     allow_expansion = True
     prune_missing_products = True
+    prune_removed_domains = bool(mode == "full" and (not explicit_targets))
     if mode == "lite":
         effective_targets = _select_lite_targets(previous_state=previous_state, fallback_targets=configured_targets)
         allow_expansion = False
         prune_missing_products = False
+        prune_removed_domains = False
 
     raw_runs: list[DomainRun] = []
     log_enabled = os.getenv("MONITOR_LOG", "1").strip() != "0"
@@ -499,7 +787,8 @@ def run_monitor(
                 f"[monitor] start mode={mode} configured_targets={len(configured_targets)} "
                 f"selected_targets={total_targets} max_workers={max_workers} "
                 f"timeout_seconds={timeout_seconds} allow_expansion={allow_expansion} "
-                f"prune_missing_products={prune_missing_products}"
+                f"prune_missing_products={prune_missing_products} "
+                f"prune_removed_domains={prune_removed_domains}"
             ),
             flush=True,
         )
@@ -581,6 +870,8 @@ def run_monitor(
         dry_run=dry_run,
         timeout_seconds=timeout_seconds,
         prune_missing_products=prune_missing_products,
+        prune_removed_domains=prune_removed_domains,
+        active_domains={_domain_from_url(t) for t in configured_targets if _is_http_url(t)},
     )
     if log_enabled:
         tracked_products = len((next_state.get("products") or {}))
@@ -659,13 +950,14 @@ def _merge_runs_by_domain(runs: list[DomainRun]) -> list[DomainRun]:
     for domain in sorted(merged.keys()):
         rec = merged[domain]
         if rec["ok"]:
+            merged_products = _merge_products_by_canonical_plan(list(rec["products"].values()))
             out.append(
                 DomainRun(
                     domain=domain,
                     ok=True,
                     error=None,
                     duration_ms=rec["duration_ms"],
-                    products=list(rec["products"].values()),
+                    products=merged_products,
                 )
             )
             continue
@@ -677,6 +969,8 @@ def _merge_runs_by_domain(runs: list[DomainRun]) -> list[DomainRun]:
 
 def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = True) -> DomainRun:
     domain = _domain_from_url(target)
+    log_enabled = os.getenv("MONITOR_LOG", "1").strip() != "0"
+    hidden_scan_denylist = {"cloud.tizz.yt"}
     started = time.perf_counter()
     raw_target_budget = os.getenv("TARGET_MAX_DURATION_SECONDS", "210").strip()
     try:
@@ -701,17 +995,31 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         if retry.ok and retry.text:
             fetch = retry
     if not fetch.ok or not fetch.text:
+        # Some domains return unstable landing pages; try known entry points before failing the run.
+        fallback_pages = _dedupe_keep_order(_domain_extra_pages(domain) + _default_entrypoint_pages(target))
+        for page in fallback_pages:
+            alt = _fetch_text(client, page, allow_flaresolverr=True)
+            if (not alt.ok or not alt.text) and ("flaresolverr" in (alt.error or "").lower() or "timed out" in (alt.error or "").lower()):
+                alt_retry = _fetch_text(client, page, allow_flaresolverr=False)
+                if alt_retry.ok and alt_retry.text:
+                    alt = alt_retry
+            if alt.ok and alt.text:
+                fetch = alt
+                break
+    if not fetch.ok or not fetch.text:
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=False, error=fetch.error or "fetch failed", duration_ms=duration_ms, products=[])
 
     is_whmcs = _is_whmcs_domain(domain, fetch.text)
     parser = get_parser_for_domain(domain)
     try:
+        if log_enabled:
+            print(f"[scrape:{domain}] stage=simple_parse start", flush=True)
         products = [_product_with_special_flag(p) for p in parser.parse(fetch.text, base_url=fetch.url)]
         products = [p for p in products if not _looks_like_noise_product(p)]
         deduped: dict[str, Product] = {p.id: p for p in products}
 
-        # Pre-compute candidate pages once — avoids calling _discover_candidate_pages twice
+        # Pre-compute candidate pages once 鈥?avoids calling _discover_candidate_pages twice
         # (once inside _should_force_discovery and again below).
         initial_candidates = _discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain) if allow_expansion else []
 
@@ -730,7 +1038,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                     max_pages_limit = max(max_pages_limit, 40)
                 if is_whmcs:
                     max_pages_limit = max(max_pages_limit, 64)
-                if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+                if domain in {"clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
                     # HostBill-style carts often require an extra discovery hop from category -> products.
                     max_pages_limit = max(max_pages_limit, 48)
 
@@ -751,7 +1059,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 default_stop = "0" if is_whmcs else "4"
                 stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", default_stop))
                 stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", "4"))
-                if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+                if domain in {"clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
                     # HostBill sites often discover real product pages only after several category hops.
                     stop_after_no_new = 0
                 no_new_streak = 0
@@ -833,9 +1141,24 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                                 break
 
                 products = list(deduped.values())
+        if log_enabled:
+            print(f"[scrape:{domain}] stage=simple_parse done products={len(deduped)}", flush=True)
 
         # Hidden WHMCS products: brute-scan pid/gid pages and keep only in-stock hits.
-        if allow_expansion and is_whmcs and (not _deadline_exceeded()):
+        hidden_allowed = bool(is_whmcs and domain not in hidden_scan_denylist)
+        if allow_expansion and hidden_allowed and (not _deadline_exceeded()):
+            if log_enabled:
+                print(f"[scrape:{domain}] stage=hidden_scan start", flush=True)
+            raw_hidden_budget = os.getenv("WHMCS_HIDDEN_MAX_DURATION_SECONDS", "60").strip()
+            try:
+                hidden_budget_seconds = float(raw_hidden_budget) if raw_hidden_budget else 60.0
+            except Exception:
+                hidden_budget_seconds = 60.0
+            hidden_deadline = deadline
+            if hidden_budget_seconds > 0:
+                now_ts = time.perf_counter()
+                local_deadline = now_ts + hidden_budget_seconds
+                hidden_deadline = local_deadline if hidden_deadline is None else min(hidden_deadline, local_deadline)
             # Reuse initial_candidates computed above to avoid re-parsing the same HTML.
             seed_urls = []
             seed_urls.extend(_domain_extra_pages(domain))
@@ -848,12 +1171,14 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 base_url=fetch.url,
                 existing_ids=set(deduped.keys()),
                 seed_urls=seed_urls,
-                deadline=deadline,
+                deadline=hidden_deadline,
             )
             for hp in hidden:
                 hp = _product_with_special_flag(hp)
                 deduped[hp.id] = hp
             products = list(deduped.values())
+            if log_enabled:
+                print(f"[scrape:{domain}] stage=hidden_scan done hidden_products={len(hidden)} total={len(deduped)}", flush=True)
 
         # Some providers only reveal stock state on the product detail page (or render it client-side on listings).
         # Enrich all products with unknown or False availability via detail page fetches.
@@ -862,24 +1187,21 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
             "backwaves.net",
             "app.vmiss.com",
             "wawo.wiki",
-            "vps.hosting",
             "clients.zgovps.com",
             "clientarea.gigsgigscloud.com",
             "www.vps.soy",
             "www.dmit.io",
-            "bill.hostdare.com",
+            "greencloudvps.com",
         }
         _CYCLE_ENRICH_DOMAINS = {
             "fachost.cloud",
             "wawo.wiki",
-            "vps.hosting",
             "clients.zgovps.com",
             "clientarea.gigsgigscloud.com",
             "www.vps.soy",
             "www.dmit.io",
         }
         _TRUE_RECHECK_DOMAINS = {
-            "vps.hosting",
             "clientarea.gigsgigscloud.com",
             "www.vps.soy",
             "www.dmit.io",
@@ -890,6 +1212,8 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
             enrich_pages = 80 if include_missing_cycles and domain in {"wawo.wiki", "clientarea.gigsgigscloud.com"} else 40
             if is_whmcs:
                 enrich_pages = max(enrich_pages, 60)
+            if domain in {"bgp.gd", "cloud.colocrossing.com", "clients.zgovps.com"}:
+                enrich_pages = max(enrich_pages, 140)
             remaining = _time_left_seconds()
             if remaining is None or remaining >= 20:
                 if remaining is not None and remaining < 60:
@@ -897,6 +1221,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 products = _enrich_availability_via_product_pages(
                     client,
                     products,
+                    domain=domain,
                     max_pages=enrich_pages,
                     include_false=(false_only or domain in {"fachost.cloud", "backwaves.net"}),
                     include_true=(domain in _TRUE_RECHECK_DOMAINS),
@@ -905,6 +1230,10 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
 
         # Final dedup and noise filter.
         products = [p for p in {p.id: p for p in products}.values() if not _looks_like_noise_product(p)]
+        products = _merge_products_by_canonical_plan(products)
+        products = _fill_cycle_price_defaults(products)
+        products = _apply_domain_availability_fallbacks(domain, products)
+        products = [p for p in products if not _looks_like_noise_product(p)]
 
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=True, error=None, duration_ms=duration_ms, products=products)
@@ -934,16 +1263,18 @@ def _dedupe_keep_order(urls: list[str]) -> list[str]:
 
 def _is_whmcs_domain(domain: str, html: str) -> bool:
     """Detect WHMCS-based storefronts where product groups are separate pages."""
+    if domain.lower() in {"cloud.tizz.yt"}:
+        return False
     t = (html or "").lower()
     if "whmcs" in t or "cart.php" in t or "rp=/store" in t:
         return True
     whmcs_domains = {
         "my.rfchost.com", "fachost.cloud", "my.frantech.ca", "wawo.wiki",
         "nmcloud.cc", "bgp.gd", "wap.ac", "www.bagevm.com", "backwaves.net",
-        "cloud.ggvision.net", "cloud.colocrossing.com", "bill.hostdare.com",
+        "cloud.ggvision.net", "cloud.colocrossing.com",
         "clients.zgovps.com", "my.racknerd.com",
-        "cloud.boil.network", "bandwagonhost.com", "www.lycheen.com",
-        "cloud.tizz.yt", "bestvm.cloud", "www.mkcloud.net", "alphavps.com",
+        "cloud.boil.network", "www.lycheen.com",
+        "bestvm.cloud", "www.mkcloud.net", "alphavps.com",
     }
     return domain.lower() in whmcs_domains
 
@@ -977,18 +1308,27 @@ def _should_force_discovery_with_candidates(
     return False
 
 
-def _infer_availability_from_detail_html(html: str) -> bool | None:
-    avail = extract_availability(html)
-    if avail is not None:
-        return avail
+def _infer_availability_from_detail_html(html: str, *, domain: str | None = None) -> bool | None:
+    domain_l = (domain or "").lower()
+    page_level_avail = extract_availability(html)
+    # Whole-page availability text can be noisy on some storefront themes that include
+    # mixed product snippets; prefer explicit controls/signals over page-level OOS text.
+    if page_level_avail is True:
+        return True
     try:
         soup = BeautifulSoup(html or "", "lxml")
     except Exception:
         return None
 
+    tl = compact_ws(html or "").lower()
+    has_order_form_markers = any(k in tl for k in ("billingcycle", "configoption[", "custom["))
+
     for el in soup.select(".outofstock, .out-of-stock, .soldout, [class*='outofstock'], [class*='soldout'], [class*='unavailable']"):
         txt = compact_ws(getattr(el, "get_text", lambda *a, **k: "")(" ", strip=True))
-        if extract_availability(txt) is not True:
+        marker = extract_availability(txt)
+        if marker is False:
+            return False
+        if marker is None and not txt:
             return False
 
     for el in soup.select("a, button, input[type='submit'], input[type='button']"):
@@ -1004,7 +1344,16 @@ def _infer_availability_from_detail_html(html: str) -> bool | None:
         if marker is True and not disabled:
             return True
         if marker is None and not disabled and looks_like_purchase_action(label):
-            return True
+            if has_order_form_markers or domain_l in {"cloud.colocrossing.com"}:
+                return True
+            # Without form markers, purchase labels alone are weaker; keep evaluating.
+            continue
+
+    if has_order_form_markers:
+        # WHMCS-like configuration forms usually indicate orderable products unless explicit OOS markers were found above.
+        return True
+    if page_level_avail is False:
+        return False
     return None
 
 
@@ -1012,16 +1361,16 @@ def _enrich_availability_via_product_pages(
     client: HttpClient,
     products: list[Product],
     *,
+    domain: str | None = None,
     max_pages: int,
     include_false: bool = False,
     include_true: bool = False,
     include_missing_cycles: bool = False,
 ) -> list[Product]:
     # Group by URL so we fetch each detail page once.
-    candidates_by_url: dict[str, list[int]] = {}
+    # Priority order: availability resolution > missing cycles > location enrichment.
+    candidate_meta: dict[str, dict] = {}
     for idx, p in enumerate(products):
-        if len(candidates_by_url) >= max_pages:
-            break
         if not p.url.startswith(("http://", "https://")):
             continue
         needs_availability = p.available is None or (include_false and p.available is False) or (include_true and p.available is True)
@@ -1029,10 +1378,33 @@ def _enrich_availability_via_product_pages(
         needs_location = not p.location
         if not (needs_availability or needs_cycles or needs_location):
             continue
-        candidates_by_url.setdefault(p.url, []).append(idx)
+        priority = 2
+        if needs_availability:
+            priority = 0
+        elif needs_cycles:
+            priority = 1
+
+        meta = candidate_meta.get(p.url)
+        if not meta:
+            candidate_meta[p.url] = {"indices": [idx], "priority": priority, "first_idx": idx}
+            continue
+        meta["indices"].append(idx)
+        if priority < meta["priority"]:
+            meta["priority"] = priority
+
+    ordered_urls = sorted(
+        candidate_meta.keys(),
+        key=lambda u: (int(candidate_meta[u]["priority"]), int(candidate_meta[u]["first_idx"])),
+    )
+    selected_urls = ordered_urls[: max(0, max_pages)]
+    candidates_by_url: dict[str, list[int]] = {u: list(candidate_meta[u]["indices"]) for u in selected_urls}
 
     if not candidates_by_url:
         return products
+
+    shared_non_product_urls = {
+        url for url, indices in candidates_by_url.items() if len(indices) > 1 and _looks_like_non_product_page(url)
+    }
 
     enriched = list(products)
     max_workers = int(os.getenv("ENRICH_WORKERS", "6"))
@@ -1047,7 +1419,9 @@ def _enrich_availability_via_product_pages(
             return None
         html = fetch.text
         return {
-            "availability": _infer_availability_from_detail_html(html),
+            "availability": _infer_availability_from_detail_html(
+                html, domain=(domain or urlparse(url).netloc.lower())
+            ),
             "billing_cycles": extract_billing_cycles(html),
             "cycle_prices": extract_cycle_prices(html),
             "location_variants": extract_location_variants(html),
@@ -1075,10 +1449,11 @@ def _enrich_availability_via_product_pages(
         data = fetched.get(url)
         if not data:
             continue
+        shared_non_product = url in shared_non_product_urls
         avail = data.get("availability")
-        cycles = data.get("billing_cycles")
-        cycle_prices = data.get("cycle_prices")
-        location_variants: list[tuple[str, bool | None]] = data.get("location_variants") or []
+        cycles = None if shared_non_product else data.get("billing_cycles")
+        cycle_prices = None if shared_non_product else data.get("cycle_prices")
+        location_variants: list[tuple[str, bool | None]] = [] if shared_non_product else (data.get("location_variants") or [])
 
         for idx in indices:
             p = enriched[idx]
@@ -1131,6 +1506,8 @@ def _enrich_availability_via_product_pages(
                                 available=(next_available if loc_avail is None else loc_avail),
                                 variant_of=variant_base_name,
                                 location=loc,
+                                locations=[loc],
+                                location_links={loc: p.url},
                                 billing_cycles=next_cycles,
                                 cycle_prices=next_cycle_prices,
                                 specs=next_specs,
@@ -1156,6 +1533,8 @@ def _enrich_availability_via_product_pages(
                     price=next_price,
                     available=next_available,
                     location=resolved_location,
+                    locations=([resolved_location] if resolved_location else p.locations),
+                    location_links=({resolved_location: p.url} if resolved_location else p.location_links),
                     billing_cycles=next_cycles,
                     cycle_prices=next_cycle_prices,
                     specs=next_specs,
@@ -1208,7 +1587,17 @@ def _looks_like_noise_product(product: Product) -> bool:
         "order hosting",
         "browse all",
         "cart is empty",
-        "套餐与价格",
+        "introduction",
+        "service introduction",
+        "about us",
+        "product category",
+        "site introduction",
+        "pricing and plans",
+        "pricing table",
+        "产品介绍",
+        "產品介紹",
+        "站点介绍",
+        "網站介紹",
         "pricing only",
         "proceed to cart",
     )
@@ -1324,12 +1713,8 @@ def _domain_extra_pages(domain: str) -> list[str]:
         return ["https://app.vmiss.com/cart.php", "https://app.vmiss.com/index.php?rp=/store"]
     if domain == "my.racknerd.com":
         return ["https://my.racknerd.com/cart.php", "https://my.racknerd.com/index.php?rp=/store"]
-    if domain == "bill.hostdare.com":
-        return ["https://bill.hostdare.com/cart.php", "https://bill.hostdare.com/index.php?rp=/store"]
     if domain == "clients.zgovps.com":
         return ["https://clients.zgovps.com/index.php?/cart/"]
-    if domain == "vps.hosting":
-        return ["https://vps.hosting/cart/"]
     if domain == "clientarea.gigsgigscloud.com":
         return ["https://clientarea.gigsgigscloud.com/cart/"]
     if domain == "www.vps.soy":
@@ -1348,12 +1733,8 @@ def _domain_extra_pages(domain: str) -> list[str]:
             "https://cloud.colocrossing.com/cart.php",
             "https://cloud.colocrossing.com/index.php?rp=/store",
         ]
-    if domain == "bandwagonhost.com":
-        return ["https://bandwagonhost.com/cart.php", "https://bandwagonhost.com/index.php?rp=/store"]
     if domain == "www.lycheen.com":
         return ["https://www.lycheen.com/cart.php", "https://www.lycheen.com/index.php?rp=/store"]
-    if domain == "cloud.tizz.yt":
-        return ["https://cloud.tizz.yt/cart.php", "https://cloud.tizz.yt/index.php?rp=/store"]
     if domain == "bestvm.cloud":
         return ["https://bestvm.cloud/cart.php", "https://bestvm.cloud/index.php?rp=/store"]
     if domain == "www.mkcloud.net":
@@ -1564,8 +1945,11 @@ def _scan_whmcs_hidden_products(
     legacy_stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "10"))
     pid_stop_after_no_info = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO", str(legacy_stop_after_miss)))
     gid_stop_after_same_page = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE", "5"))
-    pid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS", "120"))
-    gid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS", "120"))
+    pid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS", "60"))
+    gid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS", "60"))
+    pid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES", "18"))
+    gid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES", "18"))
+    redirect_sig_stop_after = int(os.getenv("WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER", "12"))
     min_probe_before_stop = int(os.getenv("WHMCS_HIDDEN_MIN_PROBE", "0"))
     batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "3"))
     workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "2"))
@@ -1576,6 +1960,9 @@ def _scan_whmcs_hidden_products(
     gid_stop_after_same_page = max(0, gid_stop_after_same_page)
     pid_stop_after_no_progress = max(0, pid_stop_after_no_progress)
     gid_stop_after_no_progress = max(0, gid_stop_after_no_progress)
+    pid_stop_after_duplicates = max(0, pid_stop_after_duplicates)
+    gid_stop_after_duplicates = max(0, gid_stop_after_duplicates)
+    redirect_sig_stop_after = max(0, redirect_sig_stop_after)
 
     pid_endpoints = _pid_cart_endpoints(base_url)
     gid_endpoints = _gid_cart_endpoints(base_url)
@@ -1626,24 +2013,30 @@ def _scan_whmcs_hidden_products(
         cur = 1
         pid_no_info_streak = 0
         pid_no_progress_streak = 0
+        pid_dup_streak = 0
         gid_same_page_streak = 0
         gid_no_progress_streak = 0
+        gid_dup_streak = 0
         last_gid_signature: str | None = None
+        last_redirect_signature: str | None = None
+        redirect_signature_streak = 0
 
-        def probe_one(cur_id: int) -> tuple[int, bool, bool, list[Product], set[int], str | None]:
+        def probe_one(cur_id: int) -> tuple[int, bool, bool, list[Product], set[int], str | None, str | None]:
             """
-            Returns: (id, has_evidence, is_duplicate, parsed_products, extra_pids, page_signature)
+            Returns: (id, has_evidence, is_duplicate, parsed_products, extra_pids, page_signature, redirect_signature)
             """
             fallback_signature: str | None = None
+            fallback_redirect_signature: str | None = None
             for tmpl in endpoints:
                 if _deadline_exceeded():
-                    return cur_id, False, False, [], set(), fallback_signature
+                    return cur_id, False, False, [], set(), fallback_signature, fallback_redirect_signature
                 url = tmpl.format(**{kind: cur_id})
                 fetch = _fetch_text(client, url, allow_flaresolverr=True)
                 if not fetch.ok or not fetch.text:
                     continue
                 html = fetch.text
-                page_signature = _stable_page_signature(fetch.url, html) if kind == "gid" else None
+                full_signature = _stable_page_signature(fetch.url, html)
+                page_signature = full_signature if kind == "gid" else None
                 if kind == "gid" and fallback_signature is None and page_signature:
                     fallback_signature = page_signature
                 pid_mentioned = _html_mentions_pid(html, cur_id) if kind == "pid" else True
@@ -1653,10 +2046,14 @@ def _scan_whmcs_hidden_products(
                 if kind == "pid":
                     got = _query_param_int(fetch.url, "pid")
                     if got != cur_id:
+                        if fallback_redirect_signature is None:
+                            fallback_redirect_signature = full_signature
                         continue
                 else:
                     got = _query_param_int(fetch.url, "gid")
                     if got != cur_id:
+                        if fallback_redirect_signature is None:
+                            fallback_redirect_signature = full_signature
                         continue
 
                 evidence = _looks_like_whmcs_pid_page(html) if kind == "pid" else _looks_like_whmcs_gid_page(html)
@@ -1677,21 +2074,23 @@ def _scan_whmcs_hidden_products(
 
                 normalized: list[Product] = []
                 for p in parsed:
-                    page_avail = _infer_availability_from_detail_html(html)
+                    page_avail = _infer_availability_from_detail_html(html, domain=domain_for_ids)
+                    if page_avail is None and kind == "pid" and _looks_like_pid_stock_page(html):
+                        page_avail = True
                     normalized.append(_clone_product(p, available=(p.available if page_avail is None else page_avail)))
 
                 if normalized:
                     is_dup = all(p.id in seen_ids for p in normalized)
-                    return cur_id, True, is_dup, normalized, extra_pids, page_signature
+                    return cur_id, True, is_dup, normalized, extra_pids, page_signature, None
 
                 # Some WHMCS themes require JS rendering or hide details; fall back to heuristics.
                 if evidence:
                     is_dup = False
                     if kind == "gid" and extra_pids:
                         is_dup = not any((cid not in seen_ids) for pid in extra_pids for cid in _pid_id_candidates(pid))
-                    return cur_id, True, is_dup, [], extra_pids, page_signature
+                    return cur_id, True, is_dup, [], extra_pids, page_signature, None
 
-            return cur_id, False, False, [], set(), fallback_signature
+            return cur_id, False, False, [], set(), fallback_signature, fallback_redirect_signature
 
         max_workers = max(1, min(max(1, workers), 16))
         with ThreadPoolExecutor(max_workers=max_workers) as ex:
@@ -1710,12 +2109,21 @@ def _scan_whmcs_hidden_products(
                     futs = {ex.submit(probe_one, cid): cid for cid in batch}
                     batch_results = [f.result() for f in as_completed(futs)]
                     batch_results.sort(key=lambda x: x[0])
-                    for _id, has_evidence, is_dup, products, extra_pids, _page_sig in batch_results:
+                    for _id, has_evidence, is_dup, products, extra_pids, _page_sig, _redirect_sig in batch_results:
                         if kind == "gid" and extra_pids:
                             pid_candidates.update(extra_pids)
                         if not has_evidence or is_dup:
                             continue
                         for p in products:
+                            if kind == "gid":
+                                # Keep gid discovery from suppressing subsequent pid checks:
+                                # gid pages often carry weak/unknown availability for pid products.
+                                if p.available is True and p.id not in seen_ids:
+                                    seen_ids.add(p.id)
+                                    found_in_stock[p.id] = p
+                                    if log_hits:
+                                        print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
+                                continue
                             if p.id in seen_ids:
                                 continue
                             seen_ids.add(p.id)
@@ -1741,6 +2149,14 @@ def _scan_whmcs_hidden_products(
                         and cur > min_probe_before_stop
                     ):
                         break
+                    if (
+                        pid_stop_after_duplicates > 0
+                        and pid_dup_streak >= pid_stop_after_duplicates
+                        and cur > min_probe_before_stop
+                    ):
+                        if log_hits:
+                            print(f"[hidden:{kind}] stop reason=duplicate_streak streak={pid_dup_streak}", flush=True)
+                        break
                 else:
                     if (
                         gid_stop_after_same_page > 0
@@ -1754,6 +2170,25 @@ def _scan_whmcs_hidden_products(
                         and cur > min_probe_before_stop
                     ):
                         break
+                    if (
+                        gid_stop_after_duplicates > 0
+                        and gid_dup_streak >= gid_stop_after_duplicates
+                        and cur > min_probe_before_stop
+                    ):
+                        if log_hits:
+                            print(f"[hidden:{kind}] stop reason=duplicate_streak streak={gid_dup_streak}", flush=True)
+                        break
+                if (
+                    redirect_sig_stop_after > 0
+                    and redirect_signature_streak >= redirect_sig_stop_after
+                    and cur > min_probe_before_stop
+                ):
+                    if log_hits:
+                        print(
+                            f"[hidden:{kind}] stop reason=redirect_signature streak={redirect_signature_streak}",
+                            flush=True,
+                        )
+                    break
 
                 batch = list(range(cur, min(hard_max, cur + batch_size - 1) + 1))
                 cur = batch[-1] + 1
@@ -1767,9 +2202,19 @@ def _scan_whmcs_hidden_products(
                 batch_results = [f.result() for f in as_completed(futs)]
                 batch_results.sort(key=lambda x: x[0])
 
-                for _id, has_evidence, is_dup, products, extra_pids, page_sig in batch_results:
+                for _id, has_evidence, is_dup, products, extra_pids, page_sig, redirect_sig in batch_results:
                     if _deadline_exceeded():
                         break
+                    if redirect_sig:
+                        if redirect_sig == last_redirect_signature:
+                            redirect_signature_streak += 1
+                        else:
+                            last_redirect_signature = redirect_sig
+                            redirect_signature_streak = 1
+                    elif has_evidence:
+                        redirect_signature_streak = 0
+                    else:
+                        redirect_signature_streak = 0
                     new_pid_candidates = 0
                     if kind == "gid" and extra_pids:
                         before = len(pid_candidates)
@@ -1792,6 +2237,14 @@ def _scan_whmcs_hidden_products(
                     added_products = 0
                     if has_evidence and not is_dup:
                         for p in products:
+                            if kind == "gid":
+                                if p.available is True and p.id not in seen_ids:
+                                    seen_ids.add(p.id)
+                                    added_products += 1
+                                    found_in_stock[p.id] = p
+                                    if log_hits:
+                                        print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
+                                continue
                             if p.id in seen_ids:
                                 continue
                             seen_ids.add(p.id)
@@ -1800,6 +2253,20 @@ def _scan_whmcs_hidden_products(
                                 found_in_stock[p.id] = p
                                 if log_hits:
                                     print(f"[hidden:{kind}] in-stock {p.domain} :: {p.name} :: {p.url}", flush=True)
+                    if kind == "pid":
+                        if has_evidence and is_dup:
+                            pid_dup_streak += 1
+                        elif has_evidence:
+                            pid_dup_streak = 0
+                        else:
+                            pid_dup_streak = 0
+                    else:
+                        if has_evidence and is_dup:
+                            gid_dup_streak += 1
+                        elif has_evidence:
+                            gid_dup_streak = 0
+                        else:
+                            gid_dup_streak = 0
                     made_progress = added_products > 0 or (kind == "gid" and new_pid_candidates > 0)
 
                     if kind == "pid":
@@ -1840,11 +2307,13 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
             max_pages = max(max_pages, 40)
         if _is_whmcs_domain(domain, html):
             max_pages = max(max_pages, 24)
-        if domain in {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
+        if domain in {"clientarea.gigsgigscloud.com", "clients.zgovps.com"}:
             max_pages = max(max_pages, 32)
+        if domain in {"my.racknerd.com"}:
+            max_pages = max(max_pages, 80)
     soup = BeautifulSoup(html, "lxml")
     base_netloc = urlparse(base_url).netloc.lower()
-    hostbill_like_domains = {"vps.hosting", "clientarea.gigsgigscloud.com", "clients.zgovps.com"}
+    hostbill_like_domains = {"clientarea.gigsgigscloud.com", "clients.zgovps.com"}
     cart_depth = 2 if domain in hostbill_like_domains else 1
 
     candidates: list[str] = []
@@ -2022,3 +2491,4 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
 
     candidates.sort(key=score, reverse=True)
     return candidates[:max_pages]
+

@@ -113,6 +113,7 @@ OOS_WORDS = [
     "\u4e0d\u53ef\u8cfc\u8cb7",
     "\u5e93\u5b58\u4e0d\u8db3",
     "\u5eab\u5b58\u4e0d\u8db3",
+    "缂鸿揣",
 ]
 IN_STOCK_WORDS_STRONG = [
     "in stock",
@@ -134,16 +135,20 @@ IN_STOCK_WORDS_WEAK = [
     "\u52a0\u5165\u8cfc\u7269\u8eca",
     "\u7acb\u5373\u8d2d\u4e70",
     "\u7acb\u5373\u8cfc\u8cb7",
+    "\u7acb\u5373\u8ba2\u8d2d",
+    "\u7acb\u5373\u8a02\u8cfc",
     "\u53ef\u8d2d\u4e70",
     "\u53ef\u8cfc\u8cb7",
+    "绔嬪嵆璁㈣喘",
+    "绔嬪嵆璐拱",
 ]
 
 _AVAIL_COUNT_RE = re.compile(
-    r"(?P<count>\d+)\s*(?:available|left|in\s*stock|\u5e93\u5b58|\u5eab\u5b58|\u53ef\u7528)\b",
+    r"(?P<count>\d+)\s*(?:available|left|in\s*stock|\u5e93\u5b58|\u5eab\u5b58|\u53ef\u7528|鍙敤)\b",
     re.IGNORECASE,
 )
 _AVAIL_KV_RE = re.compile(
-    r"(?:stock|inventory|available|left|\u5e93\u5b58|\u5eab\u5b58|\u53ef\u7528)\s*[:\uff1a]?\s*(?P<count>-?\d+)\b",
+    r"(?:stock|inventory|available|left|\u5e93\u5b58|\u5eab\u5b58|\u53ef\u7528|鍙敤)\s*[:\uff1a]?\s*(?P<count>-?\d+)\b",
     re.IGNORECASE,
 )
 
@@ -235,6 +240,8 @@ def _normalize_cycle_label(value: str) -> str | None:
 
     if "\u6708" in v:
         return "Monthly"
+    if "姣忔湀" in v:
+        return "Monthly"
     if "\u5b63" in v:
         return "Quarterly"
     if "\u534a\u5e74" in v:
@@ -263,7 +270,7 @@ def extract_billing_cycles_from_text(text: str) -> list[str] | None:
             cycles.append(label)
 
     token_re = re.compile(
-        r"(monthly|quarterly|semi-annual(?:ly)?|semiannually|annually|yearly|biennially|triennially|quadrennially|quinquennially|one-?time|onetime|\u6708\u4ed8|\u6708\u7e73|\u5b63\u4ed8|\u5b63\u7e73|\u534a\u5e74|\u5e74\u4ed8|\u5e74\u7e73|\u4e00\u6b21\u6027|\u4e00\u6b21)",
+        r"(monthly|quarterly|semi-annual(?:ly)?|semiannually|annually|yearly|biennially|triennially|quadrennially|quinquennially|one-?time|onetime|\u6708\u4ed8|\u6708\u7e73|\u5b63\u4ed8|\u5b63\u7e73|\u534a\u5e74|\u5e74\u4ed8|\u5e74\u7e73|\u4e00\u6b21\u6027|\u4e00\u6b21|姣忔湀)",
         re.IGNORECASE,
     )
     for m in token_re.finditer(t):
@@ -516,11 +523,13 @@ def extract_location_variants(html: str) -> list[tuple[str, bool | None]]:
     seen: set[str] = set()
 
     groups = soup.select(
-        "div.form-group, div.cart-item, div.option-val, fieldset, .configoptions, .product-config, .order-config"
+        "div.form-group, div.cart-item, div.option-val, fieldset, .configoptions, .product-config, .order-config, div.section"
     )
     for g in groups:
         labels: list[str] = []
-        for lbl in g.select("label, h3, h4, .control-label, .font-weight-bold"):
+        for lbl in g.select(
+            "label, h3, h4, .control-label, .font-weight-bold, .section-title, .section-header h2, .section-header h3"
+        ):
             txt = compact_ws(lbl.get_text(" ", strip=True))
             if txt:
                 labels.append(txt)
@@ -556,6 +565,11 @@ def looks_like_special_offer(*, name: str | None, url: str | None, description: 
         "black friday",
         "cyber monday",
         "limited offer",
+        "特供",
+        "專供",
+        "专供",
+        "限时",
+        "限時",
     )
     return any(h in blob for h in hints)
 
