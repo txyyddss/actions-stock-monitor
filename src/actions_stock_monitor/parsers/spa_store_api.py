@@ -206,6 +206,10 @@ class SpaStoreApiParser:
                             base_query[k] = v
 
                     query = dict(base_query)
+                    # Prefer API-provided plan tag so storefront links land in the correct tab.
+                    plan_tag = compact_ws(str(plan.get("tag") or "")).lower()
+                    if plan_tag in {"traffic", "bandwidth"}:
+                        query["type"] = plan_tag
                     if isinstance(area_id, int):
                         query["areaId"] = str(area_id)
                     if isinstance(node_id, int):
