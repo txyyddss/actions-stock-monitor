@@ -1,0 +1,2601 @@
+[
+  {
+    "available": false,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "9.88 CNY"
+    },
+    "description": "中国香港 / HKLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=1&planId=1&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-One",
+    "price": "9.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=1&planId=1",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": false,
+    "billing_cycles": [
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Yearly": "98.88 CNY"
+    },
+    "description": "中国香港 / HKLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=1&planId=12&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-One",
+    "price": "8.24 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Yearly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=1&planId=12",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "22.22 CNY",
+      "Yearly": "222.22 CNY"
+    },
+    "description": "中国香港 / HKLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=1&planId=2&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-Mini",
+    "price": "22.22 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "2500GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=1&planId=2",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "43.88 CNY",
+      "Yearly": "438.88 CNY"
+    },
+    "description": "中国香港 / HKLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=1&planId=3&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-Plus",
+    "price": "43.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite",
+      "Port": "2000Mbps",
+      "RAM": "1GB",
+      "Transfer": "5000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=1&planId=3",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "95.99 CNY",
+      "Yearly": "959.99 CNY"
+    },
+    "description": "中国香港 / HKLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=1&planId=4&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-Pro",
+    "price": "95.99 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite",
+      "Port": "2000Mbps",
+      "RAM": "1GB",
+      "Transfer": "10000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=1&planId=4",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "222.22 CNY",
+      "Yearly": "2222.22 CNY"
+    },
+    "description": "中国香港 / HKLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=1&planId=5&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-Max",
+    "price": "222.22 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite",
+      "Port": "2000Mbps",
+      "RAM": "2GB",
+      "Transfer": "30000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=1&planId=5",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "24.99 CNY"
+    },
+    "description": "中国香港 / NHK-lite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=20&planId=124&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "NHK-UNLIMITED-SHARE-1000M",
+    "price": "24.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "NHK-lite",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=20&planId=124",
+    "variant_of": "NHK-lite"
+  },
+  {
+    "available": false,
+    "billing_cycles": [
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Yearly": "68.88 CNY"
+    },
+    "description": "中国香港 / NHK-lite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=20&planId=137&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "NHKLite母鸡生病版",
+    "price": "5.74 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Yearly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "NHK-lite",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=20&planId=137",
+    "variant_of": "NHK-lite"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "9.99 CNY"
+    },
+    "description": "中国香港 / NHK-lite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=20&planId=118&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "NHKLite-One",
+    "price": "9.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "NHK-lite",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=20&planId=118",
+    "variant_of": "NHK-lite"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "14.99 CNY"
+    },
+    "description": "中国香港 / NHK-lite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=20&planId=119&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "NHKLite-Mini",
+    "price": "14.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "NHK-lite",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "2500GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=20&planId=119",
+    "variant_of": "NHK-lite"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "43.88 CNY"
+    },
+    "description": "中国香港 / NHK-lite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=20&planId=120&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "NHKLite-Plus",
+    "price": "43.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "NHK-lite",
+      "Port": "5000Mbps",
+      "RAM": "1GB",
+      "Transfer": "5000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=20&planId=120",
+    "variant_of": "NHK-lite"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "95.99 CNY"
+    },
+    "description": "中国香港 / NHK-lite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=20&planId=121&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "NHKLite-Pro",
+    "price": "95.99 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "NHK-lite",
+      "Port": "10000Mbps",
+      "RAM": "1GB",
+      "Transfer": "10000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=20&planId=121",
+    "variant_of": "NHK-lite"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "222.22 CNY"
+    },
+    "description": "中国香港 / NHK-lite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=20&planId=122&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "NHKLite-Max",
+    "price": "222.22 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "NHK-lite",
+      "Port": "10000Mbps",
+      "RAM": "2GB",
+      "Transfer": "30000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=20&planId=122",
+    "variant_of": "NHK-lite"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "128.88 CNY"
+    },
+    "description": "中国香港 / NHK-lite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=20&planId=125&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-100M独享",
+    "price": "128.88 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "NHK-lite",
+      "Port": "100Mbps",
+      "RAM": "2GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=20&planId=125",
+    "variant_of": "NHK-lite"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "688.88 CNY"
+    },
+    "description": "中国香港 / NHK-lite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=20&planId=126&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-500M独享",
+    "price": "688.88 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "NHK-lite",
+      "Port": "500Mbps",
+      "RAM": "4GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=20&planId=126",
+    "variant_of": "NHK-lite"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "1088.88 CNY"
+    },
+    "description": "中国香港 / NHK-lite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=20&planId=127&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-1000M独享",
+    "price": "1088.88 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "NHK-lite",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=20&planId=127",
+    "variant_of": "NHK-lite"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "138.88 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=31&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-100M独享",
+    "price": "138.88 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "100Mbps",
+      "RAM": "2GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=31",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "9.99 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=26&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-One",
+    "price": "9.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=26",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": false,
+    "billing_cycles": [
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Yearly": "99.99 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=36&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-One",
+    "price": "8.33 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Yearly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=36",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "458.88 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=32&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-300M独享",
+    "price": "458.88 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "300Mbps",
+      "RAM": "4GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=32",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": false,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "25.88 CNY",
+      "Yearly": "258.88 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=27&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-Mini",
+    "price": "25.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "2500GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=27",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "688.88 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=33&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-500M独享",
+    "price": "688.88 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "500Mbps",
+      "RAM": "4GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=33",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "43.88 CNY",
+      "Yearly": "438.88 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=28&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-Plus",
+    "price": "43.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "2000Mbps",
+      "RAM": "1GB",
+      "Transfer": "5000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=28",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "1088.88 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=34&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-1000M独享",
+    "price": "1088.88 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=34",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "1888.88 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=35&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-2000M独享",
+    "price": "1888.88 CNY",
+    "specs": {
+      "CPU": "8 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "2000Mbps",
+      "RAM": "8GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=35",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "95.99 CNY",
+      "Yearly": "959.90 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=29&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-Pro",
+    "price": "95.99 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "2000Mbps",
+      "RAM": "1GB",
+      "Transfer": "10000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=29",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "222.22 CNY",
+      "Yearly": "2222.22 CNY"
+    },
+    "description": "中国香港 / HKLite V2",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=3&planId=30&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-Max",
+    "price": "222.22 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLite V2",
+      "Port": "2000Mbps",
+      "RAM": "2GB",
+      "Transfer": "30000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=3&planId=30",
+    "variant_of": "HKLite V2"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "119.00 CNY"
+    },
+    "description": "中国香港 / HKLU",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=6&planId=60&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-UNLIMITED-100M",
+    "price": "119.00 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLU",
+      "Port": "100Mbps",
+      "RAM": "1GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=6&planId=60",
+    "variant_of": "HKLU"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "199.99 CNY"
+    },
+    "description": "中国香港 / HKLU",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=6&planId=61&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-UNLIMITED-500M",
+    "price": "199.99 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLU",
+      "Port": "500Mbps",
+      "RAM": "2GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=6&planId=61",
+    "variant_of": "HKLU"
+  },
+  {
+    "available": false,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "299.99 CNY"
+    },
+    "description": "中国香港 / HKLU",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=6&planId=62&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKLite-UNLIMITED-1000M",
+    "price": "299.99 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国香港",
+      "Node": "HKLU",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=6&planId=62",
+    "variant_of": "HKLU"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "12.99 CNY"
+    },
+    "description": "中国香港 / HKCM",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=9&planId=142&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKCM-ONE",
+    "price": "12.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "3GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "中国香港",
+      "Node": "HKCM",
+      "Port": "50Mbps",
+      "RAM": "512MB",
+      "Transfer": "500GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=9&planId=142",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "24.99 CNY",
+      "Yearly": "249.99 CNY"
+    },
+    "description": "中国香港 / HKCM",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=9&planId=75&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKCM-MINI",
+    "price": "24.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "中国香港",
+      "Node": "HKCM",
+      "Port": "50Mbps",
+      "RAM": "1GB",
+      "Transfer": "500GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=9&planId=75",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "45.99 CNY",
+      "Yearly": "459.99 CNY"
+    },
+    "description": "中国香港 / HKCM",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=9&planId=76&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKCM-PLUS",
+    "price": "45.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "中国香港",
+      "Node": "HKCM",
+      "Port": "100Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=9&planId=76",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "99.99 CNY",
+      "Yearly": "999.99 CNY"
+    },
+    "description": "中国香港 / HKCM",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=9&planId=77&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKCM-PRO",
+    "price": "99.99 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "中国香港",
+      "Node": "HKCM",
+      "Port": "100Mbps",
+      "RAM": "2GB",
+      "Transfer": "2000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=9&planId=77",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "222.99 CNY"
+    },
+    "description": "中国香港 / HKCM",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=1&nodeId=9&planId=78&type=bandwidth",
+    "is_special": false,
+    "location": "中国香港",
+    "location_links": null,
+    "locations": null,
+    "name": "HKCM-MAX",
+    "price": "222.99 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "40GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "中国香港",
+      "Node": "HKCM",
+      "Port": "100Mbps",
+      "RAM": "4GB",
+      "Transfer": "4000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=1&nodeId=9&planId=78",
+    "variant_of": "中国香港"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "14.88 CNY"
+    },
+    "description": "中国台湾 / TWLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=3&nodeId=5&planId=50&type=bandwidth",
+    "is_special": false,
+    "location": "中国台湾",
+    "location_links": null,
+    "locations": null,
+    "name": "TWLite-One",
+    "price": "14.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国台湾",
+      "Node": "TWLite",
+      "Port": "500Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=3&nodeId=5&planId=50",
+    "variant_of": "中国台湾"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "25.88 CNY",
+      "Yearly": "258.88 CNY"
+    },
+    "description": "中国台湾 / TWLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=3&nodeId=5&planId=51&type=bandwidth",
+    "is_special": false,
+    "location": "中国台湾",
+    "location_links": null,
+    "locations": null,
+    "name": "TWLite-Mini",
+    "price": "25.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国台湾",
+      "Node": "TWLite",
+      "Port": "1000Mbps",
+      "RAM": "2GB",
+      "Transfer": "2500GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=3&nodeId=5&planId=51",
+    "variant_of": "中国台湾"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "43.88 CNY",
+      "Yearly": "438.88 CNY"
+    },
+    "description": "中国台湾 / TWLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=3&nodeId=5&planId=52&type=bandwidth",
+    "is_special": false,
+    "location": "中国台湾",
+    "location_links": null,
+    "locations": null,
+    "name": "TWLite-Plus",
+    "price": "43.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国台湾",
+      "Node": "TWLite",
+      "Port": "1000Mbps",
+      "RAM": "2GB",
+      "Transfer": "5000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=3&nodeId=5&planId=52",
+    "variant_of": "中国台湾"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "98.88 CNY",
+      "Yearly": "988.88 CNY"
+    },
+    "description": "中国台湾 / TWLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=3&nodeId=5&planId=53&type=bandwidth",
+    "is_special": false,
+    "location": "中国台湾",
+    "location_links": null,
+    "locations": null,
+    "name": "TWLite-Pro",
+    "price": "98.88 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国台湾",
+      "Node": "TWLite",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "10000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=3&nodeId=5&planId=53",
+    "variant_of": "中国台湾"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "238.88 CNY",
+      "Yearly": "2388.88 CNY"
+    },
+    "description": "中国台湾 / TWLite",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=3&nodeId=5&planId=54&type=bandwidth",
+    "is_special": false,
+    "location": "中国台湾",
+    "location_links": null,
+    "locations": null,
+    "name": "TWLite-Max",
+    "price": "238.88 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "中国台湾",
+      "Node": "TWLite",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "30000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=3&nodeId=5&planId=54",
+    "variant_of": "中国台湾"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "1888.88 CNY"
+    },
+    "description": "日本 / JPIIJ",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=2&planId=37&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPIIJ-300M独享",
+    "price": "1888.88 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPIIJ",
+      "Port": "300Mbps",
+      "RAM": "4GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=2&planId=37",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "14.88 CNY",
+      "Yearly": "148.88 CNY"
+    },
+    "description": "日本 / JPIIJ",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=2&planId=15&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPIIJ-One",
+    "price": "14.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "8GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPIIJ",
+      "Port": "500Mbps",
+      "RAM": "512MB",
+      "Transfer": "500GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=2&planId=15",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "2688.88 CNY"
+    },
+    "description": "日本 / JPIIJ",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=2&planId=38&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPIIJ-500M独享",
+    "price": "2688.88 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "50GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPIIJ",
+      "Port": "500Mbps",
+      "RAM": "8GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=2&planId=38",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "25.88 CNY",
+      "Yearly": "258.88 CNY"
+    },
+    "description": "日本 / JPIIJ",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=2&planId=16&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPIIJ-Mini",
+    "price": "25.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPIIJ",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1200GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=2&planId=16",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "48.88 CNY",
+      "Yearly": "488.88 CNY"
+    },
+    "description": "日本 / JPIIJ",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=2&planId=17&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPIIJ-Plus",
+    "price": "48.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPIIJ",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "2200GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=2&planId=17",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "5588.88 CNY"
+    },
+    "description": "日本 / JPIIJ",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=2&planId=39&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPIIJ-1000M独享",
+    "price": "5588.88 CNY",
+    "specs": {
+      "CPU": "8 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "100GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPIIJ",
+      "Port": "1000Mbps",
+      "RAM": "16GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=2&planId=39",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "98.88 CNY",
+      "Yearly": "988.88 CNY"
+    },
+    "description": "日本 / JPIIJ",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=2&planId=18&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPIIJ-Pro",
+    "price": "98.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPIIJ",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "5300GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=2&planId=18",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "188.88 CNY",
+      "Yearly": "1888.88 CNY"
+    },
+    "description": "日本 / JPIIJ",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=2&planId=19&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPIIJ-Max",
+    "price": "188.88 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPIIJ",
+      "Port": "1000Mbps",
+      "RAM": "2GB",
+      "Transfer": "10300GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=2&planId=19",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "368.88 CNY",
+      "Yearly": "3688.88 CNY"
+    },
+    "description": "日本 / JPIIJ",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=2&planId=20&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPIIJ-ProMax",
+    "price": "368.88 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPIIJ",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "20500GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=2&planId=20",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "455.88 CNY",
+      "Yearly": "4558.88 CNY"
+    },
+    "description": "日本 / JPIIJ",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=2&planId=21&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPIIJ-Super",
+    "price": "455.88 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "40GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPIIJ",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "25000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=2&planId=21",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "999.00 CNY"
+    },
+    "description": "日本 / JPSI",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=12&planId=98&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "jpsi-500m独享",
+    "price": "999.00 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSI",
+      "Port": "500Mbps",
+      "RAM": "2GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=12&planId=98",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "1500.00 CNY"
+    },
+    "description": "日本 / JPSI",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=12&planId=99&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "jpsi-1000m独享",
+    "price": "1500.00 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSI",
+      "Port": "1000Mbps",
+      "RAM": "2GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=12&planId=99",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "1990.00 CNY"
+    },
+    "description": "日本 / JPSI",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=12&planId=100&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "jpsi-2000m独享",
+    "price": "1990.00 CNY",
+    "specs": {
+      "CPU": "8 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "40GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSI",
+      "Port": "2000Mbps",
+      "RAM": "4GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=12&planId=100",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "2800.00 CNY"
+    },
+    "description": "日本 / JPSI",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=12&planId=101&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "jpsi-2000m独享",
+    "price": "2800.00 CNY",
+    "specs": {
+      "CPU": "8 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "40GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSI",
+      "Port": "2000Mbps",
+      "RAM": "8GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=12&planId=101",
+    "variant_of": "日本"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "39.99 CNY"
+    },
+    "description": "日本 / JPSoftbank3",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=21&planId=141&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-UNLIMITED-SHARE-100M",
+    "price": "39.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank3",
+      "Port": "100Mbps",
+      "RAM": "1GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=21&planId=141",
+    "variant_of": "JPSoftbank3"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "44.99 CNY"
+    },
+    "description": "日本 / JPSoftbank3",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=21&planId=140&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-UNLIMITED-SHARE-300M",
+    "price": "44.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank3",
+      "Port": "300Mbps",
+      "RAM": "1GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=21&planId=140",
+    "variant_of": "JPSoftbank3"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "59.99 CNY"
+    },
+    "description": "日本 / JPSoftbank3",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=21&planId=139&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-UNLIMITED-SHARE-500M",
+    "price": "59.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank3",
+      "Port": "500Mbps",
+      "RAM": "1GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=21&planId=139",
+    "variant_of": "JPSoftbank3"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "64.99 CNY"
+    },
+    "description": "日本 / JPSoftbank3",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=21&planId=138&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-UNLIMITED-SHARE-800M",
+    "price": "64.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank3",
+      "Port": "800Mbps",
+      "RAM": "1GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=21&planId=138",
+    "variant_of": "JPSoftbank3"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "69.99 CNY"
+    },
+    "description": "日本 / JPSoftbank3",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=21&planId=134&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-UNLIMITED-SHARE-1000M",
+    "price": "69.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank3",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "0GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=21&planId=134",
+    "variant_of": "JPSoftbank3"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "12.99 CNY"
+    },
+    "description": "日本 / JPSoftbank4",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=22&planId=128&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-Mini",
+    "price": "12.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank4",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1200GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=22&planId=128",
+    "variant_of": "JPSoftbank4"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "25.99 CNY"
+    },
+    "description": "日本 / JPSoftbank4",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=22&planId=129&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-Plus",
+    "price": "25.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank4",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "2200GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=22&planId=129",
+    "variant_of": "JPSoftbank4"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "49.99 CNY"
+    },
+    "description": "日本 / JPSoftbank4",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=22&planId=130&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-Pro",
+    "price": "49.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank4",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "5300GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=22&planId=130",
+    "variant_of": "JPSoftbank4"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "89.99 CNY"
+    },
+    "description": "日本 / JPSoftbank4",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=22&planId=131&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-Max",
+    "price": "89.99 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank4",
+      "Port": "1000Mbps",
+      "RAM": "2GB",
+      "Transfer": "10300GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=22&planId=131",
+    "variant_of": "JPSoftbank4"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "169.99 CNY"
+    },
+    "description": "日本 / JPSoftbank4",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=22&planId=132&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-ProMax",
+    "price": "169.99 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank4",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "20500GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=22&planId=132",
+    "variant_of": "JPSoftbank4"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "299.99 CNY"
+    },
+    "description": "日本 / JPSoftbank4",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=2&nodeId=22&planId=133&type=bandwidth",
+    "is_special": false,
+    "location": "日本",
+    "location_links": null,
+    "locations": null,
+    "name": "JPSB-Super",
+    "price": "299.99 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "40GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "日本",
+      "Node": "JPSoftbank4",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "25000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=2&nodeId=22&planId=133",
+    "variant_of": "JPSoftbank4"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "24.99 CNY",
+      "Yearly": "249.99 CNY"
+    },
+    "description": "美国 / LAX4837 V1",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=4&nodeId=8&planId=69&type=bandwidth",
+    "is_special": false,
+    "location": "美国",
+    "location_links": null,
+    "locations": null,
+    "name": "LAX4837-MINI",
+    "price": "24.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "美国",
+      "Node": "LAX4837 V1",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=4&nodeId=8&planId=69",
+    "variant_of": "LAX4837 V1"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "35.99 CNY",
+      "Yearly": "359.99 CNY"
+    },
+    "description": "美国 / LAX4837 V1",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=4&nodeId=8&planId=70&type=bandwidth",
+    "is_special": false,
+    "location": "美国",
+    "location_links": null,
+    "locations": null,
+    "name": "LAX4837-PLUS",
+    "price": "35.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "美国",
+      "Node": "LAX4837 V1",
+      "Port": "1000Mbps",
+      "RAM": "2GB",
+      "Transfer": "2000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=4&nodeId=8&planId=70",
+    "variant_of": "LAX4837 V1"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "58.99 CNY",
+      "Yearly": "589.99 CNY"
+    },
+    "description": "美国 / LAX4837 V1",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=4&nodeId=8&planId=71&type=bandwidth",
+    "is_special": false,
+    "location": "美国",
+    "location_links": null,
+    "locations": null,
+    "name": "LAX4837-PRO",
+    "price": "58.99 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "美国",
+      "Node": "LAX4837 V1",
+      "Port": "1000Mbps",
+      "RAM": "2GB",
+      "Transfer": "4000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=4&nodeId=8&planId=71",
+    "variant_of": "LAX4837 V1"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "128.99 CNY",
+      "Yearly": "1289.99 CNY"
+    },
+    "description": "美国 / LAX4837 V1",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=4&nodeId=8&planId=72&type=bandwidth",
+    "is_special": false,
+    "location": "美国",
+    "location_links": null,
+    "locations": null,
+    "name": "LAX4837-MAX",
+    "price": "128.99 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "美国",
+      "Node": "LAX4837 V1",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "8000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=4&nodeId=8&planId=72",
+    "variant_of": "LAX4837 V1"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "52.88 CNY",
+      "Yearly": "528.88 CNY"
+    },
+    "description": "美国 / LAX4837ISP",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=4&nodeId=10&planId=79&type=bandwidth",
+    "is_special": false,
+    "location": "美国",
+    "location_links": null,
+    "locations": null,
+    "name": "LAX4837-ISPMINI",
+    "price": "52.88 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "美国",
+      "Node": "LAX4837ISP",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=4&nodeId=10&planId=79",
+    "variant_of": "LAX4837ISP"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "72.88 CNY",
+      "Yearly": "728.88 CNY"
+    },
+    "description": "美国 / LAX4837ISP",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=4&nodeId=10&planId=80&type=bandwidth",
+    "is_special": false,
+    "location": "美国",
+    "location_links": null,
+    "locations": null,
+    "name": "LAX4837-ISPPLUS",
+    "price": "72.88 CNY",
+    "specs": {
+      "CPU": "2 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "美国",
+      "Node": "LAX4837ISP",
+      "Port": "1000Mbps",
+      "RAM": "2GB",
+      "Transfer": "2000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=4&nodeId=10&planId=80",
+    "variant_of": "LAX4837ISP"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly",
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "92.88 CNY",
+      "Yearly": "928.88 CNY"
+    },
+    "description": "美国 / LAX4837ISP",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=4&nodeId=10&planId=81&type=bandwidth",
+    "is_special": false,
+    "location": "美国",
+    "location_links": null,
+    "locations": null,
+    "name": "LAX4837-ISPPRO",
+    "price": "92.88 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly, Yearly",
+      "Disk": "10GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "美国",
+      "Node": "LAX4837ISP",
+      "Port": "1000Mbps",
+      "RAM": "4GB",
+      "Transfer": "4000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=4&nodeId=10&planId=81",
+    "variant_of": "LAX4837ISP"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "188.88 CNY"
+    },
+    "description": "美国 / LAX4837ISP",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=4&nodeId=10&planId=82&type=bandwidth",
+    "is_special": false,
+    "location": "美国",
+    "location_links": null,
+    "locations": null,
+    "name": "LAX4837-ISPMAX",
+    "price": "188.88 CNY",
+    "specs": {
+      "CPU": "4 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "20GB",
+      "IPv4": "1",
+      "IPv6": "0",
+      "Location": "美国",
+      "Node": "LAX4837ISP",
+      "Port": "1000Mbps",
+      "RAM": "8GB",
+      "Transfer": "8000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=4&nodeId=10&planId=82",
+    "variant_of": "LAX4837ISP"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "11.99 CNY"
+    },
+    "description": "新加坡 / SG-lite预售",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=5&nodeId=14&planId=114&type=bandwidth",
+    "is_special": false,
+    "location": "新加坡",
+    "location_links": null,
+    "locations": null,
+    "name": "SGlite-mini",
+    "price": "11.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "新加坡",
+      "Node": "SG-lite预售",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=5&nodeId=14&planId=114",
+    "variant_of": "SG-lite预售"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Yearly": "119.90 CNY"
+    },
+    "description": "新加坡 / SG-lite预售",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=5&nodeId=14&planId=115&type=bandwidth",
+    "is_special": false,
+    "location": "新加坡",
+    "location_links": null,
+    "locations": null,
+    "name": "SGlite-mini",
+    "price": "9.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Yearly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "新加坡",
+      "Node": "SG-lite预售",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=5&nodeId=14&planId=115",
+    "variant_of": "SG-lite预售"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Monthly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Monthly": "17.99 CNY"
+    },
+    "description": "新加坡 / SG-Standard 预售",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=5&nodeId=15&planId=116&type=bandwidth",
+    "is_special": false,
+    "location": "新加坡",
+    "location_links": null,
+    "locations": null,
+    "name": "SG-Standard-mini",
+    "price": "17.99 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Monthly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "新加坡",
+      "Node": "SG-Standard 预售",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=5&nodeId=15&planId=116",
+    "variant_of": "SG-Standard 预售"
+  },
+  {
+    "available": true,
+    "billing_cycles": [
+      "Yearly"
+    ],
+    "currency": "CNY",
+    "cycle_prices": {
+      "Yearly": "179.99 CNY"
+    },
+    "description": "新加坡 / SG-Standard 预售",
+    "domain": "acck.io",
+    "id": "acck.io::https://acck.io/shop/server?areaId=5&nodeId=15&planId=117&type=bandwidth",
+    "is_special": false,
+    "location": "新加坡",
+    "location_links": null,
+    "locations": null,
+    "name": "SG-Standard-mini",
+    "price": "15.00 CNY",
+    "specs": {
+      "CPU": "1 vCPU",
+      "Cycles": "Yearly",
+      "Disk": "5GB",
+      "IPv4": "1",
+      "IPv6": "1",
+      "Location": "新加坡",
+      "Node": "SG-Standard 预售",
+      "Port": "1000Mbps",
+      "RAM": "1GB",
+      "Transfer": "1000GB"
+    },
+    "url": "https://acck.io/shop/server?type=bandwidth&areaId=5&nodeId=15&planId=117",
+    "variant_of": "SG-Standard 预售"
+  }
+]
