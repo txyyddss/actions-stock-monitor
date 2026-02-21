@@ -32,6 +32,30 @@ class TestParsersCommon(unittest.TestCase):
         self.assertIn("Bandwidth", specs)
         self.assertIn("Port", specs)
 
+    def test_extract_specs_handles_ddr_and_monthly_traffic(self) -> None:
+        specs = extract_specs("2GB DDR5 RAM 2 Cores 1200GB/Month 10Gbps")
+        self.assertIsNotNone(specs)
+        assert specs is not None
+        self.assertIn("RAM", specs)
+        self.assertIn("CPU", specs)
+        self.assertIn("Traffic", specs)
+        self.assertIn("Port", specs)
+
+    def test_extract_specs_handles_traffic_speed_and_memory_dash(self) -> None:
+        specs = extract_specs("CPU - 1 EPYC Rome Core Memory - 0.75G DDR4 ECC Traffic/Speed - 4TB @ 1500Mbps")
+        self.assertIsNotNone(specs)
+        assert specs is not None
+        self.assertIn("CPU", specs)
+        self.assertIn("RAM", specs)
+        self.assertIn("Traffic", specs)
+
+    def test_extract_specs_dedupes_bandwidth_vs_traffic(self) -> None:
+        specs = extract_specs("Bandwidth: 1200GB Traffic: 1200GB BandwidthTraffic: 1200GB")
+        self.assertIsNotNone(specs)
+        assert specs is not None
+        self.assertIn("Bandwidth", specs)
+        self.assertNotIn("Traffic", specs)
+
     def test_normalize_url_for_id_removes_tracking(self) -> None:
         url = "https://example.test/p?a=1&utm_source=x&b=2&fbclid=y"
         self.assertEqual(normalize_url_for_id(url), "https://example.test/p?a=1&b=2")

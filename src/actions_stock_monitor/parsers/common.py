@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+from functools import lru_cache
+from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from bs4 import BeautifulSoup
@@ -328,6 +330,12 @@ def extract_billing_cycles(html: str) -> list[str] | None:
     return _extract_billing_cycles_from_tag_or_soup(soup, raw)
 
 
+def extract_billing_cycles_from_soup(soup: Any, *, raw: str) -> list[str] | None:
+    if soup is None:
+        return None
+    return _extract_billing_cycles_from_tag_or_soup(soup, raw or "")
+
+
 def extract_billing_cycles_from_tag(tag) -> list[str] | None:
     """Like extract_billing_cycles but accepts a BS4 tag, avoiding str→re-parse overhead."""
     if tag is None:
@@ -376,6 +384,12 @@ def extract_cycle_prices(html: str) -> dict[str, str] | None:
     except Exception:
         return None
 
+    return _extract_cycle_prices_from_tag_or_soup(soup)
+
+
+def extract_cycle_prices_from_soup(soup: Any) -> dict[str, str] | None:
+    if soup is None:
+        return None
     return _extract_cycle_prices_from_tag_or_soup(soup)
 
 
@@ -519,6 +533,13 @@ def extract_location_variants(html: str) -> list[tuple[str, bool | None]]:
     except Exception:
         return []
 
+    return extract_location_variants_from_soup(soup)
+
+
+def extract_location_variants_from_soup(soup: Any) -> list[tuple[str, bool | None]]:
+    if soup is None:
+        return []
+
     variants: list[tuple[str, bool | None]] = []
     seen: set[str] = set()
 
@@ -574,24 +595,117 @@ def looks_like_special_offer(*, name: str | None, url: str | None, description: 
     return any(h in blob for h in hints)
 
 
-SPEC_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
-    ("RAM", re.compile(r"\b(\d{1,4})\s*(?:GB|G)\s*(?:RAM|vRAM)\b", re.IGNORECASE)),
-    ("CPU", re.compile(r"\b(\d{1,2})\s*(?:vCPU|vCore|CPU|Core|Cores)\b", re.IGNORECASE)),
-    ("Disk", re.compile(r"(\d{1,5})\s*(GB|TB)\s*(?:SSD|NVME|HDD)", re.IGNORECASE)),
-    ("Bandwidth", re.compile(r"(\d{1,5})\s*(TB|GB)\s*(?:bandwidth|transfer)\b", re.IGNORECASE)),
-    ("Traffic", re.compile(r"(\d{1,5})\s*(TB|GB)\s*(?:bandwidth|transfer|traffic)\b", re.IGNORECASE)),
-    ("Port", re.compile(r"(\d{1,5})\s*(?:Mbps|Gbps)", re.IGNORECASE)),
-]
+SPEC_PATTERNS: dict[str, list[re.Pattern[str]]] = {
+    "RAM": [
+        re.compile(
+            r"\b(?:ram|memory|mem|內存|内存|記憶體|记忆体)\s*(?:[:：-]|\s)\s*(\d{1,5}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(\d{1,5}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:DDR\d\s*)?(?:RAM|vRAM|Memory|Mem|內存|内存|記憶體|记忆体)\b",
+            re.IGNORECASE,
+        ),
+    ],
+    "CPU": [
+        re.compile(
+            r"\b(\d{1,3})\s*v\s*(?:dedicated\s*)?cpu\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\bcpu\s*(?:[:：-]|\s)\s*(\d{1,3})\s*x?\s*(?:[a-z0-9]+\s+){0,4}(?:core|cores|vcore|vcpu)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(?:cpu|vcpu|vcore|core|cores|核心|核)\s*[:：]?\s*(\d{1,3})\s*x?\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(\d{1,3})\s*x?\s*(?:vCPU|vCore|CPU|Core|Cores|核心|核)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(\d{1,3})\s*x?\s*(?:[a-z0-9]+\s+){0,4}(?:core|cores)\b",
+            re.IGNORECASE,
+        ),
+    ],
+    "Disk": [
+        re.compile(
+            r"\b(?:disk|storage|ssd|nvme|hdd|硬盤|硬盘|磁盤|磁盘)\s*[:：]?\s*(\d{1,5}(?:\.\d+)?)\s*(?:TB|GB|MB)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(\d{1,5}(?:\.\d+)?)\s*(?:TB|GB|MB)\s*(?:SSD|NVME|HDD|Disk|Storage|硬盤|硬盘|磁盤|磁盘)\b",
+            re.IGNORECASE,
+        ),
+    ],
+    "Bandwidth": [
+        re.compile(
+            r"\b(?:bandwidth)\s*[:：]?\s*(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:bandwidth)\b",
+            re.IGNORECASE,
+        ),
+    ],
+    "Traffic": [
+        re.compile(
+            r"\b(?:traffic|transfer|data\s*transfer|流量|bandwidthtraffic)\s*[:：]?\s*(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)(?:\s*/\s*(?:month|mo|monthly|月))?\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(?:traffic(?:/speed)?|transfer(?:/speed)?|data\s*transfer)\s*(?:[:：-]|\s)\s*(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:/\s*(?:month|mo|monthly|月))\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:traffic|transfer|data\s*transfer|流量)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:monthly|month|per\s*month)?\s*(?:bandwidth|traffic|transfer)\b",
+            re.IGNORECASE,
+        ),
+    ],
+    "Port": [
+        re.compile(
+            r"\b(?:port|network|網絡|网络)\s*[:：]?\s*(\d{1,5}(?:\.\d+)?)\s*(?:Mbps|Gbps)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(r"\b(\d{1,5}(?:\.\d+)?)\s*(?:Mbps|Gbps)\b", re.IGNORECASE),
+    ],
+}
+
+
+def _spec_value_norm(value: str | None) -> str:
+    raw = compact_ws(value or "").lower()
+    raw = raw.replace(" ", "")
+    raw = raw.replace("/month", "").replace("/mo", "").replace("/monthly", "").replace("/月", "")
+    raw = raw.replace("bandwidth", "").replace("traffic", "").replace("transfer", "")
+    raw = raw.replace("bandwidthtraffic", "")
+    raw = raw.strip(":：-")
+    return raw
 
 
 def extract_specs(text: str) -> dict[str, str] | None:
     t = compact_ws(text)
     specs: dict[str, str] = {}
-    for key, pattern in SPEC_PATTERNS:
-        m = pattern.search(t)
-        if not m:
-            continue
-        specs[key] = compact_ws(m.group(0))
+    for key, patterns in SPEC_PATTERNS.items():
+        for pattern in patterns:
+            m = pattern.search(t)
+            if not m:
+                continue
+            specs[key] = compact_ws(m.group(0))
+            break
+
+    # Avoid semantic duplicates like "Bandwidth: 1200GB" + "Traffic: 1200GB".
+    if specs.get("Bandwidth") and specs.get("Traffic"):
+        if _spec_value_norm(specs.get("Bandwidth")) == _spec_value_norm(specs.get("Traffic")):
+            specs.pop("Traffic", None)
+
     return specs or None
 
 
@@ -611,6 +725,7 @@ _PRODUCT_ID_KEYS = {"pid", "id", "product", "product_id", "planid"}
 _DROP_IF_PRODUCT_KEYS = {"gid", "fid", "step", "billingcycle", "cycle"}
 
 
+@lru_cache(maxsize=16384)
 def normalize_url_for_id(url: str) -> str:
     p = urlparse(url)
     raw_query = p.query or ""

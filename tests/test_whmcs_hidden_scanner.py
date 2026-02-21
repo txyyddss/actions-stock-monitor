@@ -119,6 +119,45 @@ class _DynamicPidClient(_FakeClient):
         return super().fetch_text(url, allow_flaresolverr=allow_flaresolverr)
 
 
+class _RedirectingPidClient(_FakeClient):
+    def __init__(self, domain: str) -> None:
+        super().__init__(pages={})
+        self._domain = domain
+
+    def fetch_text(self, url: str, *, allow_flaresolverr: bool = True) -> _Fetch:
+        self.calls.append(url)
+        qs = parse_qs(urlparse(url).query)
+        pid = (qs.get("pid") or [None])[0]
+        if pid == "11":
+            return _Fetch(
+                # Simulate a valid redirect flow where the final URL drops pid.
+                url=f"https://{self._domain}/cart.php?a=confproduct&i=0",
+                ok=True,
+                text="<html><input type='hidden' name='pid' value='11'><button>Add to cart</button></html>",
+            )
+        return super().fetch_text(url, allow_flaresolverr=allow_flaresolverr)
+
+
+class _RedirectingPidNoEvidenceClient(_FakeClient):
+    def __init__(self, domain: str) -> None:
+        super().__init__(pages={})
+        self._domain = domain
+
+    def fetch_text(self, url: str, *, allow_flaresolverr: bool = True) -> _Fetch:
+        self.calls.append(url)
+        qs = parse_qs(urlparse(url).query)
+        pid = (qs.get("pid") or [None])[0]
+        if isinstance(pid, str) and pid.isdigit():
+            return _Fetch(
+                # Redirect flow that keeps pid only in HTML, but does not expose
+                # parser/evidence markers. Stop logic should still terminate.
+                url=f"https://{self._domain}/cart.php?a=confproduct&i=0",
+                ok=True,
+                text=f"<html><input type='hidden' name='pid' value='{pid}'></html>",
+            )
+        return super().fetch_text(url, allow_flaresolverr=allow_flaresolverr)
+
+
 class TestWhmcsHiddenScanner(unittest.TestCase):
     def test_scanner_stops_after_consecutive_misses_and_returns_in_stock_only(self) -> None:
         domain = "example.test"
@@ -314,6 +353,53 @@ class TestWhmcsHiddenScanner(unittest.TestCase):
         domain = "example.test"
         base_url = f"https://{domain}/"
         client = _FakeClient(pages={})
+        parser = _NoopParser()
+
+        env = {
+            "WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO": "0",
+            "WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS": "0",
+            "WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER": "6",
+            "WHMCS_HIDDEN_BATCH": "1",
+            "WHMCS_HIDDEN_WORKERS": "1",
+            "WHMCS_HIDDEN_HARD_MAX_PID": "200",
+            "WHMCS_HIDDEN_HARD_MAX_GID": "0",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            _scan_whmcs_hidden_products(client, parser, base_url=base_url, existing_ids=set())
+
+        pid_calls = 0
+        for url in client.calls:
+            qs = parse_qs(urlparse(url).query)
+            if (qs.get("pid") or [None])[0] is not None:
+                pid_calls += 1
+        self.assertEqual(pid_calls, 6)
+
+    def test_pid_scan_handles_valid_redirect_without_pid_in_final_url(self) -> None:
+        domain = "example.test"
+        base_url = f"https://{domain}/"
+        client = _RedirectingPidClient(domain=domain)
+        parser = _FakeParser(domain)
+
+        env = {
+            "WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO": "0",
+            "WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS": "0",
+            "WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES": "0",
+            "WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER": "0",
+            "WHMCS_HIDDEN_BATCH": "1",
+            "WHMCS_HIDDEN_WORKERS": "1",
+            "WHMCS_HIDDEN_HARD_MAX_PID": "12",
+            "WHMCS_HIDDEN_HARD_MAX_GID": "0",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            out = _scan_whmcs_hidden_products(client, parser, base_url=base_url, existing_ids=set())
+
+        pid11 = f"https://{domain}/cart.php?a=add&pid=11"
+        self.assertTrue(any(p.url == pid11 for p in out))
+
+    def test_pid_redirect_without_pid_still_honors_redirect_signature_stop(self) -> None:
+        domain = "example.test"
+        base_url = f"https://{domain}/"
+        client = _RedirectingPidNoEvidenceClient(domain=domain)
         parser = _NoopParser()
 
         env = {

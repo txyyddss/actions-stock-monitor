@@ -29,6 +29,9 @@ class TestDashboard(unittest.TestCase):
         self.assertIn("Last updated:", html)
         self.assertIn("Buy Now", html)
         self.assertIn("Click headers to sort.", html)
+        self.assertIn("min-price", html)
+        self.assertIn("max-price", html)
+        self.assertIn("special-filter", html)
 
     def test_embeds_products_json_safely(self) -> None:
         state = {
@@ -77,6 +80,27 @@ class TestDashboard(unittest.TestCase):
         self.assertIn("Merged Plan", html)
         self.assertIn("New York", html)
         self.assertIn("Los Angeles", html)
+
+    def test_dashboard_does_not_render_cycles_as_spec_chip(self) -> None:
+        state = {
+            "updated_at": "2026-02-18T00:00:00+00:00",
+            "products": {
+                "p1": {
+                    "domain": "example.test",
+                    "name": "Plan",
+                    "price": "9.99 USD",
+                    "available": True,
+                    "specs": {"Cycles": "Monthly", "RAM": "2GB"},
+                    "url": "https://example.test/buy",
+                    "first_seen": "2026-02-18T00:00:00+00:00",
+                    "last_seen": "2026-02-18T00:00:00+00:00",
+                }
+            },
+            "domains": {"example.test": {"last_status": "ok"}},
+        }
+        html = render_dashboard_html(state, run_summary={"finished_at": state["updated_at"]})
+        self.assertIn("RAM", html)
+        self.assertNotIn("\"Cycles\": \"Monthly\"", html)
 
 
 if __name__ == "__main__":

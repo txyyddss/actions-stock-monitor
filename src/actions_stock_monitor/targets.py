@@ -23,7 +23,6 @@ DEFAULT_TARGETS: list[str] = [
     "https://cloud.boil.network/",
     "https://www.vps.soy/",
     "https://cloud.bffyun.com/",
-    "https://www.lycheen.com/",
     "https://cloud.tizz.yt/",
     "https://bestvm.cloud/",
 

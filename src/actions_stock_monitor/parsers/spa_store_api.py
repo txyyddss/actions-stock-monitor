@@ -166,6 +166,23 @@ class SpaStoreApiParser:
         else:
             return []
 
+        base_query: dict[str, str] = {}
+        try:
+            parsed_shop = urlparse(self._cfg.shop_path)
+            for k, v in parse_qsl(parsed_shop.query, keep_blank_values=True):
+                if k and v:
+                    base_query[k] = v
+        except Exception:
+            base_query = {}
+        for k, v in (self._cfg.shop_query or {}).items():
+            if isinstance(k, str) and isinstance(v, str) and k and v:
+                base_query[k] = v
+
+        shop_url = self._cfg.shop_path
+        if "?" in shop_url:
+            shop_url = shop_url.split("?", 1)[0]
+        shop_base_url = f"https://{self.domain}{shop_url}"
+
         products: list[Product] = []
         for area in areas:
             if not isinstance(area, dict):
@@ -193,18 +210,6 @@ class SpaStoreApiParser:
                         continue
 
                     # Build a stable, user-meaningful link back to the storefront.
-                    base_query: dict[str, str] = {}
-                    try:
-                        parsed_shop = urlparse(self._cfg.shop_path)
-                        for k, v in parse_qsl(parsed_shop.query, keep_blank_values=True):
-                            if k and v:
-                                base_query[k] = v
-                    except Exception:
-                        base_query = {}
-                    for k, v in (self._cfg.shop_query or {}).items():
-                        if isinstance(k, str) and isinstance(v, str) and k and v:
-                            base_query[k] = v
-
                     query = dict(base_query)
                     # Prefer API-provided plan tag so storefront links land in the correct tab.
                     plan_tag = compact_ws(str(plan.get("tag") or "")).lower()
@@ -216,10 +221,7 @@ class SpaStoreApiParser:
                         query["nodeId"] = str(node_id)
                     if isinstance(plan_id, int):
                         query["planId"] = str(plan_id)
-                    shop_url = self._cfg.shop_path
-                    if "?" in shop_url:
-                        shop_url = shop_url.split("?", 1)[0]
-                    url = f"https://{self.domain}{shop_url}"
+                    url = shop_base_url
                     if query:
                         url += "?" + urlencode(query)
 
@@ -261,8 +263,6 @@ class SpaStoreApiParser:
                     price, currency = _fmt_money_cents(best_price_cents, currency=self._cfg.currency)
                     billing_cycles = _extract_cycles(plan.get("price_datas"))
                     cycle_prices = _extract_cycle_prices(plan.get("price_datas"), currency=self._cfg.currency)
-                    if billing_cycles:
-                        specs["Cycles"] = ", ".join(billing_cycles)
 
                     description_parts = [p for p in [area_name, node_name] if p]
                     description = " / ".join(description_parts) if description_parts else None

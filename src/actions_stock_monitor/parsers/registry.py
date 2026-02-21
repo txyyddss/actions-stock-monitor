@@ -30,7 +30,6 @@ _KNOWN_DOMAINS = [
     "cloud.boil.network",
     "www.vps.soy",
     "cloud.bffyun.com",
-    "www.lycheen.com",
     "cloud.tizz.yt",
     "bestvm.cloud",
 

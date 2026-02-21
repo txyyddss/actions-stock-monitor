@@ -56,6 +56,7 @@ class HttpClient:
     ) -> None:
         self._timeout_seconds = timeout_seconds
         self._proxy_url = proxy_url
+        self._proxy_map = {"http": proxy_url, "https": proxy_url} if proxy_url else None
         self._flaresolverr_url = flaresolverr_url.rstrip("/") if flaresolverr_url else None
         self._user_agents = user_agents or DEFAULT_USER_AGENTS
         self._max_retries = max_retries
@@ -199,9 +200,7 @@ class HttpClient:
             self._cookie_cache[netloc] = _CookieContext(cookies=merged_cookies, user_agent=merged_ua, expires_at=expires_at)
 
     def _proxies(self) -> dict[str, str] | None:
-        if not self._proxy_url:
-            return None
-        return {"http": self._proxy_url, "https": self._proxy_url}
+        return self._proxy_map
 
     def _fetch_direct(self, url: str) -> FetchResult:
         started = time.perf_counter()

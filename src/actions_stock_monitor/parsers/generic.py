@@ -109,12 +109,30 @@ class GenericDomainParser:
             available = extract_availability(text)
             if available is None:
                 available = self._infer_availability(card, url=url)
-            specs = self._extract_specs(card) or self._extract_specs_from_text(text) or extract_specs(text)
+            raw_specs = self._extract_specs(card)
+            specs = raw_specs or self._extract_specs_from_text(text) or extract_specs(text)
+
+            inferred_specs: dict[str, str] = {}
+            for source in (
+                self._extract_specs_from_text(text),
+                extract_specs(text),
+                dict(self._extract_multi_spec_pairs(text)),
+            ):
+                if not source:
+                    continue
+                for k, v in source.items():
+                    inferred_specs.setdefault(k, v)
+
+            if raw_specs and all(str(k).isdigit() for k in raw_specs.keys()):
+                if inferred_specs:
+                    specs = inferred_specs
+            elif inferred_specs:
+                merged_specs = dict(specs or {})
+                for k, v in inferred_specs.items():
+                    merged_specs.setdefault(k, v)
+                specs = merged_specs or None
             billing_cycles = self._extract_billing_cycles(card, text=text)
             cycle_prices = self._extract_cycle_prices(card)
-            if specs and billing_cycles and "Cycles" not in specs:
-                specs = dict(specs)
-                specs["Cycles"] = ", ".join(billing_cycles)
             description = self._extract_description(card, name=name) or (text[:1200] if text else None)
             desc_name = self._name_from_description_lead(description)
             if desc_name and self._looks_like_generic_name_for_replacement(name):
@@ -888,10 +906,10 @@ class GenericDomainParser:
             if "/checkout" in ul:
                 seen.add(normalize_url_for_id(abs_url))
                 continue
-            if ("/store/" in ul or "rp=/store/" in ul) and not self._is_non_product_url(abs_url):
+            if "/store/" in ul or "rp=/store/" in ul:
                 seen.add(normalize_url_for_id(abs_url))
                 continue
-            if "/products/" in ul and not self._is_non_product_url(abs_url):
+            if "/products/" in ul:
                 seen.add(normalize_url_for_id(abs_url))
                 continue
         return len(seen)
@@ -922,6 +940,160 @@ class GenericDomainParser:
             return t
         return None
 
+    _SPEC_KEY_MAP: dict[str, str] = {
+        "cpu": "CPU",
+        "vcpu": "CPU",
+        "core": "CPU",
+        "cores": "CPU",
+        "核心": "CPU",
+        "ram": "RAM",
+        "memory": "RAM",
+        "mem": "RAM",
+        "內存": "RAM",
+        "内存": "RAM",
+        "記憶體": "RAM",
+        "记忆体": "RAM",
+        "disk": "Disk",
+        "storage": "Disk",
+        "硬盘": "Disk",
+        "硬盤": "Disk",
+        "磁盘": "Disk",
+        "磁盤": "Disk",
+        "bandwidth": "Bandwidth",
+        "traffic": "Traffic",
+        "transfer": "Traffic",
+        "流量": "Traffic",
+        "port": "Port",
+        "network": "Port",
+        "網絡": "Port",
+        "网络": "Port",
+        "帶寬": "Bandwidth",
+        "带宽": "Bandwidth",
+        "端口": "Port",
+        "库存": "Stock",
+        "ip 地址": "IPv4",
+        "ip地址": "IPv4",
+        "ipv4": "IPv4",
+        "ipv6": "IPv6",
+        "location": "Location",
+        "datacenter": "Datacenter",
+        "data center": "Datacenter",
+        "region": "Region",
+        "zone": "Zone",
+        "node": "Node",
+    }
+
+    _SPEC_LINE_STOPWORDS: tuple[str, ...] = (
+        "buy now",
+        "order now",
+        "add to cart",
+        "立即購買",
+        "立即购买",
+        "立即訂購",
+        "立即订购",
+        "checkout",
+    )
+
+    @staticmethod
+    def _normalize_spec_key(raw_key: str) -> str:
+        key = compact_ws(raw_key).strip(" -|:：")
+        if not key:
+            return ""
+        lk = key.lower()
+        if lk in GenericDomainParser._SPEC_KEY_MAP:
+            return GenericDomainParser._SPEC_KEY_MAP[lk]
+        for hint, mapped in GenericDomainParser._SPEC_KEY_MAP.items():
+            if hint in lk:
+                return mapped
+        return key[:80]
+
+    @staticmethod
+    def _is_noise_spec_line(line: str) -> bool:
+        text = compact_ws(line)
+        if not text:
+            return True
+        lower = text.lower()
+        if any(x in lower for x in GenericDomainParser._SPEC_LINE_STOPWORDS):
+            return True
+        if extract_price(text)[0]:
+            # Price-only lines should not become pseudo-specs.
+            if len(text) <= 40:
+                return True
+        if len(text) > 220:
+            return True
+        return False
+
+    @staticmethod
+    def _split_spec_line(line: str) -> tuple[str, str] | None:
+        text = compact_ws(line)
+        for sep in ("|", "：", ":"):
+            if sep not in text:
+                continue
+            left, right = text.split(sep, 1)
+            key = compact_ws(left)
+            value = compact_ws(right)
+            if not key or not value:
+                continue
+            if len(key) > 40:
+                continue
+            key = GenericDomainParser._normalize_spec_key(key)
+            if not key or not value:
+                continue
+            # Keep technical values like "10 Gbps", but avoid converting pure price lines to specs.
+            if extract_price(value)[0]:
+                vl = value.lower()
+                if not any(
+                    token in vl
+                    for token in (
+                        "cpu",
+                        "core",
+                        "vcpu",
+                        "vcore",
+                        "ram",
+                        "memory",
+                        "disk",
+                        "ssd",
+                        "nvme",
+                        "hdd",
+                        "gb",
+                        "tb",
+                        "mb",
+                        "mbps",
+                        "gbps",
+                        "traffic",
+                        "bandwidth",
+                        "transfer",
+                        "ipv4",
+                        "ipv6",
+                    )
+                ):
+                    continue
+            return key, value[:220]
+        return None
+
+    @staticmethod
+    def _extract_multi_spec_pairs(line: str) -> list[tuple[str, str]]:
+        text = compact_ws(line)
+        if not text:
+            return []
+        sep_count = text.count(":") + text.count("：")
+        if GenericDomainParser._is_noise_spec_line(text) and sep_count < 3:
+            return []
+        pattern = re.compile(
+            r"([A-Za-z0-9\u4e00-\u9fff ]{1,24})\s*[:：]\s*([^:：]{1,40})(?=(?:\s+[A-Za-z0-9\u4e00-\u9fff ]{1,24}\s*[:：])|$)"
+        )
+        out: list[tuple[str, str]] = []
+        for m in pattern.finditer(text):
+            key_raw = compact_ws(m.group(1))
+            val_raw = compact_ws(m.group(2))
+            key = GenericDomainParser._normalize_spec_key(key_raw)
+            if not key or not val_raw:
+                continue
+            if GenericDomainParser._is_noise_spec_line(f"{key}:{val_raw}"):
+                continue
+            out.append((key, val_raw[:220]))
+        return out
+
     def _extract_specs(self, tag) -> dict[str, str] | None:
         specs: dict[str, str] = {}
 
@@ -930,7 +1102,7 @@ class GenericDomainParser:
             dts = dl.find_all("dt")
             dds = dl.find_all("dd")
             for dt, dd in zip(dts, dds):
-                k = compact_ws(dt.get_text(" ", strip=True))
+                k = self._normalize_spec_key(dt.get_text(" ", strip=True))
                 v = compact_ws(dd.get_text(" ", strip=True))
                 if k and v and 1 <= len(k) <= 80 and 1 <= len(v) <= 220:
                     specs[k] = v
@@ -940,12 +1112,12 @@ class GenericDomainParser:
             cells = tr.find_all(["th", "td"])
             if len(cells) < 2:
                 continue
-            k = compact_ws(cells[0].get_text(" ", strip=True))
+            k = self._normalize_spec_key(cells[0].get_text(" ", strip=True))
             v = compact_ws(cells[1].get_text(" ", strip=True))
             if k and v and 1 <= len(k) <= 80 and 1 <= len(v) <= 220:
                 specs[k] = v
 
-        # Bullet lists: store as numbered specs, splitting on ":" where possible.
+        # Bullet and paragraph lines: parse key/value using common separators.
         items: list[str] = []
         for li in tag.select("ul li, ol li"):
             t = compact_ws(li.get_text(" ", strip=True))
@@ -953,12 +1125,16 @@ class GenericDomainParser:
                 continue
             items.append(t)
 
-        # Paragraph lines with key-value separators.
-        for p in tag.select("p, div.text-small, .cart-product-section"):
+        for p in tag.select("p, div.text-small, .cart-product-section, .package-content div, .specs li"):
             line = compact_ws(p.get_text(" ", strip=True))
-            if not line or len(line) > 220:
+            if not line:
                 continue
-            if ":" in line or "：" in line:
+            if len(line) > 220:
+                # Keep long compact spec lines that contain many key/value pairs.
+                if (line.count(":") + line.count("：")) >= 3:
+                    items.append(line[:500])
+                continue
+            if ":" in line or "：" in line or "|" in line:
                 items.append(line)
 
         # De-dupe while preserving order.
@@ -970,37 +1146,50 @@ class GenericDomainParser:
             seen.add(it)
             items_deduped.append(it)
 
-        idx = 1
+        structured_count = 0
+        fallback_items: list[str] = []
         for it in items_deduped[:24]:
-            sep = ":" if ":" in it else ("：" if "：" in it else None)
-            if sep:
-                k, v = it.split(sep, 1)
-                k = compact_ws(k)
-                v = compact_ws(v)
-                if k and v and k not in specs:
-                    specs[k[:80]] = v[:220]
-                    continue
-            specs[str(idx)] = it[:220]
-            idx += 1
+            multi_pairs = self._extract_multi_spec_pairs(it)
+            if len(multi_pairs) >= 2:
+                for k, v in multi_pairs:
+                    if k not in specs:
+                        specs[k] = v
+                        structured_count += 1
+                continue
+            pair = self._split_spec_line(it)
+            if pair:
+                k, v = pair
+                if k not in specs:
+                    specs[k] = v
+                    structured_count += 1
+                continue
+            if not self._is_noise_spec_line(it):
+                fallback_items.append(it[:220])
+
+        if structured_count > 0:
+            return specs or None
+
+        # Last resort for unknown templates.
+        for idx, it in enumerate(fallback_items[:8], start=1):
+            specs[str(idx)] = it
 
         return specs or None
 
     @staticmethod
     def _extract_specs_from_text(text: str) -> dict[str, str] | None:
-        # Many storefront templates separate features with pipes.
         parts = [compact_ws(p) for p in (text or "").split("|")]
-        parts = [p for p in parts if p and 2 <= len(p) <= 140]
-        if len(parts) < 3:
+        parts = [p for p in parts if p and 1 <= len(p) <= 140]
+        if len(parts) < 2:
             return None
-
         specs: dict[str, str] = {}
-        idx = 1
-        for p in parts[:25]:
-            # Avoid including full-page boilerplate in "specs" for very large cards.
-            if idx > 20:
-                break
-            specs[str(idx)] = p
-            idx += 1
+        for idx in range(0, len(parts) - 1, 2):
+            key = GenericDomainParser._normalize_spec_key(parts[idx])
+            value = parts[idx + 1]
+            if not key or not value:
+                continue
+            if GenericDomainParser._is_noise_spec_line(f"{key}:{value}"):
+                continue
+            specs.setdefault(key, value[:220])
         return specs or None
 
     @staticmethod
@@ -1022,11 +1211,14 @@ class GenericDomainParser:
     @staticmethod
     def _extract_billing_cycles(tag, *, text: str) -> list[str] | None:
         cycles: list[str] = []
+        seen: set[str] = set()
         for c in extract_billing_cycles_from_tag(tag) or []:
-            if c not in cycles:
+            if c not in seen:
+                seen.add(c)
                 cycles.append(c)
         for c in extract_billing_cycles_from_text(text) or []:
-            if c not in cycles:
+            if c not in seen:
+                seen.add(c)
                 cycles.append(c)
         return cycles or None
 
@@ -1037,16 +1229,21 @@ class GenericDomainParser:
     def _infer_variant_and_location(self, *, url: str, name: str, specs: dict[str, str] | None) -> tuple[str | None, str | None]:
         location = None
         if specs:
-            for key in ("Location", "Data Center", "Datacenter", "Zone", "Region", "Node"):
-                if key in specs and specs.get(key):
-                    location = specs.get(key)
+            explicit_location_keys = (
+                "Location",
+                "Datacenter",
+                "Data Center",
+                "Region",
+                "Zone",
+                "Node",
+            )
+            for key in explicit_location_keys:
+                val = specs.get(key)
+                if isinstance(val, str) and compact_ws(val):
+                    location = compact_ws(val)
                     break
 
         category = self._category_label_from_url(url)
-        if not location and category:
-            location = self._location_from_category(category)
-        if not location and name:
-            location = self._location_from_name_hint(name)
         variant_of = None
         if category:
             cl = category.lower()

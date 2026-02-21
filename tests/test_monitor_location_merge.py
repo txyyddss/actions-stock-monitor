@@ -4,6 +4,7 @@ import unittest
 
 from actions_stock_monitor.models import Product
 from actions_stock_monitor.monitor import _canonical_product_key, _fill_cycle_price_defaults, _merge_products_by_canonical_plan
+from actions_stock_monitor.parsers.generic import GenericDomainParser, GenericParserConfig
 
 
 class TestMonitorLocationMerge(unittest.TestCase):
@@ -165,6 +166,18 @@ class TestMonitorLocationMerge(unittest.TestCase):
             available=True,
         )
         self.assertNotEqual(_canonical_product_key(a), _canonical_product_key(b))
+
+    def test_location_not_inferred_from_name_or_category(self) -> None:
+        parser = GenericDomainParser(GenericParserConfig(domain="example.test"))
+        html = """
+        <div class="product">
+          <h3>Los Angeles AMD VDS - Premium</h3>
+          <a href="/index.php?rp=/store/special-offer/premium">Order</a>
+        </div>
+        """
+        products = parser.parse(html, base_url="https://example.test/index.php?rp=/store/special-offer")
+        self.assertEqual(len(products), 1)
+        self.assertIsNone(products[0].location)
 
 
 if __name__ == "__main__":

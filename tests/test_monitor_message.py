@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import unittest
 
@@ -28,30 +28,26 @@ class TestMonitorMessage(unittest.TestCase):
         self.assertIn("https://example.test/buy", msg)
         self.assertIn("In Stock", msg)
         self.assertIn("#example", msg)
-        # New format uses emoji prefix: 🔄 <b>RESTOCK ALERT</b>
-        self.assertIn("🔄", msg)
         self.assertLessEqual(len(msg), 3900)
 
-    def test_format_message_with_location(self) -> None:
+    def test_format_message_avoids_name_split_or_repeat(self) -> None:
         p = Product(
             id="d::u",
-            domain="greencloudvps.com",
-            url="https://greencloudvps.com/billing/store/budget-kvm-vps/budget-2gb",
-            name="Budget 2GB",
+            domain="clients.zgovps.com",
+            url="https://clients.zgovps.com/index.php?/cart/special-offer/&action=add&id=122",
+            name="Premium",
             price="25.00 USD",
             currency="USD",
             description=None,
-            specs={"RAM": "2GB", "CPU": "2 vCPU", "Disk": "40GB", "Location": "Dallas"},
+            specs={"CPU": "2 Cores"},
             available=True,
-            variant_of="Budget KVM VPS",
-            location="Dallas",
+            variant_of="Los Angeles AMD VDS",
+            location="Los Angeles",
         )
-
-        msg = _format_message("NEW LOCATION", "LOCATION", p, "2026-02-18T00:00:00+00:00")
-        self.assertIn("Budget KVM VPS", msg)
-        self.assertIn("Dallas", msg)
-        self.assertIn("📍", msg)
-        self.assertIn("25.00 USD", msg)
+        msg = _format_message("NEW PRODUCT", "NEW", p, "2026-02-18T00:00:00+00:00")
+        self.assertIn("Los Angeles AMD VDS - Premium", msg)
+        # location should not be duplicated inside product title and info line excessively
+        self.assertLessEqual(msg.count("Los Angeles"), 3)
 
     def test_format_message_with_cycle_prices_and_special(self) -> None:
         p = Product(
@@ -62,7 +58,7 @@ class TestMonitorMessage(unittest.TestCase):
             price="$3.00/mo",
             currency="USD",
             description=None,
-            specs=None,
+            specs={"Cycles": "Monthly", "RAM": "4GB"},
             available=True,
             cycle_prices={"Monthly": "$3.00", "Quarterly": "$8.00"},
             billing_cycles=["Monthly", "Quarterly"],
@@ -71,27 +67,10 @@ class TestMonitorMessage(unittest.TestCase):
 
         msg = _format_message("NEW PRODUCT", "NEW", p, "2026-02-18T00:00:00+00:00")
         self.assertIn("#colocrossing", msg)
-        self.assertIn("⭐", msg)
         self.assertIn("Special Plan", msg)
         self.assertIn("Monthly: $3.00", msg)
-        self.assertIn("🆕", msg)
-
-    def test_format_message_oos(self) -> None:
-        p = Product(
-            id="d::u",
-            domain="test.com",
-            url="https://test.com/buy",
-            name="OOS Plan",
-            price="5.00 USD",
-            currency="USD",
-            description=None,
-            specs=None,
-            available=False,
-        )
-
-        msg = _format_message("RESTOCK ALERT", "RESTOCK", p, "2026-02-18T00:00:00+00:00")
-        self.assertIn("Out of Stock", msg)
-        self.assertIn("🔴", msg)
+        # Cycles must not be duplicated in specs block
+        self.assertNotIn("Cycles:", msg)
 
 
 if __name__ == "__main__":

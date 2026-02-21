@@ -94,9 +94,9 @@ class TestGenericParserNameFallback(unittest.TestCase):
         products = parser.parse(html, base_url="https://cloud.ggvision.net/index.php?rp=/store/jp-standard")
         self.assertEqual(len(products), 1)
         self.assertEqual(products[0].name, "JP-Std-7")
-        self.assertEqual(products[0].location, "Jp")
+        self.assertIsNone(products[0].location)
 
-    def test_location_can_fallback_from_name_prefix_when_category_is_special(self) -> None:
+    def test_location_is_not_inferred_from_name_or_category(self) -> None:
         parser = GenericDomainParser(GenericParserConfig(domain="cloud.ggvision.net"))
         html = """
         <div class="product clearfix" id="product500">
@@ -106,7 +106,53 @@ class TestGenericParserNameFallback(unittest.TestCase):
         """
         products = parser.parse(html, base_url="https://cloud.ggvision.net/index.php?rp=/store/special-offer")
         self.assertEqual(len(products), 1)
-        self.assertEqual(products[0].location, "Us2 Lac")
+        self.assertIsNone(products[0].location)
+
+    def test_extracts_pipe_style_specs_without_numbered_fragments(self) -> None:
+        parser = GenericDomainParser(GenericParserConfig(domain="app.kaze.network"))
+        html = """
+        <div class="product card">
+          <h3>general-16c32g</h3>
+          <div>40.00 USD 月繳</div>
+          <ul>
+            <li>核心 | 16 vCPU</li>
+            <li>記憶體 | 32 GB</li>
+            <li>硬盤 | 60 GB</li>
+            <li>網絡 | 10 Gbps</li>
+            <li>流量 | 8 TB</li>
+            <li>IP 地址 | 1 個 IPv4</li>
+          </ul>
+          <a href="/cart.php?a=add&pid=1">立即購買</a>
+        </div>
+        """
+        products = parser.parse(html, base_url="https://app.kaze.network/store/general")
+        self.assertEqual(len(products), 1)
+        specs = products[0].specs or {}
+        self.assertEqual(specs.get("CPU"), "16 vCPU")
+        self.assertEqual(specs.get("RAM"), "32 GB")
+        self.assertEqual(specs.get("Disk"), "60 GB")
+        self.assertEqual(specs.get("Port"), "10 Gbps")
+        self.assertEqual(specs.get("Traffic"), "8 TB")
+        self.assertEqual(specs.get("IPv4"), "1 個 IPv4")
+        self.assertNotIn("1", specs)
+        self.assertNotIn("2", specs)
+
+    def test_extracts_multi_kv_specs_from_single_line(self) -> None:
+        parser = GenericDomainParser(GenericParserConfig(domain="www.vps.soy"))
+        html = """
+        <div class="product card">
+          <h3>深港IX-MINI</h3>
+          <p>CPU：1 核 内存：512 MB 硬盘：10 GB 带宽：1 Gbps 流量：200 GB 端口：500 个</p>
+          <a href="/cart?product=ix-mini">立即购买</a>
+        </div>
+        """
+        products = parser.parse(html, base_url="https://www.vps.soy/cart")
+        self.assertEqual(len(products), 1)
+        specs = products[0].specs or {}
+        self.assertEqual(specs.get("CPU"), "1 核")
+        self.assertEqual(specs.get("RAM"), "512 MB")
+        self.assertEqual(specs.get("Disk"), "10 GB")
+        self.assertEqual(specs.get("Traffic"), "200 GB")
 
     def test_get_started_label_falls_back_to_url_product_slug(self) -> None:
         parser = GenericDomainParser(GenericParserConfig(domain="cloud.colocrossing.com"))
