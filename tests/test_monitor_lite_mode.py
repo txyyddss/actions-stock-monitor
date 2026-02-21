@@ -51,7 +51,7 @@ class TestMonitorLiteMode(unittest.TestCase):
         selected = _select_lite_targets(previous_state=previous_state, fallback_targets=fallback_targets)
 
         self.assertEqual(selected[0], "https://example.com/store")
-        self.assertIn("https://foo.test/product/1", selected)
+        self.assertNotIn("https://foo.test/product/1", selected)
         self.assertNotIn("https://bar.test/store", selected)
 
     def test_lite_mode_keeps_unseen_products(self) -> None:

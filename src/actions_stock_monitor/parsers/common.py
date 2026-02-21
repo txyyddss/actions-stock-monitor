@@ -598,15 +598,23 @@ def looks_like_special_offer(*, name: str | None, url: str | None, description: 
 SPEC_PATTERNS: dict[str, list[re.Pattern[str]]] = {
     "RAM": [
         re.compile(
-            r"\b(?:ram|memory|mem|內存|内存|記憶體|记忆体)\s*(?:[:：-]|\s)\s*(\d{1,5}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\b",
+            r"\b(\d{1,5}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:DDR\d\s*)?(?:RAM|vRAM|Memory|Mem|內存|内存|記憶體|记忆体)\b",
             re.IGNORECASE,
         ),
         re.compile(
-            r"\b(\d{1,5}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:DDR\d\s*)?(?:RAM|vRAM|Memory|Mem|內存|内存|記憶體|记忆体)\b",
+            r"\b(?:ram|memory|mem|內存|内存|記憶體|记忆体)\s*(?:[:：-]|\s)\s*(\d{1,5}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\b",
             re.IGNORECASE,
         ),
     ],
     "CPU": [
+        re.compile(
+            r"\b(\d{1,3})\s*x?\s*(?:vCPU|vCore|CPU|Core|Cores|核心|核)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(\d{1,3})\s*x?\s*(?:[a-z0-9]+\s+){0,4}(?:core|cores)\b",
+            re.IGNORECASE,
+        ),
         re.compile(
             r"\b(\d{1,3})\s*v\s*(?:dedicated\s*)?cpu\b",
             re.IGNORECASE,
@@ -619,44 +627,28 @@ SPEC_PATTERNS: dict[str, list[re.Pattern[str]]] = {
             r"\b(?:cpu|vcpu|vcore|core|cores|核心|核)\s*[:：]?\s*(\d{1,3})\s*x?\b",
             re.IGNORECASE,
         ),
-        re.compile(
-            r"\b(\d{1,3})\s*x?\s*(?:vCPU|vCore|CPU|Core|Cores|核心|核)\b",
-            re.IGNORECASE,
-        ),
-        re.compile(
-            r"\b(\d{1,3})\s*x?\s*(?:[a-z0-9]+\s+){0,4}(?:core|cores)\b",
-            re.IGNORECASE,
-        ),
     ],
     "Disk": [
         re.compile(
-            r"\b(?:disk|storage|ssd|nvme|hdd|硬盤|硬盘|磁盤|磁盘)\s*[:：]?\s*(\d{1,5}(?:\.\d+)?)\s*(?:TB|GB|MB)\b",
+            r"\b(\d{1,5}(?:\.\d+)?)\s*(?:TB|GB|MB)\s*(?:SSD|NVME|HDD|Disk|Storage|硬盤|硬盘|磁盤|磁盘)\b",
             re.IGNORECASE,
         ),
         re.compile(
-            r"\b(\d{1,5}(?:\.\d+)?)\s*(?:TB|GB|MB)\s*(?:SSD|NVME|HDD|Disk|Storage|硬盤|硬盘|磁盤|磁盘)\b",
+            r"\b(?:disk|storage|ssd|nvme|hdd|硬盤|硬盘|磁盤|磁盘)\s*[:：]?\s*(\d{1,5}(?:\.\d+)?)\s*(?:TB|GB|MB)\b",
             re.IGNORECASE,
         ),
     ],
     "Bandwidth": [
         re.compile(
-            r"\b(?:bandwidth)\s*[:：]?\s*(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\b",
+            r"\b(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:bandwidth)\b",
             re.IGNORECASE,
         ),
         re.compile(
-            r"\b(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:bandwidth)\b",
+            r"\b(?:bandwidth)\s*[:：]?\s*(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\b",
             re.IGNORECASE,
         ),
     ],
     "Traffic": [
-        re.compile(
-            r"\b(?:traffic|transfer|data\s*transfer|流量|bandwidthtraffic)\s*[:：]?\s*(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)(?:\s*/\s*(?:month|mo|monthly|月))?\b",
-            re.IGNORECASE,
-        ),
-        re.compile(
-            r"\b(?:traffic(?:/speed)?|transfer(?:/speed)?|data\s*transfer)\s*(?:[:：-]|\s)\s*(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\b",
-            re.IGNORECASE,
-        ),
         re.compile(
             r"\b(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:/\s*(?:month|mo|monthly|月))\b",
             re.IGNORECASE,
@@ -669,13 +661,21 @@ SPEC_PATTERNS: dict[str, list[re.Pattern[str]]] = {
             r"\b(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\s*(?:monthly|month|per\s*month)?\s*(?:bandwidth|traffic|transfer)\b",
             re.IGNORECASE,
         ),
+        re.compile(
+            r"\b(?:traffic|transfer|data\s*transfer|流量|bandwidthtraffic)\s*[:：]?\s*(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)(?:\s*/\s*(?:month|mo|monthly|月))?\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(?:traffic(?:/speed)?|transfer(?:/speed)?|data\s*transfer)\s*(?:[:：-]|\s)\s*(\d{1,6}(?:\.\d+)?)\s*(?:TB|T|GB|G|MB|M)\b",
+            re.IGNORECASE,
+        ),
     ],
     "Port": [
+        re.compile(r"\b(\d{1,5}(?:\.\d+)?)\s*(?:Mbps|Gbps)\b", re.IGNORECASE),
         re.compile(
             r"\b(?:port|network|網絡|网络)\s*[:：]?\s*(\d{1,5}(?:\.\d+)?)\s*(?:Mbps|Gbps)\b",
             re.IGNORECASE,
         ),
-        re.compile(r"\b(\d{1,5}(?:\.\d+)?)\s*(?:Mbps|Gbps)\b", re.IGNORECASE),
     ],
 }
 

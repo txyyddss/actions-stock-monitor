@@ -100,11 +100,13 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
             {
                 "domain": str(p.get("domain") or ""),
                 "name": str(p.get("name") or ""),
+                "original_name": str(p.get("raw", {}).get("name") if isinstance(p.get("raw"), dict) else "") or str(p.get("name") or ""),
                 "price": price_text,
                 "price_value": price_value,
                 "available": p.get("available", None),
                 "specs": specs,
                 "description": str(p.get("description") or ""),
+                "original_description": str(p.get("raw", {}).get("description") if isinstance(p.get("raw"), dict) else "") or str(p.get("description") or ""),
                 "url": str(p.get("url") or ""),
                 "first_seen": str(p.get("first_seen") or ""),
                 "last_seen": str(p.get("last_seen") or ""),
@@ -156,64 +158,69 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
   <meta name="description" content="Real-time VPS hosting stock monitor dashboard tracking product availability across {len(products)} products from {domains_ok + domains_error} providers." />
   <style>
     :root {{
-      --bg: #0f172a;
-      --surface: #111827;
-      --panel: #1f2937;
-      --line: #334155;
-      --txt: #e5e7eb;
-      --muted: #94a3b8;
-      --ok: #10b981;
+      --bg: #09090b;
+      --surface: #18181b;
+      --panel: #27272a;
+      --line: #3f3f46;
+      --txt: #f4f4f5;
+      --muted: #a1a1aa;
+      --ok: #22c55e;
       --bad: #ef4444;
-      --unk: #f59e0b;
-      --accent: #38bdf8;
+      --unk: #eab308;
+      --accent: #3b82f6;
       --special: #f59e0b;
     }}
     * {{ box-sizing: border-box; }}
-    body {{ margin: 0; font: 14px/1.5 "Segoe UI", Tahoma, sans-serif; background: linear-gradient(180deg, #0b1220, var(--bg)); color: var(--txt); }}
-    .wrap {{ max-width: 1400px; margin: 0 auto; padding: 16px; }}
-    .header {{ background: rgba(17,24,39,0.88); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }}
-    h1 {{ margin: 0; font-size: 24px; }}
-    .sub {{ color: var(--muted); margin-top: 6px; }}
-    .stats {{ display: grid; grid-template-columns: repeat(4, minmax(120px,1fr)); gap: 8px; margin: 12px 0; }}
-    .card {{ background: rgba(17,24,39,0.88); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }}
-    .label {{ color: var(--muted); font-size: 11px; text-transform: uppercase; }}
-    .num {{ font-size: 24px; font-weight: 700; }}
+    body {{ margin: 0; font: 14px/1.5 "Inter", "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--txt); }}
+    .wrap {{ max-width: 1400px; margin: 0 auto; padding: 24px; }}
+    .header {{ background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }}
+    h1 {{ margin: 0; font-size: 28px; font-weight: 700; tracking: -0.025em; }}
+    .sub {{ color: var(--muted); margin-top: 8px; font-size: 14px; }}
+    .stats {{ display: grid; grid-template-columns: repeat(4, minmax(120px,1fr)); gap: 16px; margin: 24px 0; }}
+    .card {{ background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); }}
+    .label {{ color: var(--muted); font-size: 12px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }}
+    .num {{ font-size: 32px; font-weight: 700; margin-top: 4px; }}
     .ok {{ color: var(--ok); }} .bad {{ color: var(--bad); }} .unk {{ color: var(--unk); }}
-    .controls {{ position: sticky; top: 0; z-index: 10; background: rgba(15,23,42,0.95); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; grid-template-columns: 1.5fr repeat(6, minmax(120px, 1fr)); gap: 8px; align-items: center; }}
-    input, select {{ width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--txt); padding: 8px 10px; }}
-    .hint {{ color: var(--muted); font-size: 12px; text-align: right; }}
-    .table-wrap {{ margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: rgba(17,24,39,0.88); }}
-    table {{ width: 100%; border-collapse: collapse; }}
-    th, td {{ padding: 9px 10px; border-bottom: 1px solid rgba(148,163,184,0.2); vertical-align: top; }}
-    th {{ text-align: left; color: var(--muted); cursor: pointer; user-select: none; background: rgba(17,24,39,0.95); position: sticky; top: 0; z-index: 2; }}
-    tr:hover td {{ background: rgba(56,189,248,0.08); }}
+    .controls {{ position: sticky; top: 16px; z-index: 10; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 2fr repeat(5, minmax(120px, 1fr)); gap: 12px; align-items: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }}
+    input, select {{ width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--txt); padding: 10px 12px; font-size: 14px; outline: none; transition: border-color 0.2s; }}
+    input:focus, select:focus {{ border-color: var(--accent); }}
+    .hint {{ color: var(--muted); font-size: 13px; text-align: right; }}
+    .table-wrap {{ margin-top: 24px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }}
+    table {{ width: 100%; border-collapse: collapse; text-align: left; }}
+    th, td {{ padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }}
+    th {{ text-transform: uppercase; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; user-select: none; background: var(--panel); position: sticky; top: 0; z-index: 2; letter-spacing: 0.05em; }}
+    tr:last-child td {{ border-bottom: none; }}
+    tr:hover td {{ background: var(--panel); }}
     .status {{ font-weight: 600; white-space: nowrap; }}
     .s-in {{ color: var(--ok); }} .s-out {{ color: var(--bad); }} .s-unk {{ color: var(--unk); }}
-    .domain {{ color: var(--muted); font-family: Consolas, monospace; }}
-    .name a {{ color: var(--txt); text-decoration: none; font-weight: 600; }}
-    .name a:hover {{ color: var(--accent); }}
-    .tag {{ display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; margin-left: 5px; font-size: 11px; color: var(--muted); }}
-    .tag-special {{ color: var(--special); border-color: rgba(245,158,11,0.45); }}
-    .chip {{ display: inline-block; border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; margin: 2px 4px 0 0; color: var(--muted); font-size: 12px; }}
-    .cycles {{ color: var(--muted); font-size: 12px; }}
-    .btn {{ display: inline-block; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.35); color: var(--txt); border-radius: 8px; padding: 6px 10px; text-decoration: none; font-size: 12px; }}
-    .btn:hover {{ border-color: var(--accent); }}
-    .pager {{ display: flex; justify-content: space-between; align-items: center; padding: 10px; color: var(--muted); }}
-    .pager button {{ border: 1px solid var(--line); background: var(--surface); color: var(--txt); border-radius: 8px; padding: 5px 10px; }}
-    .pager button:disabled {{ opacity: 0.45; cursor: not-allowed; }}
-    .empty {{ text-align: center; color: var(--muted); padding: 24px; }}
+    .domain {{ color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; }}
+    .name a {{ color: var(--txt); text-decoration: none; font-weight: 600; font-size: 15px; }}
+    .name a:hover {{ color: var(--accent); text-decoration: underline; }}
+    .tag {{ display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9999px; padding: 2px 10px; margin-left: 8px; font-size: 11px; font-weight: 500; color: var(--txt); background: var(--panel); }}
+    .tag-special {{ color: var(--special); background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.2); }}
+    .chip {{ display: inline-flex; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 2px 8px; margin: 4px 6px 0 0; color: var(--txt); font-size: 12px; font-weight: 500; }}
+    .cycles {{ color: var(--muted); font-size: 13px; margin-top: 4px; }}
+    .btn {{ display: inline-flex; justify-content: center; align-items: center; background: var(--accent); color: white; border-radius: 8px; padding: 8px 16px; text-decoration: none; font-size: 13px; font-weight: 600; transition: background-color 0.2s; white-space: nowrap; }}
+    .btn:hover {{ background: #2563eb; }}
+    .pager {{ display: flex; justify-content: space-between; align-items: center; padding: 16px; color: var(--muted); background: var(--surface); }}
+    .pager button {{ border: 1px solid var(--line); background: var(--panel); color: var(--txt); border-radius: 8px; padding: 8px 16px; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }}
+    .pager button:hover:not(:disabled) {{ background: var(--line); }}
+    .pager button:disabled {{ opacity: 0.5; cursor: not-allowed; }}
+    .empty {{ text-align: center; color: var(--muted); padding: 48px; font-size: 16px; }}
 
-    @media (max-width: 980px) {{
+    @media (max-width: 1024px) {{
       .stats {{ grid-template-columns: repeat(2, minmax(120px,1fr)); }}
-      .controls {{ grid-template-columns: 1fr 1fr; }}
+      .controls {{ grid-template-columns: 1fr 1fr; position: static; }}
       .hint {{ text-align: left; grid-column: 1 / -1; }}
-      table, thead, tbody, tr, td {{ display: block; width: 100%; }}
+      table, thead, tbody, tr, td {{ display: block; width: 100%; top: auto;}}
       thead {{ display: none; }}
-      .table-wrap {{ background: transparent; border: 0; }}
-      tbody tr {{ border: 1px solid var(--line); border-radius: 12px; background: rgba(17,24,39,0.88); margin-bottom: 8px; overflow: hidden; }}
-      tbody td {{ border-bottom: 0; padding: 7px 10px; }}
-      td[data-k]::before {{ content: attr(data-k); display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; margin-bottom: 2px; }}
-      .name a {{ font-size: 15px; }}
+      .table-wrap {{ background: transparent; border: 0; box-shadow: none; }}
+      tbody tr {{ border: 1px solid var(--line); border-radius: 12px; background: var(--surface); margin-bottom: 16px; overflow: hidden; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); }}
+      tbody td {{ border-bottom: 1px solid var(--line); padding: 12px 16px; text-align: right; display: flex; justify-content: space-between; align-items: center; }}
+      td[data-k]::before {{ content: attr(data-k); color: var(--muted); font-size: 12px; text-transform: uppercase; font-weight: 600; }}
+      td[data-k="Product"] {{ flex-direction: column; align-items: flex-start; text-align: left; }}
+      td[data-k="Product"]::before {{ margin-bottom: 8px; }}
+      .name a {{ font-size: 16px; }}
     }}
   </style>
 </head>
@@ -229,7 +236,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       <div class="card"><div class="label">In Stock</div><div id="cOk" class="num ok">{in_stock_count}</div></div>
       <div class="card"><div class="label">Out of Stock</div><div id="cBad" class="num bad">{out_stock_count}</div></div>
       <div class="card"><div class="label">Unknown</div><div id="cUnk" class="num unk">{unknown_count}</div></div>
-      <div class="card"><div class="label">Total</div><div id="cTot" class="num">{len(products)}</div></div>
+      <div class="card"><div class="label">Total Products</div><div id="cTot" class="num">{len(products)}</div></div>
     </section>
 
     <section class="controls">
@@ -290,7 +297,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
       const spec = Object.entries(p.specs||{{}}).map(([k,v]) => k+":"+v).join(" ");
       const cp = Object.entries(p.cycle_prices||{{}}).map(([k,v]) => k+":"+v).join(" ");
       const locs = Array.isArray(p.locations) ? p.locations.join(" ") : "";
-      p._blob = (`${{p.domain}} ${{p.name}} ${{p.price}} ${{p.description||""}} ${{spec}} ${{cp}} ${{locs}} ${{p.url}}`).toLowerCase();
+      p._blob = (`${{p.domain}} ${{p.name}} ${{p.original_name||""}} ${{p.price}} ${{p.description||""}} ${{p.original_description||""}} ${{spec}} ${{cp}} ${{locs}} ${{p.url}}`).toLowerCase();
     }});
 
     const tb = document.getElementById("tb");
@@ -413,13 +420,17 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
           const cp = Object.entries(p.cycle_prices || {{}}).map(([k,v]) => `<div>${{esc(k)}}: ${{esc(v)}}</div>`).join("");
           const priceBlock = p.price ? `<div><b>${{esc(p.price)}}</b></div>${{cp ? `<div class="cycles">${{cp}}</div>` : ""}}` : '<span class="cycles">-</span>';
 
+          const descBlock = p.original_description ? `<div><i>${{esc(p.original_description.substring(0, 150))}}${{p.original_description.length > 150 ? '...' : ''}}</i></div>` : (p.description ? `<div><i>${{esc(p.description.substring(0, 150))}}${{p.description.length > 150 ? '...' : ''}}</i></div>` : "");
+
           tr.innerHTML = `
             <td data-k="Status"><span class="status ${{m.cls}}">${{m.label}}</span></td>
             <td data-k="Domain"><span class="domain">${{esc(p.domain)}}</span></td>
             <td data-k="Product" class="name">
-              <div><a href="${{esc(p.url)}}" target="_blank" rel="noreferrer noopener">${{esc(p.name)}}</a>${{locTags}}${{specialTag}}</div>
+              <div><a href="${{esc(p.url)}}" target="_blank" rel="noreferrer noopener">${{esc(p.original_name ? p.original_name : p.name)}}</a>${{locTags}}${{specialTag}}</div>
+              ${{p.original_name && p.original_name !== p.name ? `<div class="cycles">Cleaned Name: ${{esc(p.name)}}</div>` : ""}}
               ${{p.variant_of ? `<div class="cycles">Plan: ${{esc(p.variant_of)}}</div>` : ""}}
-              <div>${{specs}}</div>
+              ${{descBlock}}
+              <div style="margin-top: 4px;">${{specs}}</div>
             </td>
             <td data-k="Price">${{priceBlock}}</td>
             <td data-k="Cycles"><span class="cycles">${{esc(cycles || "-")}}</span></td>

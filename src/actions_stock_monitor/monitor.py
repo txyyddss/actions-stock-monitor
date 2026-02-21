@@ -21,6 +21,8 @@ from .parsers.common import (
     extract_billing_cycles_from_soup,
     extract_cycle_prices_from_soup,
     extract_location_variants_from_soup,
+    extract_price,
+    extract_specs,
     looks_like_purchase_action,
     looks_like_special_offer,
     normalize_url_for_id,
@@ -521,6 +523,120 @@ def _is_generic_tier_name(name: str | None) -> bool:
 
 _DMIT_CODE_RE = re.compile(r"\b([A-Za-z0-9]+(?:\.[A-Za-z0-9]+){2,})\b")
 
+# DMIT dotted name pattern: Location.Network.Tier.Plan (e.g., LAX.AN5.Pro.STARTER)
+_DMIT_DOTTED_NAME_RE = re.compile(
+    r"(?:LAX|HKG|TYO|SJC|NRT|SGP|ICN|CDG|FRA|LHR|AMS|MIA|ORD|SEA|DFW|ATL|IAD)"
+    r"[.](?:[A-Za-z0-9]+[.]){1,3}[A-Za-z0-9]+(?:v\d+)?",
+    re.IGNORECASE,
+)
+
+
+def _build_dmit_pid_map(html: str) -> dict[int, dict]:
+    """Parse DMIT's custom WHMCS cart.php listing page to extract PID → full name + stock mapping.
+
+    DMIT uses cart-products-item divs with:
+      - cart-products-box[pid=N] (with optional 'none-stock' class for OOS)
+      - cart-products-title containing the full dotted name
+      - cart-products-price containing the price
+    """
+    result: dict[int, dict] = {}
+    if not html:
+        return result
+    try:
+        soup = BeautifulSoup(html, "lxml")
+    except Exception:
+        return result
+
+    for item in soup.select(".cart-products-item"):
+        box = item.select_one(".cart-products-box[pid]")
+        if not box:
+            continue
+        pid_raw = box.get("pid", "").strip()
+        if not pid_raw.isdigit():
+            continue
+        pid = int(pid_raw)
+
+        title_el = item.select_one(".cart-products-title")
+        full_name = compact_ws(title_el.get_text(strip=True)) if title_el else ""
+        if not full_name:
+            continue
+
+        box_classes = " ".join(box.get("class", []))
+        is_oos = "none-stock" in box_classes
+
+        # Extract price
+        price_el = item.select_one(".cart-products-price")
+        price_text = compact_ws(price_el.get_text(" ", strip=True)) if price_el else ""
+        price, currency = extract_price(price_text)
+
+        # Extract specs from product features list
+        specs: dict[str, str] = {}
+        for feature in item.select(".cart-products-feature, .cart-products-features li, .product-feature"):
+            feat_text = compact_ws(feature.get_text(strip=True))
+            if feat_text:
+                s = extract_specs(feat_text)
+                if s:
+                    specs.update(s)
+        # If no structured specs, try the entire item text
+        if not specs:
+            item_text = compact_ws(item.get_text(" ", strip=True))
+            specs = extract_specs(item_text) or {}
+
+        result[pid] = {
+            "name": full_name,
+            "available": not is_oos,
+            "price": price,
+            "currency": currency,
+            "specs": specs or None,
+        }
+    return result
+
+
+def _dmit_map_to_products(pid_map: dict[int, dict], *, base_url: str, domain: str) -> list[Product]:
+    """Convert DMIT PID mapping into Product objects."""
+    products: list[Product] = []
+    p = urlparse(base_url)
+    root = f"{p.scheme}://{p.netloc}"
+    for pid, entry in sorted(pid_map.items()):
+        url = f"{root}/cart.php?a=add&pid={pid}"
+        norm = normalize_url_for_id(url)
+        product_id = f"{domain}::{norm}"
+        products.append(
+            Product(
+                id=product_id,
+                domain=domain,
+                url=url,
+                name=entry["name"],
+                price=entry.get("price"),
+                currency=entry.get("currency"),
+                description=None,
+                specs=entry.get("specs"),
+                available=entry.get("available"),
+            )
+        )
+    return products
+
+
+# Module-level cache so the mapping is built once per scrape run.
+_dmit_pid_cache: dict[str, dict[int, dict]] = {}
+
+
+def _get_dmit_pid_map(client: HttpClient | None, base_url: str) -> dict[int, dict]:
+    """Retrieve (and cache) the DMIT PID mapping."""
+    cache_key = "dmit"
+    if cache_key in _dmit_pid_cache:
+        return _dmit_pid_cache[cache_key]
+    if client is None:
+        return {}
+    cart_url = urljoin(base_url, "/cart.php")
+    fetch = _fetch_text(client, cart_url, allow_flaresolverr=True)
+    if not fetch.ok or not fetch.text:
+        _dmit_pid_cache[cache_key] = {}
+        return {}
+    mapping = _build_dmit_pid_map(fetch.text)
+    _dmit_pid_cache[cache_key] = mapping
+    return mapping
+
 
 def _extract_dmit_full_code(product: Product) -> str | None:
     candidates: list[str] = []
@@ -551,6 +667,7 @@ def _apply_domain_product_cleanup(domain: str, products: list[Product]) -> tuple
         location = p.location
         locations = list(p.locations or [])
         location_links = dict(p.location_links or {})
+        available = p.available
 
         if domain_l == "cloud.boil.network":
             url_l = (p.url or "").lower()
@@ -574,11 +691,26 @@ def _apply_domain_product_cleanup(domain: str, products: list[Product]) -> tuple
                 renamed += 1
 
         if domain_l == "www.dmit.io":
-            dotted = _extract_dmit_full_code(p)
-            if dotted and compact_ws(name).lower() != dotted.lower():
-                if compact_ws(name).lower() == dotted.split(".")[-1].lower() or len(compact_ws(name)) <= 10:
-                    name = dotted
+            # Try PID-based mapping first (most reliable)
+            pid_val = _query_param_int(p.url, "pid")
+            dmit_map = _dmit_pid_cache.get("dmit", {})
+            if pid_val is not None and pid_val in dmit_map:
+                entry = dmit_map[pid_val]
+                full_name = entry["name"]
+                if full_name and compact_ws(name).lower() != full_name.lower():
+                    name = full_name
                     renamed += 1
+                # Use listing-page stock status as authoritative for DMIT
+                listing_avail = entry.get("available")
+                if listing_avail is not None:
+                    available = listing_avail
+            else:
+                # Fallback: extract from URL/description
+                dotted = _extract_dmit_full_code(p)
+                if dotted and compact_ws(name).lower() != dotted.lower():
+                    if compact_ws(name).lower() == dotted.split(".")[-1].lower() or len(compact_ws(name)) <= 10:
+                        name = dotted
+                        renamed += 1
 
         out.append(
             Product(
@@ -590,7 +722,7 @@ def _apply_domain_product_cleanup(domain: str, products: list[Product]) -> tuple
                 currency=p.currency,
                 description=p.description,
                 specs=specs,
-                available=p.available,
+                available=available,
                 raw=p.raw,
                 variant_of=p.variant_of,
                 location=location,
@@ -878,8 +1010,19 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
     emoji = _ICONS.get(icon, "📢")
     domain_tag = _telegram_domain_tag(product.domain)
 
+    # Use original product name parsed from the raw data if available, as fallback use composed name.
+    raw_data = product.raw or {}
+    original_name = str(raw_data.get("name") or product.name or "").strip()
+    if not original_name or original_name == "None":
+        original_name = _compose_message_name(product)
+    elif product.variant_of and compact_ws(product.variant_of).lower() not in original_name.lower():
+        original_name = f"{product.variant_of} - {original_name}"
+
+    if product.is_special and not original_name.startswith("⭐ "):
+        original_name = f"⭐ {original_name}"
+
     parts: list[str] = [f"{emoji} <b>{h(kind)}</b>  ·  <b>#{h(domain_tag)}</b>"]
-    parts.append(f"<b>{h(_compose_message_name(product))}</b>")
+    parts.append(f"<b>{h(original_name)}</b>")
 
     info_parts: list[str] = []
     status_icon = _STATUS_ICONS.get(product.available, "🟡")
@@ -910,9 +1053,9 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
         prio = ["CPU", "RAM", "Disk", "Storage", "Transfer", "Traffic", "Bandwidth", "Port", "IPv4", "IPv6", "Location", "Data Center"]
         filtered_specs = [(k, v) for k, v in product.specs.items() if compact_ws(k).lower() != "cycles"]
         items = sorted(filtered_specs, key=lambda kv: (prio.index(kv[0]) if kv[0] in prio else 999, str(kv[0])))
-        spec_lines = [f"{k}: {v}" for k, v in items[:10] if k and v]
+        spec_lines = [f"{k}: {v}" for k, v in items[:15] if k and v]
         if spec_lines:
-            parts.append(f"<pre>{h(chr(10).join(spec_lines))}</pre>")
+            parts.append(f"<b>Specs:</b>\n<pre>{h(chr(10).join(spec_lines))}</pre>")
 
     if product.description and product.description.strip():
         desc = product.description.strip()
@@ -956,13 +1099,13 @@ def run_monitor(
 
     effective_targets = configured_targets
     allow_expansion = True
-    prune_missing_products = True
-    prune_removed_domains = bool(mode == "full" and (not explicit_targets))
+    prune_missing_products = not explicit_targets
+    prune_removed_domains = not explicit_targets
     if mode == "lite":
         effective_targets = _select_lite_targets(previous_state=previous_state, fallback_targets=configured_targets)
         allow_expansion = False
-        prune_missing_products = False
-        prune_removed_domains = False
+        prune_missing_products = not explicit_targets
+        prune_removed_domains = not explicit_targets
 
     raw_runs: list[DomainRun] = []
     log_enabled = os.getenv("MONITOR_LOG", "1").strip() != "0"
@@ -1093,25 +1236,20 @@ def _select_lite_targets(*, previous_state: dict, fallback_targets: list[str]) -
             seen_domains.add(domain)
             state_domains.append(domain)
 
-    first_product_url_by_domain: dict[str, str] = {}
     for rec in (previous_state.get("products") or {}).values():
         if not isinstance(rec, dict):
             continue
         domain = rec.get("domain")
-        url = rec.get("url")
         if not isinstance(domain, str) or not domain:
-            continue
-        if not isinstance(url, str) or not _is_http_url(url):
             continue
         if domain not in seen_domains:
             seen_domains.add(domain)
             state_domains.append(domain)
-        first_product_url_by_domain.setdefault(domain, url)
 
     out: list[str] = []
     seen_targets: set[str] = set()
     for domain in state_domains:
-        target = by_domain.get(domain) or first_product_url_by_domain.get(domain)
+        target = by_domain.get(domain)
         if not target or target in seen_targets:
             continue
         seen_targets.add(target)
@@ -1200,12 +1338,38 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
     is_whmcs = _is_whmcs_domain(domain, fetch.text)
     scan_platform = "hostbill" if is_hostbill else ("whmcs" if is_whmcs else "")
     parser = get_parser_for_domain(domain)
+
+    # Pre-build DMIT PID mapping from the cart.php listing page.
+    # This allows _apply_domain_product_cleanup to rename products correctly.
+    if domain == "www.dmit.io":
+        # If the initial fetch was from cart.php, use it; otherwise build from the page.
+        if "cart.php" in (fetch.url or "").lower() and not parse_qs(urlparse(fetch.url).query).get("a"):
+            mapping = _build_dmit_pid_map(fetch.text)
+            _dmit_pid_cache["dmit"] = mapping
+        else:
+            _get_dmit_pid_map(client, fetch.url)
+
     try:
         if log_enabled:
             print(f"[scrape:{domain}] stage=simple_parse start", flush=True)
         products = [_product_with_special_flag(p) for p in parser.parse(fetch.text, base_url=fetch.url)]
         products = [p for p in products if not _looks_like_noise_product(p)]
         deduped: dict[str, Product] = {p.id: p for p in products}
+
+        # DMIT: inject products directly from the cart.php listing PID map.
+        # The generic parser can't pick up DMIT's hidden-div custom template.
+        if domain == "www.dmit.io":
+            dmit_map = _dmit_pid_cache.get("dmit", {})
+            if dmit_map:
+                dmit_products = _dmit_map_to_products(dmit_map, base_url=fetch.url, domain=domain)
+                for dp in dmit_products:
+                    dp = _product_with_special_flag(dp)
+                    if dp.id not in deduped:
+                        deduped[dp.id] = dp
+                    elif not deduped[dp.id].price and dp.price:
+                        # Prefer the listing entry if it has more info
+                        deduped[dp.id] = dp
+
         initial_product_count = len(deduped)
         hidden_allowed = bool(scan_platform and domain not in hidden_scan_denylist)
         parallel_simple_hidden = os.getenv("PARALLEL_SIMPLE_HIDDEN", "1").strip() != "0"
@@ -1238,6 +1402,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                     flush=True,
                 )
             hidden_executor = ThreadPoolExecutor(max_workers=1)
+            _dmit_seed_pids = sorted(_dmit_pid_cache.get("dmit", {}).keys()) if domain == "www.dmit.io" else None
             hidden_future = hidden_executor.submit(
                 _scan_whmcs_hidden_products,
                 client,
@@ -1245,8 +1410,10 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 base_url=fetch.url,
                 existing_ids=set(deduped.keys()),
                 seed_urls=seed_urls,
+                seed_pids=_dmit_seed_pids,
                 deadline=hidden_deadline,
                 platform=scan_platform,
+                skip_gid=(domain == "www.dmit.io"),
             )
 
         if allow_expansion and (not _deadline_exceeded()) and (
@@ -1261,12 +1428,12 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
             # Only apply higher defaults when the user hasn't explicitly configured a limit.
             if raw_page_limit is None:
                 if domain == "greencloudvps.com":
-                    max_pages_limit = max(max_pages_limit, 40)
+                    max_pages_limit = max(max_pages_limit, 200)
                 if is_whmcs:
-                    max_pages_limit = max(max_pages_limit, 64)
+                    max_pages_limit = max(max_pages_limit, 128)
                 if is_hostbill:
                     # HostBill-style carts often require an extra discovery hop from category -> products.
-                    max_pages_limit = max(max_pages_limit, 48)
+                    max_pages_limit = max(max_pages_limit, 96)
 
             if max_pages_limit > 0:
                 discovered = []
@@ -1280,11 +1447,11 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 discovered = _dedupe_keep_order([u for u in discovered if u and u != fetch.url])
                 discovered_seen = set(discovered)
 
-                max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "500"))
+                max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "1000"))
                 # WHMCS category pages may be sparse/non-contiguous; avoid stopping too early.
-                default_stop = "0" if (is_whmcs or is_hostbill) else "4"
+                default_stop = "0" if (is_whmcs or is_hostbill) else "12"
                 stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", default_stop))
-                fetch_error_default = "0" if (is_whmcs or is_hostbill) else "4"
+                fetch_error_default = "0" if (is_whmcs or is_hostbill) else "12"
                 stop_after_fetch_errors = int(os.getenv("DISCOVERY_STOP_AFTER_FETCH_ERRORS", fetch_error_default))
                 raw_strict_stop = os.getenv("DISCOVERY_STRICT_FETCH_ERROR_STOP", "").strip().lower()
                 if raw_strict_stop in {"1", "true", "yes", "on"}:
@@ -1301,9 +1468,9 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 pages_visited = 0
                 new_pages_discovered = 0
                 discovery_stop_reason = "queue_exhausted"
-                discovery_workers = int(os.getenv("DISCOVERY_WORKERS", "4"))
-                discovery_workers = max(1, min(discovery_workers, 12))
-                discovery_batch = int(os.getenv("DISCOVERY_BATCH", "6"))
+                discovery_workers = int(os.getenv("DISCOVERY_WORKERS", "6"))
+                discovery_workers = max(1, min(discovery_workers, 16))
+                discovery_batch = int(os.getenv("DISCOVERY_BATCH", "10"))
                 discovery_batch = max(1, min(discovery_batch, 20))
 
                 queue_idx = 0
@@ -1438,14 +1605,17 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
             seed_urls.extend(initial_candidates)
             seed_urls.extend(_default_entrypoint_pages(fetch.url))
             seed_urls = _dedupe_keep_order(seed_urls)
+            _dmit_seed_pids2 = sorted(_dmit_pid_cache.get("dmit", {}).keys()) if domain == "www.dmit.io" else None
             hidden = _scan_whmcs_hidden_products(
                 client,
                 parser,
                 base_url=fetch.url,
                 existing_ids=set(deduped.keys()),
                 seed_urls=seed_urls,
+                seed_pids=_dmit_seed_pids2,
                 deadline=hidden_deadline,
                 platform=scan_platform,
+                skip_gid=(domain == "www.dmit.io"),
             )
             for hp in hidden:
                 hp = _product_with_special_flag(hp)
@@ -1640,6 +1810,7 @@ def _infer_availability_from_detail_html(
         if marker is None and not txt:
             return False
 
+    enabled_buy_button = False
     for el in soup.select("a, button, input[type='submit'], input[type='button']"):
         cls = " ".join(el.get("class", [])) if hasattr(el, "get") else ""
         cls_l = cls.lower()
@@ -1653,6 +1824,7 @@ def _infer_availability_from_detail_html(
         if marker is True and not disabled:
             return True
         if marker is None and not disabled and looks_like_purchase_action(label):
+            enabled_buy_button = True
             if has_order_form_markers or domain_l in {"cloud.colocrossing.com"}:
                 return True
             # Without form markers, purchase labels alone are weaker; keep evaluating.
@@ -1663,6 +1835,9 @@ def _infer_availability_from_detail_html(
         return True
     if page_level_avail is False:
         return False
+    # If we found an enabled purchase button and no OOS markers on the page, assume In Stock.
+    if enabled_buy_button:
+        return True
     return None
 
 
@@ -2460,8 +2635,10 @@ def _scan_whmcs_hidden_products(
     base_url: str,
     existing_ids: set[str],
     seed_urls: list[str] | None = None,
+    seed_pids: list[int] | None = None,
     deadline: float | None = None,
     platform: str = "whmcs",
+    skip_gid: bool = False,
 ) -> list[Product]:
     """
     Brute-force hidden cart endpoints for WHMCS/HostBill platforms.
@@ -2476,6 +2653,11 @@ def _scan_whmcs_hidden_products(
 
     legacy_stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "10"))
     pid_stop_after_no_info = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO", str(legacy_stop_after_miss)))
+    # Sparse PID allocations (e.g. DMIT: 56, 58, 61, 71, 81...) need a higher threshold
+    # to bridge the gaps between known products. When seed_pids are provided, we know
+    # the PID space is sparse, so extend the brute-force tolerance.
+    if seed_pids and pid_stop_after_no_info < 50:
+        pid_stop_after_no_info = 50
     gid_stop_after_same_page = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE", "12"))
     pid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS", "60"))
     gid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS", "60"))
@@ -2483,8 +2665,8 @@ def _scan_whmcs_hidden_products(
     gid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES", "40"))
     redirect_sig_stop_after = int(os.getenv("WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER", "36"))
     min_probe_before_stop = int(os.getenv("WHMCS_HIDDEN_MIN_PROBE", "0"))
-    batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "3"))
-    workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "2"))
+    batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "12"))
+    workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "8"))
     hard_max_pid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_PID", "2000"))
     hard_max_gid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_GID", "2000"))
     candidate_pid_limit = int(os.getenv("WHMCS_HIDDEN_PID_CANDIDATES_MAX", "200"))
@@ -2582,7 +2764,9 @@ def _scan_whmcs_hidden_products(
                 if _deadline_exceeded():
                     return cur_id, False, False, [], set(), fallback_signature, fallback_redirect_signature
                 url = tmpl.format(**{kind: cur_id})
-                fetch = _fetch_text(client, url, allow_flaresolverr=True)
+                fetch = _fetch_text(client, url, allow_flaresolverr=False)
+                if (not fetch.ok or not fetch.text) and _is_blocked_fetch(fetch):
+                    fetch = _fetch_text(client, url, allow_flaresolverr=True)
                 if not fetch.ok or not fetch.text:
                     continue
                 html = fetch.text
@@ -2824,18 +3008,26 @@ def _scan_whmcs_hidden_products(
                         else:
                             gid_no_progress_streak += 1
 
-    if seed_gids:
-        scan_ids(kind=group_kind, ids=sorted(seed_gids))
-    scan_ids(kind=group_kind)
+    if not skip_gid:
+        if seed_gids:
+            scan_ids(kind=group_kind, ids=sorted(seed_gids))
+        scan_ids(kind=group_kind)
 
-    # If gid pages expose pid links, probe those pids first (handles sparse/non-consecutive pid allocations).
-    if pid_candidates and pid_endpoints:
-        probe_list = sorted(pid_candidates)
-        if candidate_pid_limit > 0:
-            probe_list = probe_list[:candidate_pid_limit]
-        if probe_list:
-            probed_pids.update(probe_list)
-            scan_ids(kind=product_kind, ids=probe_list)
+        # If gid pages expose pid links, probe those pids first (handles sparse/non-consecutive pid allocations).
+        if pid_candidates and pid_endpoints:
+            probe_list = sorted(pid_candidates)
+            if candidate_pid_limit > 0:
+                probe_list = probe_list[:candidate_pid_limit]
+            if probe_list:
+                probed_pids.update(probe_list)
+                scan_ids(kind=product_kind, ids=probe_list)
+
+    # Pre-probe seed pids (e.g. from listing page PID maps) before brute-force.
+    if seed_pids:
+        seed_pid_list = sorted(set(seed_pids) - probed_pids)
+        if seed_pid_list:
+            probed_pids.update(seed_pid_list)
+            scan_ids(kind=product_kind, ids=seed_pid_list)
 
     scan_ids(kind=product_kind)
     return list(found_products.values())
