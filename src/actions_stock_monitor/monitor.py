@@ -2649,7 +2649,7 @@ def _looks_like_whmcs_gid_page(html: str) -> bool:
     return False
 
 
-def _looks_like_hostbill_id_page(html: str) -> bool:
+def _looks_like_hostbill_id_page(html: str, *, url: str = "") -> bool:
     text = compact_ws(html or "")
     if not text:
         return False
@@ -2666,10 +2666,13 @@ def _looks_like_hostbill_id_page(html: str) -> bool:
         return True
     if any(k in tl for k in ("billing cycle", "configoption", "configure", "action=add&id=", "step=3")):
         return True
+    ul = url.lower()
+    if "step=3" in ul or "action=add&amp;id=" in ul or "action=add&id=" in ul:
+        return True
     return False
 
 
-def _looks_like_hostbill_group_page(html: str) -> bool:
+def _looks_like_hostbill_group_page(html: str, *, url: str = "") -> bool:
     text = compact_ws(html or "")
     if not text:
         return False
@@ -2687,6 +2690,9 @@ def _looks_like_hostbill_group_page(html: str) -> bool:
         return True
     if any(k in tl for k in ("?/cart/", "/cart/")) and any(k in tl for k in ("add to cart", "configure", "order")):
         return True
+    ul = url.lower()
+    if "?/cart/" in ul and "category" not in ul: # Category listing is the main page
+        pass
     return False
 
 
@@ -2818,6 +2824,12 @@ def _scan_whmcs_hidden_products(
                 try:
                     p = urlparse(u)
                     path = (p.path or "/").rstrip("/") or "/"
+                    # Some platforms (like HostBill) use the query string for routing (e.g. index.php?/cart/my-category/)
+                    if p.query and p.query.startswith("/"):
+                        # Append the route portion to the signature path
+                        path_route = p.query.split("&")[0].rstrip("/")
+                        if path_route:
+                            path += "?" + path_route
                     return f"{p.scheme}://{p.netloc}{path}".lower()
                 except Exception:
                     return compact_ws(u).lower()
@@ -2846,13 +2858,13 @@ def _scan_whmcs_hidden_products(
                 if got is None and fallback_redirect_signature is None:
                     fallback_redirect_signature = _redirect_signature(fetch.url)
                 if kind == product_kind:
-                    evidence = _looks_like_whmcs_pid_page(html) if platform_l == "whmcs" else _looks_like_hostbill_id_page(html)
+                    evidence = _looks_like_whmcs_pid_page(html) if platform_l == "whmcs" else _looks_like_hostbill_id_page(html, url=fetch.url)
                 else:
-                    evidence = _looks_like_whmcs_gid_page(html) if platform_l == "whmcs" else _looks_like_hostbill_group_page(html)
+                    evidence = _looks_like_whmcs_gid_page(html) if platform_l == "whmcs" else _looks_like_hostbill_group_page(html, url=fetch.url)
 
                 if kind == product_kind and platform_l == "whmcs" and got is None and not id_mentioned and not evidence:
                     continue
-                if kind == product_kind and platform_l == "whmcs" and evidence and not id_mentioned:
+                if kind == product_kind and evidence and not id_mentioned:
                     # Some sites serve a generic default/cart page for any pid; don't treat that as evidence.
                     # However, if we definitively found a stock marker on the page, keep the evidence.
                     if extract_availability(compact_ws(html or "")) is None:
