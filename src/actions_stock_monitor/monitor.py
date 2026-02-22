@@ -1529,14 +1529,20 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
 
         initial_product_count = len(deduped)
         initial_ids = set(deduped.keys())
-        hidden_allowed = bool(scan_platform and domain not in hidden_scan_denylist)
         parallel_simple_hidden = os.getenv("PARALLEL_SIMPLE_HIDDEN", "1").strip() != "0"
         hidden_future = None
         hidden_executor = None
 
-        # Pre-compute candidate pages once 鈥?avoids calling _discover_candidate_pages twice
+        # Pre-compute candidate pages once - avoids calling _discover_candidate_pages twice
         # (once inside _should_force_discovery and again below).
         initial_candidates = _discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain) if allow_expansion else []
+        if not scan_platform and initial_candidates:
+            scan_platform = _infer_platform_from_urls(base_url=fetch.url, candidate_urls=initial_candidates)
+            if scan_platform == "hostbill":
+                is_hostbill = True
+            elif scan_platform == "whmcs":
+                is_whmcs = True
+        hidden_allowed = bool(scan_platform and domain not in hidden_scan_denylist)
         if allow_expansion and hidden_allowed and parallel_simple_hidden and (not _deadline_exceeded()):
             raw_hidden_budget = os.getenv("WHMCS_HIDDEN_MAX_DURATION_SECONDS", "360").strip()
             try:
@@ -1560,7 +1566,9 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                     flush=True,
                 )
             hidden_executor = ThreadPoolExecutor(max_workers=1)
-            _dmit_seed_pids = sorted(_dmit_pid_cache.get("dmit", {}).keys()) if domain == "www.dmit.io" else None
+            _seed_probe_ids = _seed_scan_ids_from_products(list(deduped.values()), platform=scan_platform)
+            if domain == "www.dmit.io":
+                _seed_probe_ids = sorted(set(_seed_probe_ids) | set(_dmit_pid_cache.get("dmit", {}).keys()))
             hidden_future = hidden_executor.submit(
                 _scan_whmcs_hidden_products,
                 client,
@@ -1568,7 +1576,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 base_url=fetch.url,
                 existing_ids=set(deduped.keys()),
                 seed_urls=seed_urls,
-                seed_pids=_dmit_seed_pids,
+                seed_pids=_seed_probe_ids or None,
                 deadline=hidden_deadline,
                 platform=scan_platform,
                 skip_gid=(domain == "www.dmit.io"),
@@ -1792,14 +1800,16 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
             seed_urls.extend(initial_candidates)
             seed_urls.extend(_default_entrypoint_pages(fetch.url))
             seed_urls = _dedupe_keep_order(seed_urls)
-            _dmit_seed_pids2 = sorted(_dmit_pid_cache.get("dmit", {}).keys()) if domain == "www.dmit.io" else None
+            _seed_probe_ids2 = _seed_scan_ids_from_products(list(deduped.values()), platform=scan_platform)
+            if domain == "www.dmit.io":
+                _seed_probe_ids2 = sorted(set(_seed_probe_ids2) | set(_dmit_pid_cache.get("dmit", {}).keys()))
             hidden = _scan_whmcs_hidden_products(
                 client,
                 parser,
                 base_url=fetch.url,
                 existing_ids=set(deduped.keys()),
                 seed_urls=seed_urls,
-                seed_pids=_dmit_seed_pids2,
+                seed_pids=_seed_probe_ids2 or None,
                 deadline=hidden_deadline,
                 platform=scan_platform,
                 skip_gid=(domain == "www.dmit.io"),
@@ -1985,6 +1995,33 @@ def _is_hostbill_domain(domain: str, html: str) -> bool:
     ):
         return True
     return False
+
+
+def _infer_platform_from_urls(*, base_url: str, candidate_urls: list[str]) -> str:
+    urls: list[str] = [base_url]
+    for raw in candidate_urls:
+        if not raw:
+            continue
+        try:
+            urls.append(urljoin(base_url, raw))
+        except Exception:
+            urls.append(raw)
+
+    for raw_url in urls:
+        u = compact_ws(str(raw_url or "")).lower()
+        if not u:
+            continue
+        if any(marker in u for marker in ("index.php?/cart/", "?/cart/", "action=add&id=", "cat_id=", "fid=")):
+            return "hostbill"
+
+    for raw_url in urls:
+        u = compact_ws(str(raw_url or "")).lower()
+        if not u:
+            continue
+        if any(marker in u for marker in ("cart.php", "rp=/store", "a=add&pid=", "gid=")):
+            return "whmcs"
+
+    return ""
 
 
 def _should_force_discovery(html: str, *, base_url: str, domain: str, product_count: int) -> bool:
@@ -2652,6 +2689,23 @@ def _query_param_int(url: str, key: str) -> int | None:
     return None
 
 
+def _seed_scan_ids_from_products(products: list[Product], *, platform: str) -> list[int]:
+    platform_l = (platform or "").strip().lower()
+    if platform_l == "hostbill":
+        id_keys = ("id", "product_id", "pid", "planid")
+    else:
+        id_keys = ("pid", "product_id", "id", "planid")
+
+    out: set[int] = set()
+    for product in products or []:
+        for key in id_keys:
+            pid = _query_param_int(product.url, key)
+            if isinstance(pid, int) and pid >= 0:
+                out.add(pid)
+                break
+    return sorted(out)
+
+
 _HIDDEN_SCAN_ID_RE = re.compile(r"(?:[?&]|&amp;)(pid|id|product_id|gid|fid|cat_id)=(\d+)\b", re.IGNORECASE)
 
 
@@ -2908,11 +2962,6 @@ def _scan_whmcs_hidden_products(
 
     legacy_stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "150"))
     pid_stop_after_no_info = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO", str(legacy_stop_after_miss)))
-    # Sparse PID allocations (e.g. DMIT: 56, 58, 61, 71, 81...) need a higher threshold
-    # to bridge the gaps between known products. When seed_pids are provided, we know
-    # the PID space is sparse, so extend the brute-force tolerance.
-    if seed_pids and pid_stop_after_no_info < 200:
-        pid_stop_after_no_info = 200
     gid_stop_after_same_page = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE", "100"))
     pid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS", "300"))
     gid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS", "300"))
@@ -2925,6 +2974,7 @@ def _scan_whmcs_hidden_products(
     hard_max_pid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_PID", "5000"))
     hard_max_gid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_GID", "5000"))
     candidate_pid_limit = int(os.getenv("WHMCS_HIDDEN_PID_CANDIDATES_MAX", "1000"))
+    pid_seed_backtrack = int(os.getenv("WHMCS_HIDDEN_PID_SEED_BACKTRACK", "120"))
     pid_stop_after_no_info = max(0, pid_stop_after_no_info)
     gid_stop_after_same_page = max(0, gid_stop_after_same_page)
     pid_stop_after_no_progress = max(0, pid_stop_after_no_progress)
@@ -2952,14 +3002,26 @@ def _scan_whmcs_hidden_products(
     pid_candidates: set[int] = set()
     probed_pids: set[int] = set()
     seed_gids: set[int] = set()
+    seed_probe_ids: set[int] = set(int(x) for x in (seed_pids or []) if isinstance(x, int) and x >= 0)
 
     for u in seed_urls or []:
         abs_u = urljoin(base_url, u)
+        for probe_key in candidate_id_keys:
+            probe_id = _query_param_int(abs_u, probe_key)
+            if isinstance(probe_id, int) and probe_id >= 0:
+                seed_probe_ids.add(probe_id)
+                break
         for group_key in hostbill_group_keys:
             gid = _query_param_int(abs_u, group_key)
             if isinstance(gid, int) and gid >= 0:
                 seed_gids.add(gid)
                 break
+
+    # Sparse PID allocations (e.g. DMIT: 56, 58, 61, 71, 81...) need a higher threshold
+    # to bridge the gaps between known products. When seed IDs are available, we know
+    # the product-id space is sparse/non-zero, so extend the brute-force tolerance.
+    if seed_probe_ids and pid_stop_after_no_info < 200:
+        pid_stop_after_no_info = 200
 
     def _deadline_exceeded() -> bool:
         return deadline is not None and time.perf_counter() >= deadline
@@ -2993,6 +3055,11 @@ def _scan_whmcs_hidden_products(
             return
 
         cur = 0
+        if kind == product_kind and seed_probe_ids:
+            try:
+                cur = max(0, min(seed_probe_ids) - max(0, pid_seed_backtrack))
+            except Exception:
+                cur = 0
         pid_no_info_streak = 0
         pid_no_progress_streak = 0
         pid_dup_streak = 0
@@ -3347,9 +3414,9 @@ def _scan_whmcs_hidden_products(
                 probed_pids.update(probe_list)
                 scan_ids(kind=product_kind, ids=probe_list)
 
-    # Pre-probe seed pids (e.g. from listing page PID maps) before brute-force.
-    if seed_pids:
-        seed_pid_list = sorted(set(seed_pids) - probed_pids)
+    # Pre-probe seed IDs (e.g. from listing pages and already-seen products) before brute-force.
+    if seed_probe_ids:
+        seed_pid_list = sorted(seed_probe_ids - probed_pids)
         if seed_pid_list:
             probed_pids.update(seed_pid_list)
             scan_ids(kind=product_kind, ids=seed_pid_list)

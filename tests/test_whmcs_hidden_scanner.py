@@ -198,6 +198,56 @@ class _RedirectingGidClient(_FakeClient):
         return super().fetch_text(url, allow_flaresolverr=allow_flaresolverr)
 
 
+class _SparsePidClient(_FakeClient):
+    def __init__(self, domain: str, live_pids: set[int]) -> None:
+        super().__init__(pages={})
+        self._domain = domain
+        self._live_pids = set(live_pids)
+
+    def fetch_text(self, url: str, *, allow_flaresolverr: bool = True) -> _Fetch:
+        self.calls.append(url)
+        qs = parse_qs(urlparse(url).query)
+        pid = (qs.get("pid") or [None])[0]
+        if isinstance(pid, str) and pid.isdigit() and int(pid) in self._live_pids:
+            return _Fetch(
+                url=url,
+                ok=True,
+                text=(
+                    f"<html><h1>plan-{pid}</h1>"
+                    f"<input type='hidden' name='pid' value='{pid}'>"
+                    "<select name='billingcycle'><option>Monthly</option></select>"
+                    "<button>Add to cart</button></html>"
+                ),
+            )
+        return _Fetch(url=f"https://{self._domain}/cart.php", ok=True, text="<html>default page</html>")
+
+
+class _SparsePidParser:
+    def __init__(self, domain: str, live_pids: set[int]) -> None:
+        self._domain = domain
+        self._live_pids = set(live_pids)
+
+    def parse(self, html: str, *, base_url: str) -> list[Product]:
+        qs = parse_qs(urlparse(base_url).query)
+        pid = (qs.get("pid") or [None])[0]
+        if isinstance(pid, str) and pid.isdigit() and int(pid) in self._live_pids:
+            url = f"https://{self._domain}/cart.php?a=add&pid={pid}"
+            pid_norm = f"{self._domain}::{normalize_url_for_id(url)}"
+            return [
+                Product(
+                    id=pid_norm,
+                    domain=self._domain,
+                    url=url,
+                    name=f"pid-{pid}",
+                    price="1.00 USD",
+                    description=None,
+                    specs=None,
+                    available=True,
+                )
+            ]
+        return []
+
+
 class TestWhmcsHiddenScanner(unittest.TestCase):
     def test_scanner_stops_after_consecutive_misses_and_returns_all_stock_states(self) -> None:
         domain = "example.test"
@@ -557,6 +607,42 @@ class TestWhmcsHiddenScanner(unittest.TestCase):
             if (qs.get("pid") or [None])[0] is not None:
                 pid_calls += 1
         self.assertEqual(pid_calls, 6)
+
+    def test_pid_scan_uses_seed_ids_to_start_near_active_range(self) -> None:
+        domain = "example.test"
+        base_url = f"https://{domain}/"
+        live_pids = {1207}
+        client = _SparsePidClient(domain=domain, live_pids=live_pids)
+        parser = _SparsePidParser(domain=domain, live_pids=live_pids)
+
+        env = {
+            "WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO": "500",
+            "WHMCS_HIDDEN_BATCH": "8",
+            "WHMCS_HIDDEN_WORKERS": "4",
+            "WHMCS_HIDDEN_HARD_MAX_PID": "1300",
+            "WHMCS_HIDDEN_HARD_MAX_GID": "0",
+            "WHMCS_HIDDEN_PID_SEED_BACKTRACK": "120",
+            "WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER": "0",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            out = _scan_whmcs_hidden_products(
+                client,
+                parser,
+                base_url=base_url,
+                existing_ids=set(),
+                seed_pids=[1200],
+            )
+
+        pid1207 = f"https://{domain}/cart.php?a=add&pid=1207"
+        self.assertTrue(any(p.url == pid1207 for p in out))
+        called_pids = []
+        for url in client.calls:
+            qs = parse_qs(urlparse(url).query)
+            pid = (qs.get("pid") or [None])[0]
+            if isinstance(pid, str) and pid.isdigit():
+                called_pids.append(int(pid))
+        self.assertTrue(called_pids)
+        self.assertGreaterEqual(min(called_pids), 1000)
 
 
 if __name__ == "__main__":

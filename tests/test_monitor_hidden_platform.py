@@ -77,6 +77,54 @@ class TestMonitorHiddenPlatform(unittest.TestCase):
         self.assertTrue(scan_mock.called)
         self.assertEqual(scan_mock.call_args.kwargs.get("platform"), "whmcs")
 
+    def test_scrape_infers_whmcs_platform_from_candidate_urls(self) -> None:
+        target = "https://unknown.example/"
+        pages = {
+            target: _Fetch(url=target, ok=True, text="<html><a href='/products'>Plans</a></html>"),
+        }
+        client = _FakeClient(pages)
+
+        env = {
+            "MONITOR_LOG": "0",
+            "PARALLEL_SIMPLE_HIDDEN": "0",
+            "DISCOVERY_MAX_PAGES_PER_DOMAIN": "0",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            with mock.patch("actions_stock_monitor.monitor.get_parser_for_domain", return_value=_FakeParser()):
+                with mock.patch("actions_stock_monitor.monitor._discover_candidate_pages", return_value=["/cart.php?gid=3"]):
+                    with mock.patch("actions_stock_monitor.monitor._needs_discovery", return_value=False):
+                        with mock.patch("actions_stock_monitor.monitor._should_force_discovery_with_candidates", return_value=False):
+                            with mock.patch("actions_stock_monitor.monitor._scan_whmcs_hidden_products", return_value=[]) as scan_mock:
+                                run = _scrape_target(client, target, allow_expansion=True)
+
+        self.assertTrue(run.ok)
+        self.assertTrue(scan_mock.called)
+        self.assertEqual(scan_mock.call_args.kwargs.get("platform"), "whmcs")
+
+    def test_scrape_infers_hostbill_platform_from_candidate_urls(self) -> None:
+        target = "https://unknown-hb.example/"
+        pages = {
+            target: _Fetch(url=target, ok=True, text="<html><a href='/products'>Plans</a></html>"),
+        }
+        client = _FakeClient(pages)
+
+        env = {
+            "MONITOR_LOG": "0",
+            "PARALLEL_SIMPLE_HIDDEN": "0",
+            "DISCOVERY_MAX_PAGES_PER_DOMAIN": "0",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            with mock.patch("actions_stock_monitor.monitor.get_parser_for_domain", return_value=_FakeParser()):
+                with mock.patch("actions_stock_monitor.monitor._discover_candidate_pages", return_value=["/index.php?/cart/&cat_id=2"]):
+                    with mock.patch("actions_stock_monitor.monitor._needs_discovery", return_value=False):
+                        with mock.patch("actions_stock_monitor.monitor._should_force_discovery_with_candidates", return_value=False):
+                            with mock.patch("actions_stock_monitor.monitor._scan_whmcs_hidden_products", return_value=[]) as scan_mock:
+                                run = _scrape_target(client, target, allow_expansion=True)
+
+        self.assertTrue(run.ok)
+        self.assertTrue(scan_mock.called)
+        self.assertEqual(scan_mock.call_args.kwargs.get("platform"), "hostbill")
+
 
 if __name__ == "__main__":
     unittest.main()
