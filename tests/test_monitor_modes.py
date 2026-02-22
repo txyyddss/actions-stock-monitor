@@ -88,6 +88,25 @@ class TestMonitorModes(unittest.TestCase):
         self.assertTrue(calls_full and all(calls_full))
         self.assertTrue(calls_lite and not any(calls_lite))
 
+    def test_run_monitor_clamps_non_positive_max_workers(self) -> None:
+        previous_state = {"products": {}, "domains": {}, "last_run": {}}
+        targets = ["https://example.test/"]
+
+        def fake_scrape(_client, _target: str, *, allow_expansion: bool = True) -> DomainRun:
+            return DomainRun(domain="example.test", ok=True, error=None, duration_ms=1, products=[])
+
+        with mock.patch("actions_stock_monitor.monitor._scrape_target", side_effect=fake_scrape):
+            state, _summary = run_monitor(
+                previous_state=previous_state,
+                targets=targets,
+                timeout_seconds=5.0,
+                max_workers=0,
+                dry_run=True,
+                mode="full",
+            )
+
+        self.assertIn("example.test", state["domains"])
+
     def test_full_default_run_prunes_removed_domains(self) -> None:
         previous_state = {
             "products": {

@@ -59,7 +59,11 @@ class HttpClient:
         self._proxy_map = {"http": proxy_url, "https": proxy_url} if proxy_url else None
         self._flaresolverr_url = flaresolverr_url.rstrip("/") if flaresolverr_url else None
         self._user_agents = user_agents or DEFAULT_USER_AGENTS
-        self._max_retries = max_retries
+        try:
+            retries = int(max_retries)
+        except Exception:
+            retries = 1
+        self._max_retries = max(1, retries)
 
         self._local = threading.local()
         self._cookie_lock = threading.Lock()

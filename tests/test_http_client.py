@@ -150,6 +150,21 @@ class TestHttpClientRetries(unittest.TestCase):
         self.assertEqual(res.error, "HTTP 403")
         self.assertEqual(client._session().post.call_count, 0)
 
+    def test_max_retries_is_clamped_to_at_least_one(self) -> None:
+        client = HttpClient(timeout_seconds=1.0, max_retries=0)
+
+        resp_200 = Mock()
+        resp_200.status_code = 200
+        resp_200.url = "https://example.test/"
+        resp_200.text = "<html>ok</html>"
+        resp_200.headers = {}
+
+        client._session().get = Mock(return_value=resp_200)
+
+        res = client.fetch_text("https://example.test/")
+        self.assertTrue(res.ok)
+        self.assertEqual(client._session().get.call_count, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

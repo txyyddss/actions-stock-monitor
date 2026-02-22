@@ -1031,6 +1031,29 @@ def _compose_message_name(product: Product) -> str:
     return display
 
 
+def _trim_text_for_escaped_len(text: str, max_escaped_len: int) -> str:
+    if max_escaped_len <= 0:
+        return ""
+    raw = text or ""
+    if len(h(raw)) <= max_escaped_len:
+        return raw
+    ellipsis = "..."
+    if len(h(ellipsis)) > max_escaped_len:
+        return ""
+    lo = 0
+    hi = len(raw)
+    best = ellipsis
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        candidate = (raw[:mid].rstrip() + ellipsis) if mid < len(raw) else raw[:mid].rstrip()
+        if len(h(candidate)) <= max_escaped_len:
+            best = candidate
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return best
+
+
 def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
     _ICONS = {
         "RESTOCK": "🔄",
@@ -1076,37 +1099,74 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
         info_parts.append(f"📍 {h(msg_location)}")
     parts.append("  ·  ".join(info_parts))
 
+    cycle_block: str | None = None
     if product.cycle_prices:
         order = ["Monthly", "Quarterly", "Semiannual", "Yearly", "Biennial", "Triennial", "Quadrennial", "Quinquennial", "One-Time"]
         items = sorted(product.cycle_prices.items(), key=lambda kv: (order.index(kv[0]) if kv[0] in order else 999, kv[0]))
         cp_lines = [f"{k}: {v}" for k, v in items]
-        parts.append(f"<pre>{h(chr(10).join(cp_lines))}</pre>")
+        cycle_block = f"<pre>{h(chr(10).join(cp_lines))}</pre>"
+        parts.append(cycle_block)
     elif product.billing_cycles:
-        parts.append(f"🔁 {h(', '.join(product.billing_cycles))}")
+        cycle_block = f"🔁 {h(', '.join(product.billing_cycles))}"
+        parts.append(cycle_block)
 
+    spec_block: str | None = None
     if product.specs:
         prio = ["CPU", "RAM", "Disk", "Storage", "Transfer", "Traffic", "Bandwidth", "Port", "IPv4", "IPv6", "Location", "Data Center"]
         filtered_specs = [(k, v) for k, v in product.specs.items() if compact_ws(k).lower() != "cycles"]
         items = sorted(filtered_specs, key=lambda kv: (prio.index(kv[0]) if kv[0] in prio else 999, str(kv[0])))
         spec_lines = [f"{k}: {v}" for k, v in items[:15] if k and v]
         if spec_lines:
-            parts.append(f"<b>Specs:</b>\n<pre>{h(chr(10).join(spec_lines))}</pre>")
+            spec_block = f"<b>Specs:</b>\n<pre>{h(chr(10).join(spec_lines))}</pre>"
+            parts.append(spec_block)
 
+    desc = ""
+    desc_block: str | None = None
     if product.description and product.description.strip():
         desc = product.description.strip()
-        parts.append(f"<blockquote>{h(desc)}</blockquote>")
+        desc_block = f"<blockquote>{h(desc)}</blockquote>"
+        parts.append(desc_block)
 
-    parts.append(f'🔗 <a href="{h(product.url)}">Open Product Page</a>')
+    link_block = f'🔗 <a href="{h(product.url)}">Open Product Page</a>'
+    parts.append(link_block)
     parts.append(f"<code>{h(now)}</code>")
 
     message = "\n".join(parts)
+    if len(message) > 4096 and desc and desc_block is not None:
+        base_without_desc = "\n".join(p for p in parts if p != desc_block)
+        # Account for one separator newline when reinserting the blockquote line.
+        available_desc_escaped_len = max(0, 4096 - len(base_without_desc) - len("<blockquote></blockquote>") - 1)
+        trimmed_desc = _trim_text_for_escaped_len(desc, available_desc_escaped_len)
+        new_desc_block = f"<blockquote>{h(trimmed_desc)}</blockquote>" if trimmed_desc else None
+        parts = [p for p in parts if p != desc_block]
+        if new_desc_block:
+            insert_at = max(0, len(parts) - 2)
+            parts.insert(insert_at, new_desc_block)
+        message = "\n".join(parts)
+
+    if len(message) > 4096 and spec_block is not None:
+        parts = [p for p in parts if p != spec_block]
+        message = "\n".join(parts)
+
+    if len(message) > 4096 and cycle_block is not None:
+        parts = [p for p in parts if p != cycle_block]
+        message = "\n".join(parts)
+
     if len(message) > 4096:
-        # If it exceeds Telegram limit we still want to not cut the *description* per user request, 
-        # but the Telegram API will reject > 4096 chars. 
-        # Since I am asked "do not cut the long detailed product description", I will let it exceed,
-        # or we could forcefully truncate but preserve tags. The easiest is just returning it
-        # and letting the API return a 400 Bad Request if it's too long.
-        pass
+        minimal_parts = [f"{emoji} <b>{h(kind)}</b>  ·  <b>#{h(domain_tag)}</b>"]
+        minimal_name = _trim_text_for_escaped_len(original_name, 320)
+        if minimal_name:
+            minimal_parts.append(f"<b>{h(minimal_name)}</b>")
+        if product.price:
+            price_text = _trim_text_for_escaped_len(product.price, 120)
+            if price_text:
+                minimal_parts.append(f"💵 {h(price_text)}")
+        candidate_with_link = "\n".join(minimal_parts + [link_block, f"<code>{h(now)}</code>"])
+        if len(candidate_with_link) <= 4096:
+            minimal_parts.append(link_block)
+        minimal_parts.append(f"<code>{h(now)}</code>")
+        message = "\n".join(minimal_parts)
+
     return message
 
 def run_monitor(
@@ -1121,6 +1181,11 @@ def run_monitor(
     mode = (mode or "full").strip().lower()
     if mode not in {"full", "lite"}:
         mode = "full"
+    try:
+        worker_count = int(max_workers)
+    except Exception:
+        worker_count = 1
+    worker_count = max(1, worker_count)
 
     configured_targets = targets or DEFAULT_TARGETS
     explicit_targets = bool(targets)
@@ -1154,7 +1219,7 @@ def run_monitor(
         print(
             (
                 f"[monitor] start mode={mode} configured_targets={len(configured_targets)} "
-                f"selected_targets={total_targets} max_workers={max_workers} "
+                f"selected_targets={total_targets} max_workers={worker_count} "
                 f"timeout_seconds={timeout_seconds} allow_expansion={allow_expansion} "
                 f"prune_missing_products={prune_missing_products} "
                 f"prune_removed_domains={prune_removed_domains}"
@@ -1162,7 +1227,7 @@ def run_monitor(
             flush=True,
         )
     completed = 0
-    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+    with ThreadPoolExecutor(max_workers=worker_count) as ex:
         futures = {
             ex.submit(_scrape_target, client, target, allow_expansion=allow_expansion): target
             for target in effective_targets

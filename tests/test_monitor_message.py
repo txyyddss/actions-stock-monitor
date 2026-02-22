@@ -72,6 +72,23 @@ class TestMonitorMessage(unittest.TestCase):
         # Cycles must not be duplicated in specs block
         self.assertNotIn("Cycles:", msg)
 
+    def test_format_message_is_capped_for_telegram_limit(self) -> None:
+        p = Product(
+            id="d::u",
+            domain="example.test",
+            url="https://example.test/buy",
+            name="Example Plan",
+            price="9.99 USD",
+            currency="USD",
+            description=("very long description " * 800).strip(),
+            specs={"RAM": "2GB RAM", "CPU": "1 vCPU"},
+            available=True,
+        )
+
+        msg = _format_message("NEW PRODUCT", "NEW", p, "2026-02-18T00:00:00+00:00")
+        self.assertLessEqual(len(msg), 4096)
+        self.assertIn("Open Product Page", msg)
+
 
 if __name__ == "__main__":
     unittest.main()
