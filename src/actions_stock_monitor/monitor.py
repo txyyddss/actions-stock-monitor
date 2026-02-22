@@ -1371,6 +1371,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                         deduped[dp.id] = dp
 
         initial_product_count = len(deduped)
+        initial_ids = set(deduped.keys())
         hidden_allowed = bool(scan_platform and domain not in hidden_scan_denylist)
         parallel_simple_hidden = os.getenv("PARALLEL_SIMPLE_HIDDEN", "1").strip() != "0"
         hidden_future = None
@@ -1380,7 +1381,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         # (once inside _should_force_discovery and again below).
         initial_candidates = _discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain) if allow_expansion else []
         if allow_expansion and hidden_allowed and parallel_simple_hidden and (not _deadline_exceeded()):
-            raw_hidden_budget = os.getenv("WHMCS_HIDDEN_MAX_DURATION_SECONDS", "60").strip()
+            raw_hidden_budget = os.getenv("WHMCS_HIDDEN_MAX_DURATION_SECONDS", "180").strip()
             try:
                 hidden_budget_seconds = float(raw_hidden_budget) if raw_hidden_budget else 60.0
             except Exception:
@@ -1421,7 +1422,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
             or _should_force_discovery_with_candidates(initial_candidates, product_count=len(deduped), base_url=fetch.url)
         ):
             raw_page_limit = os.environ.get("DISCOVERY_MAX_PAGES_PER_DOMAIN")
-            max_pages_limit = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 16
+            max_pages_limit = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 40
             if max_pages_limit <= 0:
                 # Treat 0/negative as "disable discovery" to avoid useless crawl loops.
                 max_pages_limit = 0
@@ -1447,7 +1448,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 discovered = _dedupe_keep_order([u for u in discovered if u and u != fetch.url])
                 discovered_seen = set(discovered)
 
-                max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "1000"))
+                max_products = int(os.getenv("DISCOVERY_MAX_PRODUCTS_PER_DOMAIN", "2000"))
                 # WHMCS category pages may be sparse/non-contiguous; avoid stopping too early.
                 default_stop = "0" if (is_whmcs or is_hostbill) else "12"
                 stop_after_no_new = int(os.getenv("DISCOVERY_STOP_AFTER_NO_NEW_PAGES", default_stop))
@@ -1536,7 +1537,20 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                             for p in page_products:
                                 if p.id not in deduped:
                                     new_count += 1
-                                deduped[p.id] = p
+                                    deduped[p.id] = p
+                                else:
+                                    existing = deduped[p.id]
+                                    if existing.available is False or p.available is False:
+                                        merged_avail = False
+                                    elif existing.available is True or p.available is True:
+                                        merged_avail = True
+                                    else:
+                                        merged_avail = None
+                                    
+                                    p = _clone_product(p, available=merged_avail)
+                                    if not p.name and existing.name:
+                                        p = _clone_product(p, name=existing.name)
+                                    deduped[p.id] = p
 
                             # Also discover more pages from this page's links.
                             more_pages = _discover_candidate_pages(page_fetch.text, base_url=page_fetch.url, domain=domain)
@@ -1584,12 +1598,17 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
             for hp in hidden:
                 hp = _product_with_special_flag(hp)
                 existing = deduped.get(hp.id)
-                if existing is not None and existing.available is not None and hp.available is None:
-                    # Keep existing product that has definitive availability over hidden product with unknown.
-                    continue
-                if existing is not None and existing.available is False and hp.available is None:
-                    # Don't overwrite OOS with unknown.
-                    continue
+                if existing is not None:
+                    if existing.available is False or hp.available is False:
+                        merged_avail = False
+                    elif existing.available is True or hp.available is True:
+                        merged_avail = True
+                    else:
+                        merged_avail = None
+                    
+                    hp = _clone_product(hp, available=merged_avail)
+                    if not hp.name and existing.name:
+                        hp = _clone_product(hp, name=existing.name)
                 deduped[hp.id] = hp
             products = list(deduped.values())
             if log_enabled:
@@ -1597,7 +1616,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         elif allow_expansion and hidden_allowed and (not _deadline_exceeded()):
             if log_enabled:
                 print(f"[scrape:{domain}] stage=hidden_scan start mode=sequential", flush=True)
-            raw_hidden_budget = os.getenv("WHMCS_HIDDEN_MAX_DURATION_SECONDS", "60").strip()
+            raw_hidden_budget = os.getenv("WHMCS_HIDDEN_MAX_DURATION_SECONDS", "180").strip()
             try:
                 hidden_budget_seconds = float(raw_hidden_budget) if raw_hidden_budget else 60.0
             except Exception:
@@ -1627,10 +1646,17 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
             for hp in hidden:
                 hp = _product_with_special_flag(hp)
                 existing = deduped.get(hp.id)
-                if existing is not None and existing.available is not None and hp.available is None:
-                    continue
-                if existing is not None and existing.available is False and hp.available is None:
-                    continue
+                if existing is not None:
+                    if existing.available is False or hp.available is False:
+                        merged_avail = False
+                    elif existing.available is True or hp.available is True:
+                        merged_avail = True
+                    else:
+                        merged_avail = None
+                    
+                    hp = _clone_product(hp, available=merged_avail)
+                    if not hp.name and existing.name:
+                        hp = _clone_product(hp, name=existing.name)
                 deduped[hp.id] = hp
             products = list(deduped.values())
             if log_enabled:
@@ -1696,6 +1722,15 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 ),
                 flush=True,
             )
+
+        final_products_dict = {p.id: p for p in products}
+        for pid, orig_p in deduped.items():
+            if pid not in initial_ids:
+                final_p = final_products_dict.get(pid)
+                if final_p is None:
+                    print(f"[scrape:{domain}] discover/hidden product dropped: {orig_p.name} - {orig_p.url}", flush=True)
+                elif not final_p.available:
+                    print(f"[scrape:{domain}] discover/hidden product out of stock: {final_p.name} - {final_p.url}", flush=True)
 
         duration_ms = int((time.perf_counter() - started) * 1000)
         return DomainRun(domain=domain, ok=True, error=None, duration_ms=duration_ms, products=products)
@@ -1849,9 +1884,6 @@ def _infer_availability_from_detail_html(
     if page_level_avail is False:
         return False
 
-    if has_order_form_markers:
-        # WHMCS-like configuration forms usually indicate orderable products unless explicit OOS markers were found above.
-        return True
     # If we found an enabled purchase button and no OOS markers on the page, assume In Stock.
     if enabled_buy_button:
         return True
@@ -2673,19 +2705,19 @@ def _scan_whmcs_hidden_products(
     if platform_l not in {"whmcs", "hostbill"}:
         platform_l = "whmcs"
 
-    legacy_stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "10"))
+    legacy_stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "30"))
     pid_stop_after_no_info = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO", str(legacy_stop_after_miss)))
     # Sparse PID allocations (e.g. DMIT: 56, 58, 61, 71, 81...) need a higher threshold
     # to bridge the gaps between known products. When seed_pids are provided, we know
     # the PID space is sparse, so extend the brute-force tolerance.
-    if seed_pids and pid_stop_after_no_info < 50:
-        pid_stop_after_no_info = 50
-    gid_stop_after_same_page = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE", "12"))
-    pid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS", "60"))
-    gid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS", "60"))
-    pid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES", "40"))
-    gid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES", "40"))
-    redirect_sig_stop_after = int(os.getenv("WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER", "36"))
+    if seed_pids and pid_stop_after_no_info < 100:
+        pid_stop_after_no_info = 100
+    gid_stop_after_same_page = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE", "20"))
+    pid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS", "90"))
+    gid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS", "90"))
+    pid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES", "60"))
+    gid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES", "60"))
+    redirect_sig_stop_after = int(os.getenv("WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER", "50"))
     min_probe_before_stop = int(os.getenv("WHMCS_HIDDEN_MIN_PROBE", "0"))
     batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "12"))
     workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "8"))
@@ -2836,7 +2868,11 @@ def _scan_whmcs_hidden_products(
                 parsed = [_product_with_special_flag(p) for p in parsed]
 
                 if kind == product_kind and parsed:
-                    parsed = [p for p in parsed if _product_matches_probe_id(p, cur_id, id_keys=product_id_match_keys)]
+                    matched = [p for p in parsed if _product_matches_probe_id(p, cur_id, id_keys=product_id_match_keys)]
+                    if not matched and len(parsed) == 1:
+                        single_p = parsed[0]
+                        matched = [_clone_product(single_p, url=url, id=f"{domain_for_ids}::{normalize_url_for_id(url)}")]
+                    parsed = matched
 
                 normalized: list[Product] = []
                 for p in parsed:
@@ -3064,7 +3100,7 @@ def _scan_whmcs_hidden_products(
 
 def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[str]:
     raw_page_limit = os.environ.get("DISCOVERY_MAX_PAGES_PER_DOMAIN")
-    max_pages = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 16
+    max_pages = int(raw_page_limit) if raw_page_limit and raw_page_limit.strip() else 40
     is_hostbill = _is_hostbill_domain(domain, html)
     # Only apply higher defaults when the user hasn't explicitly configured a limit.
     if raw_page_limit is None:
