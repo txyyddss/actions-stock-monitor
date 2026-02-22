@@ -2,6 +2,91 @@
 
 Track VPS product stock/restocks across multiple providers, send Telegram alerts, and generate a static dashboard (`docs/index.html`).
 
+## Technical Details
+
+```mermaid
+mindmap
+  root((Actions Stock Monitor))
+    Quick Start
+      Install Dependencies
+        pip install -r requirements.txt
+        pip install -e .
+      Run FlareSolverr
+        docker run --rm -p 8191:8191 ghcr.io/flaresolverr/flaresolverr:latest
+      Run Monitor
+        python -m actions_stock_monitor --state data/state.json --output docs/index.html --dry-run
+    Single-Site Debug Workflow
+      1. Simple Crawl
+        scripts/site_debug.py --stage simple
+      2. Inspect Baseline
+        manual_baseline.json
+      3. Monitor Stage
+        scripts/site_debug.py --stage monitor
+      4. Compare Outputs
+        raw_pages.json, parsed_simple.json, parsed_monitor.json, diff_report.json
+      5. Clean Temp Artifacts
+    Runtime Modes
+      full
+        Full discovery, enrichment, missing-product pruning
+      lite
+        State-driven subset, no expansion, no pruning
+    Main Env Knobs
+      Speed / Throughput
+        MAX_WORKERS
+        TARGET_MAX_DURATION_SECONDS
+        DISCOVERY_MAX_PAGES_PER_DOMAIN
+        DISCOVERY_WORKERS / BATCH
+        ENRICH_WORKERS
+        PARALLEL_SIMPLE_HIDDEN
+      Discovery Accuracy
+        DISCOVERY_MAX_PRODUCTS_PER_DOMAIN
+        DISCOVERY_STOP_AFTER_NO_NEW_PAGES
+        DISCOVERY_STOP_AFTER_FETCH_ERRORS
+        DISCOVERY_STRICT_FETCH_ERROR_STOP
+        DISCOVERY_FORCE_IF_PRODUCTS_LEQ
+      Hidden WHMCS Scanner
+        WHMCS_HIDDEN_MAX_DURATION_SECONDS
+        WHMCS_HIDDEN_WORKERS / BATCH
+        WHMCS_HIDDEN_HARD_MAX_PID / GID
+        WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO
+        WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE
+        WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS
+        WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS
+        WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES
+        WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES
+        WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER
+        WHMCS_HIDDEN_LOG
+      Cloudflare / Network
+        FLARESOLVERR_URL
+        TIMEOUT_SECONDS
+        PROXY_URL
+        CF_COOKIE_TTL_SECONDS
+      Telegram
+        TELEGRAM_BOT_TOKEN
+        TELEGRAM_CHAT_ID
+        TELEGRAM_MAX_RETRIES
+        TELEGRAM_RETRY_BASE_SECONDS
+        TELEGRAM_MIN_INTERVAL_SECONDS
+    Troubleshooting By Symptom
+      Missing products
+        Run debug workflow, increase workers
+      False positives
+        Validate URL patterns, check domain cleanup rules
+      Missing specs/tags
+        Inspect raw card HTML, improve parser keys
+      Cycle prices missing
+        Verify billing_cycles on detail pages
+      Telegram name split/repeat
+        Validate _format_message output
+      Dashboard slow
+        Use built-in pagination and filters
+    Notes
+      Explicit target runs
+        Scoped debug runs, cross-domain prune disabled
+      Location Extraction
+        Explicit-only, not inferred
+```
+
 ## Quick Start
 
 1. Install:

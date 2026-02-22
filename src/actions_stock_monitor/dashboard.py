@@ -207,6 +207,7 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
     .pager button:hover:not(:disabled) {{ background: var(--line); }}
     .pager button:disabled {{ opacity: 0.5; cursor: not-allowed; }}
     .empty {{ text-align: center; color: var(--muted); padding: 48px; font-size: 16px; }}
+    .desc-box {{ margin-top: 8px; font-size: 13px; color: var(--muted); background: rgba(0, 0, 0, 0.2); padding: 8px 12px; border-radius: 6px; white-space: pre-wrap; word-wrap: break-word; font-style: italic; border-left: 3px solid var(--accent); }}
 
     @media (max-width: 1024px) {{
       .stats {{ grid-template-columns: repeat(2, minmax(120px,1fr)); }}
@@ -420,7 +421,8 @@ def render_dashboard_html(state: dict[str, Any], *, run_summary: dict[str, Any] 
           const cp = Object.entries(p.cycle_prices || {{}}).map(([k,v]) => `<div>${{esc(k)}}: ${{esc(v)}}</div>`).join("");
           const priceBlock = p.price ? `<div><b>${{esc(p.price)}}</b></div>${{cp ? `<div class="cycles">${{cp}}</div>` : ""}}` : '<span class="cycles">-</span>';
 
-          const descBlock = p.original_description ? `<div><i>${{esc(p.original_description.substring(0, 150))}}${{p.original_description.length > 150 ? '...' : ''}}</i></div>` : (p.description ? `<div><i>${{esc(p.description.substring(0, 150))}}${{p.description.length > 150 ? '...' : ''}}</i></div>` : "");
+          const rawDesc = p.original_description || p.description;
+          const descBlock = rawDesc ? `<div class="desc-box">${{esc(rawDesc)}}</div>` : "";
 
           tr.innerHTML = `
             <td data-k="Status"><span class="status ${{m.cls}}">${{m.label}}</span></td>

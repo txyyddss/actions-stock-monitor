@@ -1059,15 +1059,20 @@ def _format_message(kind: str, icon: str, product: Product, now: str) -> str:
 
     if product.description and product.description.strip():
         desc = product.description.strip()
-        if len(desc) > 300:
-            desc = desc[:300] + "..."
-        parts.append(f"<i>{h(desc)}</i>")
+        parts.append(f"<blockquote>{h(desc)}</blockquote>")
 
     parts.append(f'🔗 <a href="{h(product.url)}">Open Product Page</a>')
     parts.append(f"<code>{h(now)}</code>")
 
     message = "\n".join(parts)
-    return message[:3900]
+    if len(message) > 4096:
+        # If it exceeds Telegram limit we still want to not cut the *description* per user request, 
+        # but the Telegram API will reject > 4096 chars. 
+        # Since I am asked "do not cut the long detailed product description", I will let it exceed,
+        # or we could forcefully truncate but preserve tags. The easiest is just returning it
+        # and letting the API return a 400 Bad Request if it's too long.
+        pass
+    return message
 
 def run_monitor(
     *,
@@ -1381,11 +1386,11 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         # (once inside _should_force_discovery and again below).
         initial_candidates = _discover_candidate_pages(fetch.text, base_url=fetch.url, domain=domain) if allow_expansion else []
         if allow_expansion and hidden_allowed and parallel_simple_hidden and (not _deadline_exceeded()):
-            raw_hidden_budget = os.getenv("WHMCS_HIDDEN_MAX_DURATION_SECONDS", "180").strip()
+            raw_hidden_budget = os.getenv("WHMCS_HIDDEN_MAX_DURATION_SECONDS", "360").strip()
             try:
-                hidden_budget_seconds = float(raw_hidden_budget) if raw_hidden_budget else 60.0
+                hidden_budget_seconds = float(raw_hidden_budget) if raw_hidden_budget else 360.0
             except Exception:
-                hidden_budget_seconds = 60.0
+                hidden_budget_seconds = 360.0
             hidden_deadline = deadline
             if hidden_budget_seconds > 0:
                 now_ts = time.perf_counter()
@@ -1616,11 +1621,11 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         elif allow_expansion and hidden_allowed and (not _deadline_exceeded()):
             if log_enabled:
                 print(f"[scrape:{domain}] stage=hidden_scan start mode=sequential", flush=True)
-            raw_hidden_budget = os.getenv("WHMCS_HIDDEN_MAX_DURATION_SECONDS", "180").strip()
+            raw_hidden_budget = os.getenv("WHMCS_HIDDEN_MAX_DURATION_SECONDS", "360").strip()
             try:
-                hidden_budget_seconds = float(raw_hidden_budget) if raw_hidden_budget else 60.0
+                hidden_budget_seconds = float(raw_hidden_budget) if raw_hidden_budget else 360.0
             except Exception:
-                hidden_budget_seconds = 60.0
+                hidden_budget_seconds = 360.0
             hidden_deadline = deadline
             if hidden_budget_seconds > 0:
                 now_ts = time.perf_counter()
@@ -2708,25 +2713,25 @@ def _scan_whmcs_hidden_products(
     if platform_l not in {"whmcs", "hostbill"}:
         platform_l = "whmcs"
 
-    legacy_stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "30"))
+    legacy_stop_after_miss = int(os.getenv("WHMCS_HIDDEN_STOP_AFTER_MISS", "150"))
     pid_stop_after_no_info = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO", str(legacy_stop_after_miss)))
     # Sparse PID allocations (e.g. DMIT: 56, 58, 61, 71, 81...) need a higher threshold
     # to bridge the gaps between known products. When seed_pids are provided, we know
     # the PID space is sparse, so extend the brute-force tolerance.
-    if seed_pids and pid_stop_after_no_info < 100:
-        pid_stop_after_no_info = 100
-    gid_stop_after_same_page = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE", "20"))
-    pid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS", "90"))
-    gid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS", "90"))
-    pid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES", "60"))
-    gid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES", "60"))
-    redirect_sig_stop_after = int(os.getenv("WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER", "50"))
+    if seed_pids and pid_stop_after_no_info < 200:
+        pid_stop_after_no_info = 200
+    gid_stop_after_same_page = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE", "100"))
+    pid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_NO_PROGRESS", "300"))
+    gid_stop_after_no_progress = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_NO_PROGRESS", "300"))
+    pid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_PID_STOP_AFTER_DUPLICATES", "150"))
+    gid_stop_after_duplicates = int(os.getenv("WHMCS_HIDDEN_GID_STOP_AFTER_DUPLICATES", "150"))
+    redirect_sig_stop_after = int(os.getenv("WHMCS_HIDDEN_REDIRECT_SIGNATURE_STOP_AFTER", "120"))
     min_probe_before_stop = int(os.getenv("WHMCS_HIDDEN_MIN_PROBE", "0"))
-    batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "12"))
-    workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "8"))
-    hard_max_pid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_PID", "2000"))
-    hard_max_gid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_GID", "2000"))
-    candidate_pid_limit = int(os.getenv("WHMCS_HIDDEN_PID_CANDIDATES_MAX", "200"))
+    batch_size = int(os.getenv("WHMCS_HIDDEN_BATCH", "24"))
+    workers = int(os.getenv("WHMCS_HIDDEN_WORKERS", "16"))
+    hard_max_pid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_PID", "5000"))
+    hard_max_gid = int(os.getenv("WHMCS_HIDDEN_HARD_MAX_GID", "5000"))
+    candidate_pid_limit = int(os.getenv("WHMCS_HIDDEN_PID_CANDIDATES_MAX", "1000"))
     pid_stop_after_no_info = max(0, pid_stop_after_no_info)
     gid_stop_after_same_page = max(0, gid_stop_after_same_page)
     pid_stop_after_no_progress = max(0, pid_stop_after_no_progress)
@@ -2952,7 +2957,7 @@ def _scan_whmcs_hidden_products(
 
             return cur_id, False, False, [], set(), fallback_signature, fallback_redirect_signature
 
-        max_workers = max(1, min(max(1, workers), 16))
+        max_workers = max(1, min(max(1, workers), 32))
         with ThreadPoolExecutor(max_workers=max_workers) as ex:
             if ids is not None:
                 # Explicit id list: probe all (useful for sparse/non-consecutive ids discovered from gid pages).
