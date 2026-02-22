@@ -2845,16 +2845,18 @@ def _scan_whmcs_hidden_products(
                     continue
                 if got is None and fallback_redirect_signature is None:
                     fallback_redirect_signature = _redirect_signature(fetch.url)
-                if kind == product_kind and platform_l == "whmcs" and got is None and not id_mentioned:
-                    continue
-
                 if kind == product_kind:
                     evidence = _looks_like_whmcs_pid_page(html) if platform_l == "whmcs" else _looks_like_hostbill_id_page(html)
                 else:
                     evidence = _looks_like_whmcs_gid_page(html) if platform_l == "whmcs" else _looks_like_hostbill_group_page(html)
+
+                if kind == product_kind and platform_l == "whmcs" and got is None and not id_mentioned and not evidence:
+                    continue
                 if kind == product_kind and platform_l == "whmcs" and evidence and not id_mentioned:
                     # Some sites serve a generic default/cart page for any pid; don't treat that as evidence.
-                    evidence = False
+                    # However, if we definitively found a stock marker on the page, keep the evidence.
+                    if extract_availability(compact_ws(html or "")) is None:
+                        evidence = False
                 extra_pids: set[int] = set()
                 if kind == group_kind:
                     extra_pids = _extract_candidate_ids_from_html(
