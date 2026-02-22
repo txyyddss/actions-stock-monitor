@@ -1583,6 +1583,13 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                     hidden_executor.shutdown(wait=False)
             for hp in hidden:
                 hp = _product_with_special_flag(hp)
+                existing = deduped.get(hp.id)
+                if existing is not None and existing.available is not None and hp.available is None:
+                    # Keep existing product that has definitive availability over hidden product with unknown.
+                    continue
+                if existing is not None and existing.available is False and hp.available is None:
+                    # Don't overwrite OOS with unknown.
+                    continue
                 deduped[hp.id] = hp
             products = list(deduped.values())
             if log_enabled:
@@ -1619,6 +1626,11 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
             )
             for hp in hidden:
                 hp = _product_with_special_flag(hp)
+                existing = deduped.get(hp.id)
+                if existing is not None and existing.available is not None and hp.available is None:
+                    continue
+                if existing is not None and existing.available is False and hp.available is None:
+                    continue
                 deduped[hp.id] = hp
             products = list(deduped.values())
             if log_enabled:
@@ -1790,9 +1802,13 @@ def _infer_availability_from_detail_html(
     domain_l = (domain or "").lower()
     page_level_avail = extract_availability(html)
     # Whole-page availability text can be noisy on some storefront themes that include
-    # mixed product snippets; prefer explicit controls/signals over page-level OOS text.
+    # mixed product snippets; it may match "in stock" or "add to cart" from navbars,
+    # JS templates, or footer links.  Defer page-level True to the DOM-level checks
+    # below which inspect actual buttons / OOS class markers.  Only trust page-level
+    # False or numeric counts immediately.
     if page_level_avail is True:
-        return True
+        # Don't return immediately — let DOM-level OOS / button checks run first.
+        pass
     if soup is None:
         try:
             soup = BeautifulSoup(html or "", "lxml")
@@ -1830,13 +1846,19 @@ def _infer_availability_from_detail_html(
             # Without form markers, purchase labels alone are weaker; keep evaluating.
             continue
 
+    if page_level_avail is False:
+        return False
+
     if has_order_form_markers:
         # WHMCS-like configuration forms usually indicate orderable products unless explicit OOS markers were found above.
         return True
-    if page_level_avail is False:
-        return False
     # If we found an enabled purchase button and no OOS markers on the page, assume In Stock.
     if enabled_buy_button:
+        return True
+    # If the raw-text extraction found a strong in-stock signal (numeric stock counts,
+    # explicit "in stock" text) and DOM inspection found no contradicting OOS markers,
+    # honour the page-level signal.
+    if page_level_avail is True:
         return True
     return None
 
@@ -2819,9 +2841,14 @@ def _scan_whmcs_hidden_products(
                 normalized: list[Product] = []
                 for p in parsed:
                     page_avail = _infer_availability_from_detail_html(html, domain=domain_for_ids)
-                    if page_avail is None and kind == product_kind and _looks_like_pid_stock_page(html):
-                        page_avail = True
-                    normalized.append(_clone_product(p, available=(p.available if page_avail is None else page_avail)))
+                    # Don't default unknown availability to True just because the page
+                    # has cart form elements; OOS pages also contain "configure" /
+                    # "billing cycle" strings.  Preserve the parser's own availability
+                    # when the detail-page inference is uncertain.
+                    if page_avail is not None:
+                        normalized.append(_clone_product(p, available=page_avail))
+                    else:
+                        normalized.append(p)
 
                 if normalized:
                     known_ids = _known_ids()
@@ -2964,7 +2991,9 @@ def _scan_whmcs_hidden_products(
                             pid_no_info_streak += 1
                     else:
                         if not page_sig:
-                            gid_same_page_streak += 1
+                            # Fetch failure or no content — don't count as "same page"
+                            # since it would prematurely stop the GID scan.
+                            pass
                         elif page_sig == last_gid_signature:
                             gid_same_page_streak += 1
                         else:
