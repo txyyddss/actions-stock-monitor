@@ -2548,6 +2548,9 @@ def _html_mentions_probe_id(html: str, probe_id: int, *, id_keys: tuple[str, ...
     if probe_id < 0:
         return False
     raw = html or ""
+    probe_str = str(probe_id)
+    if probe_str not in raw:
+        return False
     for key in id_keys:
         k = re.escape(key)
         if re.search(rf"(?:[?&]|&amp;){k}={probe_id}\b", raw, flags=re.IGNORECASE):
@@ -2824,8 +2827,7 @@ def _scan_whmcs_hidden_products(
                 if not fetch.ok or not fetch.text:
                     continue
                 html = fetch.text
-                full_signature = _stable_page_signature(fetch.url, html)
-                page_signature = full_signature if kind == group_kind else None
+                page_signature = _stable_page_signature(fetch.url, html) if kind == group_kind else None
                 if kind == group_kind and fallback_signature is None and page_signature:
                     fallback_signature = page_signature
 
@@ -2897,6 +2899,55 @@ def _scan_whmcs_hidden_products(
                     if kind == group_kind and extra_pids:
                         known_ids = _known_ids()
                         is_dup = not any((cid not in known_ids) for pid in extra_pids for cid in _pid_id_candidates(pid))
+                    
+                    if kind == product_kind and not normalized:
+                        try:
+                            from bs4 import BeautifulSoup
+                            soup = BeautifulSoup(html, "lxml")
+                            fallback_name = None
+                            if hasattr(parser, "_extract_name"):
+                                fallback_name = parser._extract_name(soup)
+                            if not fallback_name:
+                                for sel in ["h1", "h2", ".product-title", ".page-title"]:
+                                    el = soup.select_one(sel)
+                                    if el:
+                                        t = compact_ws(el.get_text(" ", strip=True))
+                                        if 2 <= len(t) <= 120 and "cart" not in t.lower() and "store" not in t.lower():
+                                            fallback_name = t
+                                            break
+                            if not fallback_name:
+                                title_cand = []
+                                for string in soup.stripped_strings:
+                                    s = compact_ws(str(string))
+                                    if s and "cart" not in s.lower() and "store" not in s.lower() and 2 < len(s) < 60:
+                                        title_cand.append(s)
+                                        if len(title_cand) > 3:
+                                            break
+                                if title_cand:
+                                    fallback_name = title_cand[0]
+
+                            if fallback_name:
+                                page_avail = _infer_availability_from_detail_html(html, domain=domain_for_ids, soup=soup)
+                                if page_avail is None:
+                                    page_avail = False
+                                fallback_p = Product(
+                                    id=f"{domain_for_ids}::{normalize_url_for_id(url)}",
+                                    domain=domain_for_ids,
+                                    url=url,
+                                    name=fallback_name,
+                                    price=None,
+                                    description=None,
+                                    specs=None,
+                                    available=page_avail,
+                                )
+                                fallback_p = _product_with_special_flag(fallback_p)
+                                normalized.append(fallback_p)
+                                known_ids = _known_ids()
+                                is_dup = fallback_p.id in known_ids
+                                return cur_id, True, is_dup, normalized, extra_pids, page_signature, None
+                        except Exception:
+                            pass
+
                     return cur_id, True, is_dup, [], extra_pids, page_signature, None
 
             return cur_id, False, False, [], set(), fallback_signature, fallback_redirect_signature
