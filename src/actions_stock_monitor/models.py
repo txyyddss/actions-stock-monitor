@@ -32,6 +32,7 @@ class DomainRun:
     error: str | None
     duration_ms: int
     products: list[Product]
+    meta: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)

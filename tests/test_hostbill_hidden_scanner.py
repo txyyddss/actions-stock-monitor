@@ -7,7 +7,7 @@ from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
 from actions_stock_monitor.models import Product
-from actions_stock_monitor.monitor import _is_hostbill_domain, _scan_whmcs_hidden_products
+from actions_stock_monitor.monitor import _discover_candidate_pages, _is_hostbill_domain, _scan_whmcs_hidden_products
 from actions_stock_monitor.parsers.common import normalize_url_for_id
 
 
@@ -73,6 +73,27 @@ class _HostBillEscapedIdClient(_HostBillFakeClient):
                 url=f"https://{self._domain}/index.php?/cart/&step=3",
                 ok=True,
                 text="<html>Out of stock</html>",
+            )
+        return super().fetch_text(url, allow_flaresolverr=allow_flaresolverr)
+
+
+class _HostBillCatIdClient(_HostBillFakeClient):
+    def fetch_text(self, url: str, *, allow_flaresolverr: bool = True) -> _Fetch:
+        self.calls.append(url)
+        qs = parse_qs(urlparse(url).query or "")
+        cat_id = (qs.get("cat_id") or [None])[0]
+        plan_id = (qs.get("id") or [None])[0]
+        if plan_id == "94" and isinstance(cat_id, str) and cat_id.isdigit():
+            return _Fetch(
+                url=f"https://{self._domain}/index.php?/cart/&step=3",
+                ok=True,
+                text="<html><button>Add to cart</button></html>",
+            )
+        if isinstance(cat_id, str) and cat_id.isdigit():
+            return _Fetch(
+                url=url,
+                ok=True,
+                text="<html><a href='/index.php?/cart/special-offer/&action=add&id=94'>Order</a></html>",
             )
         return super().fetch_text(url, allow_flaresolverr=allow_flaresolverr)
 
@@ -226,6 +247,45 @@ class TestHostBillHiddenScanner(unittest.TestCase):
             if isinstance(raw_id, str) and raw_id.isdigit() and "action=add" in url:
                 probed_ids.add(int(raw_id))
         self.assertEqual(len(probed_ids), 4)
+
+    def test_hostbill_cat_id_group_scan_discovers_ids(self) -> None:
+        domain = "example.test"
+        base_url = f"https://{domain}/"
+        client = _HostBillCatIdClient(domain)
+        parser = _HostBillParser(domain)
+
+        env = {
+            "WHMCS_HIDDEN_BATCH": "1",
+            "WHMCS_HIDDEN_WORKERS": "1",
+            "WHMCS_HIDDEN_HARD_MAX_GID": "3",
+            "WHMCS_HIDDEN_HARD_MAX_PID": "120",
+            "WHMCS_HIDDEN_PID_CANDIDATES_MAX": "20",
+            "WHMCS_HIDDEN_PID_STOP_AFTER_NO_INFO": "8",
+            "WHMCS_HIDDEN_GID_STOP_AFTER_SAME_PAGE": "2",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            out = _scan_whmcs_hidden_products(
+                client,
+                parser,
+                base_url=base_url,
+                existing_ids=set(),
+                seed_urls=[f"https://{domain}/index.php?/cart/&cat_id=7"],
+                platform="hostbill",
+            )
+
+        self.assertTrue(any("id=94" in p.url for p in out))
+        self.assertTrue(any("cat_id=" in u for u in client.calls))
+
+    def test_discovery_considers_cat_id_onclick_links(self) -> None:
+        domain = "example.test"
+        base_url = f"https://{domain}/index.php?/cart/"
+        html = """
+        <html>
+          <div onclick="window.location='index.php?/cart/&cat_id=7'">Category</div>
+        </html>
+        """
+        out = _discover_candidate_pages(html, base_url=base_url, domain=domain)
+        self.assertIn(f"https://{domain}/index.php?/cart/&cat_id=7", out)
 
 
 if __name__ == "__main__":

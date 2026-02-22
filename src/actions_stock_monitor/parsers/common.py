@@ -722,7 +722,7 @@ _TRACKING_KEYS = {
     "languagechange",
 }
 _PRODUCT_ID_KEYS = {"pid", "id", "product", "product_id", "planid"}
-_DROP_IF_PRODUCT_KEYS = {"gid", "fid", "step", "billingcycle", "cycle"}
+_DROP_IF_PRODUCT_KEYS = {"gid", "fid", "cat_id", "step", "billingcycle", "cycle"}
 
 
 @lru_cache(maxsize=16384)

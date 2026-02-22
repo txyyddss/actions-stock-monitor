@@ -60,6 +60,10 @@ class TestParsersCommon(unittest.TestCase):
         url = "https://example.test/p?a=1&utm_source=x&b=2&fbclid=y"
         self.assertEqual(normalize_url_for_id(url), "https://example.test/p?a=1&b=2")
 
+    def test_normalize_url_for_id_drops_cat_id_when_product_id_exists(self) -> None:
+        url = "https://example.test/index.php?/cart/&cat_id=7&action=add&id=94&cycle=a"
+        self.assertEqual(normalize_url_for_id(url), "https://example.test/index.php?action=add&id=94")
+
     def test_extract_availability_is_conservative_for_purchase_labels(self) -> None:
         self.assertIsNone(extract_availability("Add to cart"))
         self.assertIsNone(extract_availability("Order now"))

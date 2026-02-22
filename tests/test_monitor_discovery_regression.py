@@ -84,6 +84,10 @@ class TestMonitorDiscoveryRegression(unittest.TestCase):
 
         self.assertTrue(run.ok)
         self.assertTrue(any(p.name == "Real Plan" for p in run.products))
+        self.assertIsInstance(run.meta, dict)
+        self.assertEqual((run.meta or {}).get("discovery_stop_reason"), "queue_exhausted")
+        self.assertEqual((run.meta or {}).get("discovery_fetch_errors"), 2)
+        self.assertTrue((run.meta or {}).get("may_be_incomplete"))
 
 
 if __name__ == "__main__":

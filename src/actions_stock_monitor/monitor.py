@@ -791,6 +791,21 @@ def _product_to_state_record(product: Product, now: str, *, first_seen: str | No
     }
 
 
+def _run_may_be_incomplete(run: DomainRun) -> bool:
+    meta = run.meta if isinstance(run.meta, dict) else {}
+    if bool(meta.get("may_be_incomplete")):
+        return True
+    if bool(meta.get("deadline_exceeded")):
+        return True
+
+    stop_reason = str(meta.get("discovery_stop_reason") or "").strip().lower()
+    if stop_reason in {"deadline", "max_pages", "fetch_error_streak", "no_new_pages_streak"}:
+        return True
+    if stop_reason == "queue_exhausted" and int(meta.get("discovery_fetch_errors") or 0) > 0:
+        return True
+    return False
+
+
 def _update_state_from_runs(
     previous_state: dict,
     runs: list[DomainRun],
@@ -804,6 +819,7 @@ def _update_state_from_runs(
     state = deepcopy(previous_state)
     state.setdefault("products", {})
     state.setdefault("domains", {})
+    log_enabled = os.getenv("MONITOR_LOG", "1").strip() != "0"
 
     started_at = state.get("last_run", {}).get("started_at") or utc_now_iso()
     now = utc_now_iso()
@@ -860,13 +876,32 @@ def _update_state_from_runs(
         if prune_missing_products:
             # Full mode prunes products that disappeared from a successful domain crawl.
             seen_ids = {p.id for p in run.products}
-            for pid, rec in list((state.get("products") or {}).items()):
-                if not isinstance(rec, dict):
-                    continue
-                if rec.get("domain") != domain:
-                    continue
-                if pid not in seen_ids:
-                    state["products"].pop(pid, None)
+            previous_domain_ids = {
+                pid
+                for pid, rec in (state.get("products") or {}).items()
+                if isinstance(rec, dict) and rec.get("domain") == domain
+            }
+            skip_prune = (
+                bool(previous_domain_ids)
+                and len(seen_ids) < len(previous_domain_ids)
+                and _run_may_be_incomplete(run)
+            )
+            if skip_prune:
+                if log_enabled:
+                    reason = ""
+                    if isinstance(run.meta, dict):
+                        reason = str(run.meta.get("discovery_stop_reason") or "")
+                    print(
+                        (
+                            f"[state:{domain}] prune=skipped previous={len(previous_domain_ids)} "
+                            f"seen={len(seen_ids)} reason={reason or 'incomplete_run'}"
+                        ),
+                        flush=True,
+                    )
+            else:
+                for pid in previous_domain_ids:
+                    if pid not in seen_ids:
+                        state["products"].pop(pid, None)
 
         for product in run.products:
             product = _product_with_special_flag(product)
@@ -1263,11 +1298,36 @@ def _select_lite_targets(*, previous_state: dict, fallback_targets: list[str]) -
     return out or default_targets
 
 
+def _merge_run_meta(meta_records: list[dict | None]) -> dict | None:
+    valid = [m for m in meta_records if isinstance(m, dict)]
+    if not valid:
+        return None
+
+    reasons = [str(m.get("discovery_stop_reason") or "").strip() for m in valid]
+    reasons = [r for r in reasons if r]
+    priority = ["deadline", "max_pages", "fetch_error_streak", "no_new_pages_streak", "max_products", "queue_exhausted"]
+    stop_reason = ""
+    for key in priority:
+        if key in reasons:
+            stop_reason = key
+            break
+    if not stop_reason and reasons:
+        stop_reason = reasons[0]
+
+    return {
+        "may_be_incomplete": any(bool(m.get("may_be_incomplete")) for m in valid),
+        "deadline_exceeded": any(bool(m.get("deadline_exceeded")) for m in valid),
+        "discovery_stop_reason": stop_reason or None,
+        "discovery_fetch_errors": sum(int(m.get("discovery_fetch_errors") or 0) for m in valid),
+    }
+
+
 def _merge_runs_by_domain(runs: list[DomainRun]) -> list[DomainRun]:
     merged: dict[str, dict] = {}
     for run in runs:
-        rec = merged.setdefault(run.domain, {"duration_ms": 0, "ok": False, "errors": [], "products": {}})
+        rec = merged.setdefault(run.domain, {"duration_ms": 0, "ok": False, "errors": [], "products": {}, "meta": []})
         rec["duration_ms"] += int(run.duration_ms or 0)
+        rec["meta"].append(run.meta if isinstance(run.meta, dict) else None)
         if run.ok:
             rec["ok"] = True
             for product in run.products:
@@ -1280,6 +1340,7 @@ def _merge_runs_by_domain(runs: list[DomainRun]) -> list[DomainRun]:
         rec = merged[domain]
         if rec["ok"]:
             merged_products = _merge_products_by_canonical_plan(list(rec["products"].values()))
+            merged_meta = _merge_run_meta(rec.get("meta") or [])
             out.append(
                 DomainRun(
                     domain=domain,
@@ -1287,12 +1348,22 @@ def _merge_runs_by_domain(runs: list[DomainRun]) -> list[DomainRun]:
                     error=None,
                     duration_ms=rec["duration_ms"],
                     products=merged_products,
+                    meta=merged_meta,
                 )
             )
             continue
         errors = rec["errors"][:3]
         error_msg = "; ".join(errors) if errors else "fetch failed"
-        out.append(DomainRun(domain=domain, ok=False, error=error_msg, duration_ms=rec["duration_ms"], products=[]))
+        out.append(
+            DomainRun(
+                domain=domain,
+                ok=False,
+                error=error_msg,
+                duration_ms=rec["duration_ms"],
+                products=[],
+                meta=_merge_run_meta(rec.get("meta") or []),
+            )
+        )
     return out
 
 
@@ -1337,7 +1408,19 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 break
     if not fetch.ok or not fetch.text:
         duration_ms = int((time.perf_counter() - started) * 1000)
-        return DomainRun(domain=domain, ok=False, error=fetch.error or "fetch failed", duration_ms=duration_ms, products=[])
+        return DomainRun(
+            domain=domain,
+            ok=False,
+            error=fetch.error or "fetch failed",
+            duration_ms=duration_ms,
+            products=[],
+            meta={
+                "may_be_incomplete": True,
+                "deadline_exceeded": _deadline_exceeded(),
+                "discovery_stop_reason": None,
+                "discovery_fetch_errors": 0,
+            },
+        )
 
     is_hostbill = _is_hostbill_domain(domain, fetch.text)
     is_whmcs = _is_whmcs_domain(domain, fetch.text)
@@ -1353,6 +1436,10 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
             _dmit_pid_cache["dmit"] = mapping
         else:
             _get_dmit_pid_map(client, fetch.url)
+
+    deadline_exceeded_during_run = False
+    discovery_stop_reason: str | None = None
+    discovery_fetch_errors = 0
 
     try:
         if log_enabled:
@@ -1501,6 +1588,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 with ThreadPoolExecutor(max_workers=discovery_workers) as ex:
                     while queue_idx < len(discovered):
                         if _deadline_exceeded():
+                            deadline_exceeded_during_run = True
                             discovery_stop_reason = "deadline"
                             break
                         if pages_visited >= max_pages_limit:
@@ -1522,10 +1610,13 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
 
                         for page_url in batch_urls:
                             if _deadline_exceeded():
+                                deadline_exceeded_during_run = True
+                                discovery_stop_reason = "deadline"
                                 queue_idx = len(discovered)
                                 break
                             page_fetch = fetched.get(page_url)
                             if not page_fetch or not getattr(page_fetch, "ok", False) or not getattr(page_fetch, "text", None):
+                                discovery_fetch_errors += 1
                                 fetch_error_streak += 1
                                 if stop_after_fetch_errors > 0 and fetch_error_streak >= stop_after_fetch_errors and _is_primary_listing_page(page_url):
                                     queue_has_pending = queue_idx < len(discovered)
@@ -1585,7 +1676,7 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                         (
                             f"[scrape:{domain}] stage=discovery done queued={len(discovered)} visited={pages_visited} "
                             f"new_pages={new_pages_discovered} added_products={len(deduped) - initial_product_count} "
-                            f"stop_reason={discovery_stop_reason}"
+                            f"fetch_errors={discovery_fetch_errors} stop_reason={discovery_stop_reason}"
                         ),
                         flush=True,
                     )
@@ -1737,8 +1828,22 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
                 elif not final_p.available:
                     print(f"[scrape:{domain}] discover/hidden product out of stock: {final_p.name} - {final_p.url}", flush=True)
 
+        deadline_exceeded_during_run = deadline_exceeded_during_run or _deadline_exceeded()
+        may_be_incomplete = bool(deadline_exceeded_during_run)
+        if allow_expansion:
+            if discovery_stop_reason in {"deadline", "max_pages", "fetch_error_streak", "no_new_pages_streak", "max_products"}:
+                may_be_incomplete = True
+            elif discovery_stop_reason == "queue_exhausted" and discovery_fetch_errors > 0:
+                may_be_incomplete = True
+
+        run_meta = {
+            "may_be_incomplete": may_be_incomplete,
+            "deadline_exceeded": deadline_exceeded_during_run,
+            "discovery_stop_reason": discovery_stop_reason,
+            "discovery_fetch_errors": discovery_fetch_errors,
+        }
         duration_ms = int((time.perf_counter() - started) * 1000)
-        return DomainRun(domain=domain, ok=True, error=None, duration_ms=duration_ms, products=products)
+        return DomainRun(domain=domain, ok=True, error=None, duration_ms=duration_ms, products=products, meta=run_meta)
     except Exception as e:
         try:
             if "hidden_executor" in locals() and hidden_executor is not None:
@@ -1746,7 +1851,19 @@ def _scrape_target(client: HttpClient, target: str, *, allow_expansion: bool = T
         except Exception:
             pass
         duration_ms = int((time.perf_counter() - started) * 1000)
-        return DomainRun(domain=domain, ok=False, error=f"{type(e).__name__}: {e}", duration_ms=duration_ms, products=[])
+        return DomainRun(
+            domain=domain,
+            ok=False,
+            error=f"{type(e).__name__}: {e}",
+            duration_ms=duration_ms,
+            products=[],
+            meta={
+                "may_be_incomplete": True,
+                "deadline_exceeded": True,
+                "discovery_stop_reason": discovery_stop_reason,
+                "discovery_fetch_errors": discovery_fetch_errors,
+            },
+        )
 
 
 def _dedupe_keep_order(urls: list[str]) -> list[str]:
@@ -1795,6 +1912,7 @@ def _is_hostbill_domain(domain: str, html: str) -> bool:
             "index.php?/cart/",
             "?/cart/",
             "action=add&id=",
+            "cat_id=",
             "name=\"id\"",
             "name='id'",
             "/cart/&step=",
@@ -2196,7 +2314,7 @@ def _should_use_flaresolverr_for_discovery_page(url: str) -> bool:
         q = (p.query or "").lower()
         if "a=add" in q or "pid=" in q:
             return False
-        if "gid=" in q or "fid=" in q:
+        if "gid=" in q or "fid=" in q or "cat_id=" in q:
             return False
         return True
     return False
@@ -2388,11 +2506,16 @@ def _hostbill_product_endpoints(base_url: str, *, seed_urls: list[str] | None = 
     for raw in seed_urls or []:
         abs_url = urljoin(base_url, raw)
         if "action=add" not in abs_url.lower():
+            cat_id = _query_param_int(abs_url, "cat_id")
+            if cat_id is None:
+                continue
+            rp = urlparse(abs_url)
+            sep = "&" if (rp.query or "") else "?"
+            add(f"{abs_url}{sep}action=add&id={{id}}")
             continue
-        if _query_param_int(abs_url, "id") is None:
-            continue
-        templ = re.sub(r"([?&]id=)\d+", r"\1{id}", abs_url, flags=re.IGNORECASE)
-        add(templ)
+        if _query_param_int(abs_url, "id") is not None:
+            templ = re.sub(r"([?&]id=)\d+", r"\1{id}", abs_url, flags=re.IGNORECASE)
+            add(templ)
 
     return out
 
@@ -2416,14 +2539,19 @@ def _hostbill_group_endpoints(base_url: str, *, seed_urls: list[str] | None = No
         add(f"{root}{pref}/cart.php?fid={{fid}}")
         add(f"{root}{pref}/cart?fid={{fid}}")
         add(f"{root}{pref}/index.php?/cart/&fid={{fid}}")
+        add(f"{root}{pref}/cart.php?cat_id={{fid}}")
+        add(f"{root}{pref}/cart?cat_id={{fid}}")
+        add(f"{root}{pref}/index.php?/cart/&cat_id={{fid}}")
 
     for route in _hostbill_route_bases(base_url, seed_urls=seed_urls):
         rp = urlparse(route)
         if (rp.query or "").startswith("/cart/"):
             add(f"{route}&fid={{fid}}")
+            add(f"{route}&cat_id={{fid}}")
         else:
             sep = "&" if rp.query else "?"
             add(f"{route}{sep}fid={{fid}}")
+            add(f"{route}{sep}cat_id={{fid}}")
 
     return out
 
@@ -2459,7 +2587,7 @@ def _query_param_int(url: str, key: str) -> int | None:
     return None
 
 
-_HIDDEN_SCAN_ID_RE = re.compile(r"(?:[?&]|&amp;)(pid|id|product_id|gid|fid)=(\d+)\b", re.IGNORECASE)
+_HIDDEN_SCAN_ID_RE = re.compile(r"(?:[?&]|&amp;)(pid|id|product_id|gid|fid|cat_id)=(\d+)\b", re.IGNORECASE)
 
 
 def _extract_id_candidates_from_text(text: str, *, keys: set[str]) -> set[int]:
@@ -2742,6 +2870,7 @@ def _scan_whmcs_hidden_products(
 
     product_kind = "id" if platform_l == "hostbill" else "pid"
     group_kind = "fid" if platform_l == "hostbill" else "gid"
+    hostbill_group_keys = ("fid", "cat_id") if platform_l == "hostbill" else (group_kind,)
     product_id_match_keys = ("id", "pid", "product_id", "planid")
     product_html_id_keys = (product_kind, "id", "pid", "product_id")
     candidate_id_keys = (product_kind, "id", "pid", "product_id")
@@ -2761,9 +2890,11 @@ def _scan_whmcs_hidden_products(
 
     for u in seed_urls or []:
         abs_u = urljoin(base_url, u)
-        gid = _query_param_int(abs_u, group_kind)
-        if isinstance(gid, int) and gid >= 0:
-            seed_gids.add(gid)
+        for group_key in hostbill_group_keys:
+            gid = _query_param_int(abs_u, group_key)
+            if isinstance(gid, int) and gid >= 0:
+                seed_gids.add(gid)
+                break
 
     def _deadline_exceeded() -> bool:
         return deadline is not None and time.perf_counter() >= deadline
@@ -2837,8 +2968,12 @@ def _scan_whmcs_hidden_products(
                     fallback_signature = page_signature
 
                 id_mentioned = _html_mentions_probe_id(html, cur_id, id_keys=product_html_id_keys) if kind == product_kind else True
-                query_key = product_kind if kind == product_kind else group_kind
-                got = _query_param_int(fetch.url, query_key)
+                query_keys = (product_kind,) if kind == product_kind else hostbill_group_keys
+                got = None
+                for query_key in query_keys:
+                    got = _query_param_int(fetch.url, query_key)
+                    if got is not None:
+                        break
                 if got is not None and got != cur_id:
                     if fallback_redirect_signature is None:
                         fallback_redirect_signature = _redirect_signature(fetch.url)
@@ -3281,6 +3416,11 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
             if len(parts) <= cart_depth:
                 add(abs_url)
             return
+        if path_l.rstrip("/") == "/cart":
+            q_l = (p.query or "").lower()
+            if any(k in q_l for k in ("cat_id=", "fid=", "gid=")):
+                add(abs_url)
+                return
 
         # Category pages under /products/<category>.
         if "/products/" in path_l:
@@ -3317,7 +3457,9 @@ def _discover_candidate_pages(html: str, *, base_url: str, domain: str) -> list[
         onclick = str(el.get("onclick") or "")
         for m in re.finditer(r"""['"]([^'"]+)['"]""", onclick):
             candidate = m.group(1).strip()
-            if candidate.startswith(("http://", "https://", "/")) or any(k in candidate.lower() for k in ("cart", "store", "products", "pricing", "gid=", "fid=")):
+            if candidate.startswith(("http://", "https://", "/")) or any(
+                k in candidate.lower() for k in ("cart", "store", "products", "pricing", "gid=", "fid=", "cat_id=")
+            ):
                 consider_href(candidate)
 
     # If we didn't find any obvious listing pages but this looks like WHMCS, try common entry points.
